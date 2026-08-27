@@ -1,17 +1,14 @@
-# Star Navigator v0.6
+# Star Navigator v0.7
 
-Guided-navigation build for Star of the Seas, personalized around Cabin 7456.
+Interactive iPhone-first cruise navigator for Royal Caribbean's Star of the Seas, personalized around Cabin 7456.
 
-## New in v0.6
-- One-step-at-a-time guided navigation
-- Current-segment mini-map
-- Persistent Forward/Aft ship compass
-- Deck-change screen
-- Previous / Next / Arrived controls
-- “I’m confused” recovery panel using visible landmarks
-- Nearby suggestions on arrival for AquaDome and Basecamp
+## v0.7
+- Explore is now interactive rather than static.
+- Tap a deck to see dining, entertainment, and other key places.
+- Tap a venue for what it is, food/experience details, included vs specialty indicator, why remember it, nearby places, and Take Me There.
+- Venue cards feed into the existing guided navigation flow.
+- Adds current Royal Caribbean venue information for the captured deck areas.
+- Uses conservative route cores and clearly labels the data as subject to sailing-specific changes.
 
-Maps are simplified schematics based on the deck screenshots supplied during the project and are not to scale. Always follow onboard signage and crew instructions.
-
-
-v0.6 adds flexible From/To routing. Change your current location at any time during navigation and the guided route recalculates; change the destination without leaving the route. Take Me Home uses the same current-location model.
+## Hosting
+This is designed to run from GitHub Pages. Keep all files in the repository root.
