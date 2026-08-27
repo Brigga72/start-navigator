@@ -17,7 +17,7 @@
     <header class="topbar">
       <div>
         <div class="eyebrow">ROYAL CARIBBEAN</div>
-        <h1>Star Navigator <span>v0.7</span></h1>
+        <h1>Star Navigator <span>v0.7.1</span></h1>
         <p class="sub">Star of the Seas · Home: Cabin 7456</p>
       </div>
       <button id="infoBtn" class="icon-btn" aria-label="About">i</button>
@@ -59,15 +59,16 @@
       <div id="shipCompass" class="ship-compass" aria-label="Ship orientation"><div class="compass-forward">FORWARD</div><div class="compass-hull"><span class="compass-core forward-core"></span><span class="compass-core aft-core"></span><span id="compassArrow" class="compass-arrow">↑</span></div><div class="compass-aft">AFT</div><div id="compassHint" class="compass-hint">Ship orientation</div></div>
       <button class="back-btn" data-go="home">‹ Back</button>
       <div id="routeContent"></div>
-      <div id="mapOverlay" class="map-overlay" aria-hidden="true">
-        <div class="map-sheet">
-          <div class="map-sheet-head"><div><div class="eyebrow">DECK MAP</div><h3 id="overlayTitle">Star Navigator</h3></div><button id="closeMap" class="icon-btn" aria-label="Close map">×</button></div>
-          <div id="overlayMap" class="overlay-map"></div>
-          <div class="map-legend"><span><i class="legend-dot you"></i>You</span><span><i class="legend-dot dest"></i>Destination</span><span><i class="legend-dot lift"></i>Elevator / stairs</span></div>
-          <div class="map-disclaimer">Schematic navigation map — not to scale. Ship signage and crew instructions take precedence.</div>
-        </div>
-      </div>
     </section>
+
+    <div id="mapOverlay" class="map-overlay" aria-hidden="true">
+      <div class="map-sheet">
+        <div class="map-sheet-head"><div><div class="eyebrow">DECK MAP</div><h3 id="overlayTitle">Star Navigator</h3></div><button id="closeMap" class="icon-btn" aria-label="Close map">×</button></div>
+        <div id="overlayMap" class="overlay-map"></div>
+        <div class="map-legend"><span><i class="legend-dot you"></i>You</span><span><i class="legend-dot dest"></i>Destination</span><span><i class="legend-dot lift"></i>Elevator / stairs</span></div>
+        <div class="map-disclaimer">Schematic navigation map — not to scale. Ship signage and crew instructions take precedence.</div>
+      </div>
+    </div>
 
     <section id="exploreView" class="view">
       <button class="back-btn" data-go="home">‹ Back</button>
@@ -83,7 +84,7 @@
 
     <section id="infoView" class="view">
       <button class="back-btn" data-go="home">‹ Back</button>
-      <div class="page-title"><div class="eyebrow">ABOUT</div><h2>Star Navigator</h2><p>v0.7 adds interactive Explore with deck-by-deck venue details, food descriptions, cost type, and Take Me There navigation. v0.6 combines visual mini-maps, guided routes, and flexible From/To location control.</p></div>
+      <div class="page-title"><div class="eyebrow">ABOUT</div><h2>Star Navigator</h2><p>v0.7.1 fixes Explore overlays and adds interactive Explore with deck-by-deck venue details, food descriptions, cost type, and Take Me There navigation. v0.6 combines visual mini-maps, guided routes, and flexible From/To location control.</p></div>
       <div class="info-card">
         <h3>What v0.3 does</h3>
         <p>Adds a visual mini-map to the routing experience, with Cabin 7456 shown on Deck 7, a destination map on the correct deck, elevator/stair transitions, forward/aft orientation, and a full-screen map view. Johnny Rockets remains flagged for verification because current Star of the Seas venue lists do not show it onboard.</p>

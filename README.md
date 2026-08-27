@@ -1,4 +1,4 @@
-# Star Navigator v0.7
+# Star Navigator v0.7.1
 
 Interactive iPhone-first cruise navigator for Royal Caribbean's Star of the Seas, personalized around Cabin 7456.
 
@@ -12,3 +12,10 @@ Interactive iPhone-first cruise navigator for Royal Caribbean's Star of the Seas
 
 ## Hosting
 This is designed to run from GitHub Pages. Keep all files in the repository root.
+
+
+## v0.7.1
+- Fixed Explore deck cards so their detail overlay is visible from the Explore view.
+- Moved the shared map overlay outside the hidden route view.
+- Updated service worker cache and included explore-v07.js for offline support.
+- Added focus styling so tappable Explore cards are visibly interactive.
