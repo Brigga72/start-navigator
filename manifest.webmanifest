@@ -1,10 +1,11 @@
 {
-  "name": "Star Navigator",
+  "name": "Cruise Navigator",
   "short_name": "Star Nav",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0071ce",
+  "scope":"./",
   "description": "Offline-first personal navigation companion for Star of the Seas, centered on Cabin 7456.",
   "icons": [
     {"src":"icon-192.png","sizes":"192x192","type":"image/png"},

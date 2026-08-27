@@ -1,21 +1,17 @@
-# Star Navigator v0.7.1
+# Star Navigator v0.8.1.0
 
-Interactive iPhone-first cruise navigator for Royal Caribbean's Star of the Seas, personalized around Cabin 7456.
+Personal iPhone-first cruise navigation companion for Royal Caribbean's Star of the Seas, centered on Cabin 7456.
 
-## v0.7
-- Explore is now interactive rather than static.
-- Tap a deck to see dining, entertainment, and other key places.
-- Tap a venue for what it is, food/experience details, included vs specialty indicator, why remember it, nearby places, and Take Me There.
-- Venue cards feed into the existing guided navigation flow.
-- Adds current Royal Caribbean venue information for the captured deck areas.
-- Uses conservative route cores and clearly labels the data as subject to sailing-specific changes.
+## v0.8.0
+- Explore is bundled into the main application script.
+- Explore -> Deck -> Venue -> Details -> Take Me There.
+- Personal Must-Do selections persist in local storage.
+- Current starting location persists.
+- Version/update detection added.
+- Service worker uses a versioned cache and network-first navigation/version checks.
+- Guided navigation, mini-maps, Forward/Aft ship compass, flexible From/To, and Take Me Home retained.
 
-## Hosting
-This is designed to run from GitHub Pages. Keep all files in the repository root.
+The map diagrams are simplified schematics based on deck references supplied during development and are not to scale. Follow ship signage and crew instructions onboard.
 
 
-## v0.7.1
-- Fixed Explore deck cards so their detail overlay is visible from the Explore view.
-- Moved the shared map overlay outside the hidden route view.
-- Updated service worker cache and included explore-v07.js for offline support.
-- Added focus styling so tappable Explore cards are visibly interactive.
+v0.8.1 fixes the Explore deck selector, adds a general deck location map to each Explore detail view, and keeps the venue details connected to Take Me There.
