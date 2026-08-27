@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0071ce">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Star Navigator">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>Star Navigator</title>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">ROYAL CARIBBEAN</div>
+        <h1>Star Navigator <span>v0.6</span></h1>
+        <p class="sub">Star of the Seas · Home: Cabin 7456</p>
+      </div>
+      <button id="infoBtn" class="icon-btn" aria-label="About">i</button>
+    </header>
+
+    <section id="homeView" class="view active">
+      <div class="home-card">
+        <div class="home-icon">⌂</div>
+        <div>
+          <div class="small-label">YOUR HOME</div>
+          <div class="home-room">Cabin 7456</div>
+          <div class="home-meta">Deck 7 · Forward / center</div>
+        </div>
+      </div>
+
+      <button id="takeHome" class="home-action">⌂ Take Me Home</button>
+
+      <div class="section-head"><h2>Where are you going?</h2><span id="offlineBadge" class="badge">OFFLINE READY</span></div>
+      <div class="search-wrap">
+        <input id="searchInput" type="search" placeholder="Search dining, shows, pools..." autocomplete="off">
+      </div>
+
+      <div id="categoryGrid" class="category-grid"></div>
+      <div id="destinationList" class="destination-list hidden"></div>
+
+      <div class="feature-grid">
+        <button class="feature-card" data-view="explore">
+          <strong>🗺 Explore</strong>
+          <span>Learn the ship deck by deck.</span>
+        </button>
+        <button class="feature-card" data-view="learn">
+          <strong>🎓 Learn My Ship</strong>
+          <span>Practice the landmarks before sailing.</span>
+        </button>
+      </div>
+    </section>
+
+    <section id="routeView" class="view">
+      <div id="shipCompass" class="ship-compass" aria-label="Ship orientation"><div class="compass-forward">FORWARD</div><div class="compass-hull"><span class="compass-core forward-core"></span><span class="compass-core aft-core"></span><span id="compassArrow" class="compass-arrow">↑</span></div><div class="compass-aft">AFT</div><div id="compassHint" class="compass-hint">Ship orientation</div></div>
+      <button class="back-btn" data-go="home">‹ Back</button>
+      <div id="routeContent"></div>
+      <div id="mapOverlay" class="map-overlay" aria-hidden="true">
+        <div class="map-sheet">
+          <div class="map-sheet-head"><div><div class="eyebrow">DECK MAP</div><h3 id="overlayTitle">Star Navigator</h3></div><button id="closeMap" class="icon-btn" aria-label="Close map">×</button></div>
+          <div id="overlayMap" class="overlay-map"></div>
+          <div class="map-legend"><span><i class="legend-dot you"></i>You</span><span><i class="legend-dot dest"></i>Destination</span><span><i class="legend-dot lift"></i>Elevator / stairs</span></div>
+          <div class="map-disclaimer">Schematic navigation map — not to scale. Ship signage and crew instructions take precedence.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="exploreView" class="view">
+      <button class="back-btn" data-go="home">‹ Back</button>
+      <div class="page-title"><div class="eyebrow">ORIENTATION</div><h2>Explore the Ship</h2><p>Use deck neighborhoods to build a mental map before boarding.</p></div>
+      <div id="deckCards" class="deck-cards"></div>
+    </section>
+
+    <section id="learnView" class="view">
+      <button class="back-btn" data-go="home">‹ Back</button>
+      <div class="page-title"><div class="eyebrow">TRAINING MODE</div><h2>Learn My Ship</h2><p>A few quick challenges to make the ship easier to remember.</p></div>
+      <div id="lessonCard" class="lesson-card"></div>
+    </section>
+
+    <section id="infoView" class="view">
+      <button class="back-btn" data-go="home">‹ Back</button>
+      <div class="page-title"><div class="eyebrow">ABOUT</div><h2>Star Navigator</h2><p>v0.6 combines visual mini-maps, guided routes, and flexible From/To location control.</p></div>
+      <div class="info-card">
+        <h3>What v0.3 does</h3>
+        <p>Adds a visual mini-map to the routing experience, with Cabin 7456 shown on Deck 7, a destination map on the correct deck, elevator/stair transitions, forward/aft orientation, and a full-screen map view. Johnny Rockets remains flagged for verification because current Star of the Seas venue lists do not show it onboard.</p>
+        <h3>Data confidence</h3>
+        <p><strong>Verified:</strong> Cabin 7456 is Deck 7, Category Q2 Interior Plus, in the forward/center section. Venue decks and neighborhoods come from Royal Caribbean deck-plan information and supporting ship references.</p>
+        <p class="warning">Turn-by-turn corridor instructions are intentionally conservative in v0.1. Exact onboard signage and temporary venue changes should always win.</p>
+        <h3>Sources</h3>
+        <p class="source">Royal Caribbean · Star of the Seas Deck Plans<br>https://www.royalcaribbean.com/cruise-ships/star-of-the-seas/deck-plans</p>
+        <p class="source">Royal Caribbean · Star of the Seas Deck Plan PDF<br>https://www.royalcaribbean.com/content/dam/royal/ships/deckplans-hub/Star_2296_v2025.pdf</p>
+        <p class="source">iCruise · Cabin 7456 details<br>https://www.icruise.com/cabins/royal-caribbean-cruises-star-of-the-seas-cabin-7456.html</p>
+      </div>
+    </section>
+
+    <nav class="tabbar" aria-label="Primary navigation">
+      <button class="tab active" data-view="home"><span>⌂</span>Home</button>
+      <button class="tab" data-view="explore"><span>🗺</span>Explore</button>
+      <button class="tab" data-view="learn"><span>🎓</span>Learn</button>
+    </nav>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
