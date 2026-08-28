@@ -44,6 +44,144 @@ const lessons=[
 ];
 
 function el(id){return document.getElementById(id)}
+
+/* v0.10 My Schedule: persistent personal cruise itinerary */
+const SCHEDULE_KEY = 'cruise-nav-schedule-v1';
+const TRIP_DAY_KEY = 'cruise-nav-trip-day-v1';
+const SCHEDULE_EARLY_DEFAULT = {show:20,dining:10,excursion:30,activity:15,other:15};
+let scheduleEntries = [];
+let selectedTripDay = 1;
+let scheduleFormState = null;
+
+function loadSchedule(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(SCHEDULE_KEY)||'[]');
+    scheduleEntries=Array.isArray(raw)?raw:[];
+  }catch(_){scheduleEntries=[]}
+  try{selectedTripDay=Math.max(1,Math.min(14,Number(localStorage.getItem(TRIP_DAY_KEY)||1)));}catch(_){selectedTripDay=1}
+}
+function saveSchedule(){try{localStorage.setItem(SCHEDULE_KEY,JSON.stringify(scheduleEntries));}catch(_) {}}
+function saveTripDay(){try{localStorage.setItem(TRIP_DAY_KEY,String(selectedTripDay));}catch(_) {}}
+function scheduleShowOptions(){
+  return exploreVenues.filter(v=>v.kind==='Show'||v.kind==='Entertainment').filter((v,i,a)=>a.findIndex(x=>x.id===v.id)===i)
+    .map(v=>({id:v.id,name:v.name,icon:v.icon,venueName:v.kind==='Show'?({backfuture:'Royal Theater',torque:'AquaTheater',sol:'Absolute Zero',pirates:'AquaTheater'}[v.id]||v.area):v.name,deck:v.deckLabel||v.deck}));
+}
+function scheduleKnownPlaces(){
+  const map=new Map();
+  exploreVenues.forEach(v=>map.set(v.id,{id:v.id,name:v.name,icon:v.icon,venueName:v.name,deck:v.deckLabel||v.deck,routeId:v.id}));
+  destinations.forEach(d=>{if(!map.has(d.id))map.set(d.id,{id:d.id,name:d.name,icon:d.icon,venueName:d.name,deck:d.deck,routeId:d.id})});
+  return [...map.values()];
+}
+function scheduleSort(a,b){
+  const ad=Number(a.day)||99,bd=Number(b.day)||99;
+  if(ad!==bd)return ad-bd;
+  return String(a.time||'99:99').localeCompare(String(b.time||'99:99'));
+}
+function scheduleTimeLabel(t){
+  if(!t)return 'Time not set';
+  const [hh,mm]=String(t).split(':').map(Number); if(Number.isNaN(hh)||Number.isNaN(mm))return t;
+  const suffix=hh>=12?'PM':'AM'; const h=hh%12||12; return `${h}:${String(mm).padStart(2,'0')} ${suffix}`;
+}
+function scheduleDayLabel(day){return `Day ${Number(day)}`}
+function scheduleLeaveBy(entry){
+  if(!entry.time)return '';
+  const [h,m]=entry.time.split(':').map(Number); if(Number.isNaN(h)||Number.isNaN(m))return '';
+  const mins=Math.max(0,Number(entry.early)||15); const d=new Date(2020,0,1,h,m); d.setMinutes(d.getMinutes()-mins);
+  return d.toTimeString().slice(0,5);
+}
+function scheduleEventIcon(type){return ({show:'🎭',dining:'🍴',excursion:'🚌',activity:'🎢',other:'📌'})[type]||'📌'}
+function scheduleTypeLabel(type){return ({show:'SHOW',dining:'DINING',excursion:'EXCURSION',activity:'ACTIVITY',other:'OTHER'})[type]||'EVENT'}
+function scheduleEntryHtml(entry,{compact=false}={}){
+  const leave=scheduleLeaveBy(entry);
+  const routeText=entry.routeId?'🧭 Take Me There':'';
+  return `<div class="schedule-item ${entry.attended?'attended':''}">
+    <div class="schedule-icon">${scheduleEventIcon(entry.type)}</div>
+    <div class="schedule-main">
+      <div class="schedule-top"><div><span class="schedule-type">${scheduleTypeLabel(entry.type)} · ${scheduleDayLabel(entry.day)}</span><h3>${esc(entry.name)}</h3></div><button class="schedule-menu" data-schedule-edit="${esc(entry.id)}" aria-label="Edit ${esc(entry.name)}">•••</button></div>
+      <div class="schedule-time">${scheduleTimeLabel(entry.time)}${entry.venueName?` · 📍 ${esc(entry.venueName)}`:''}</div>
+      ${leave?`<div class="schedule-leave">Leave about <strong>${scheduleTimeLabel(leave)}</strong> <span>(${Number(entry.early)||15} min early)</span></div>`:''}
+      ${entry.notes&&!compact?`<div class="schedule-notes">${esc(entry.notes)}</div>`:''}
+      <div class="schedule-actions">
+        ${entry.routeId?`<button class="schedule-action primary" data-schedule-route="${esc(entry.routeId)}">${routeText}</button>`:''}
+        <button class="schedule-action" data-schedule-attend="${esc(entry.id)}">${entry.attended?'✓ Attended':'Mark Attended'}</button>
+      </div>
+    </div>
+  </div>`;
+}
+function renderSchedulePreview(){
+  const host=el('schedulePreview'); if(!host)return;
+  const entries=[...scheduleEntries].sort(scheduleSort);
+  if(!entries.length){
+    host.innerHTML=`<button class="schedule-preview-empty" data-view="schedule"><span class="schedule-preview-icon">📅</span><span><strong>My Schedule</strong><small>Add your show reservations and other plans here.</small></span><span>›</span></button>`;
+    return;
+  }
+  const next=entries.find(x=>!x.attended && Number(x.day)>=Number(selectedTripDay))||entries[0];
+  host.innerHTML=`<div class="schedule-preview-card"><div class="schedule-preview-head"><div><div class="eyebrow">UP NEXT · ${scheduleDayLabel(next.day)}</div><h3>${esc(next.name)}</h3><p>${scheduleTimeLabel(next.time)}${next.venueName?' · '+esc(next.venueName):''}</p></div><button class="small-link-btn" data-view="schedule">View all</button></div>${scheduleLeaveBy(next)?`<div class="schedule-preview-leave">Leave around <strong>${scheduleTimeLabel(scheduleLeaveBy(next))}</strong></div>`:''}<button class="schedule-preview-route" data-schedule-route="${esc(next.routeId||'')}" ${next.routeId?'':'disabled'}>${next.routeId?'🧭 Take Me There':'📍 No mapped route yet'}</button></div>`;
+}
+function renderSchedule(){
+  const host=el('scheduleContent'); if(!host)return;
+  const sorted=[...scheduleEntries].sort(scheduleSort);
+  const byDay=new Map();
+  sorted.forEach(e=>{if(!byDay.has(Number(e.day)))byDay.set(Number(e.day),[]);byDay.get(Number(e.day)).push(e)});
+  const dayOptions=Array.from({length:14},(_,i)=>`<option value="${i+1}" ${i+1===selectedTripDay?'selected':''}>Day ${i+1}</option>`).join('');
+  const days=Array.from({length:14},(_,i)=>i+1).filter(d=>byDay.has(d));
+  const showEmpty=`<div class="schedule-empty"><div class="schedule-empty-icon">📅</div><h3>Your schedule is empty</h3><p>Add a show reservation to start building your personal cruise timeline.</p><button class="next-action" data-schedule-add="show">+ Add Show Reservation</button><button class="secondary-action" data-schedule-add="other">+ Add Other Event</button></div>`;
+  host.innerHTML=`<div class="schedule-toolbar"><label><span>CURRENT TRIP DAY</span><select id="tripDaySelect">${dayOptions}</select></label><div class="schedule-toolbar-actions"><button class="schedule-add-btn" data-schedule-add="show">🎭 Add Show</button><button class="schedule-add-btn alt" data-schedule-add="other">+ Add Event</button></div></div>${!sorted.length?showEmpty:`<div class="schedule-next-card"><div><div class="eyebrow">NEXT UP</div><strong>${esc((sorted.find(x=>!x.attended&&Number(x.day)>=selectedTripDay)||sorted[0]).name)}</strong><span>${scheduleDayLabel((sorted.find(x=>!x.attended&&Number(x.day)>=selectedTripDay)||sorted[0]).day)} · ${scheduleTimeLabel((sorted.find(x=>!x.attended&&Number(x.day)>=selectedTripDay)||sorted[0]).time)}</span></div><button class="schedule-jump" data-schedule-current>Jump to Day ${selectedTripDay}</button></div>${days.map(day=>`<section class="schedule-day"><div class="schedule-day-head"><h3>${scheduleDayLabel(day)}</h3><button class="schedule-add-inline" data-schedule-add-day="${day}">+ Add</button></div>${byDay.get(day).map(e=>scheduleEntryHtml(e)).join('')}</section>`).join('')}`}`;
+  const sel=el('tripDaySelect'); if(sel)sel.onchange=()=>{selectedTripDay=Number(sel.value);saveTripDay();renderSchedule();renderSchedulePreview()};
+}
+function scheduleVenueOptions(selected=''){
+  const places=scheduleKnownPlaces();
+  return [`<option value="">Choose a mapped venue…</option>`, ...places.map(p=>`<option value="${esc(p.id)}" ${p.id===selected?'selected':''}>${esc(p.icon||'📍')} ${esc(p.name)} · Deck ${esc(p.deck||'?')}</option>`)].join('');
+}
+function openScheduleEditor(mode='other', id=null, dayOverride=null){
+  const existing=id?scheduleEntries.find(x=>x.id===id):null;
+  const type=existing?.type || (mode==='show'?'show':'other');
+  const defaults=SCHEDULE_EARLY_DEFAULT[type]||15;
+  const showOpts=scheduleShowOptions();
+  const nameDefault=existing?.name||'';
+  const selectedVenue=existing?.venueId||'';
+  el('overlayTitle').textContent=existing?'Edit Schedule Item':'Add to My Schedule';
+  el('overlayMap').innerHTML=`<form id="scheduleForm" class="schedule-form">
+    <div class="schedule-form-grid two"><label><span>TYPE</span><select id="sfType"><option value="show" ${type==='show'?'selected':''}>🎭 Show</option><option value="dining" ${type==='dining'?'selected':''}>🍴 Dining</option><option value="excursion" ${type==='excursion'?'selected':''}>🚌 Excursion</option><option value="activity" ${type==='activity'?'selected':''}>🎢 Activity</option><option value="other" ${type==='other'?'selected':''}>📌 Other</option></select></label><label><span>DAY</span><select id="sfDay">${Array.from({length:14},(_,i)=>`<option value="${i+1}" ${(Number(existing?.day||dayOverride||selectedTripDay)===i+1)?'selected':''}>Day ${i+1}</option>`).join('')}</select></label></div>
+    <label id="showPickerWrap"><span>SHOW</span><select id="sfShow"><option value="">Choose a show…</option>${showOpts.map(v=>`<option value="${esc(v.id)}" ${existing?.routeId===v.id?'selected':''}>${esc(v.icon)} ${esc(v.name)}</option>`).join('')}</select></label>
+    <label><span>EVENT / RESERVATION NAME</span><input id="sfName" type="text" maxlength="80" placeholder="Example: Back to the Future" value="${esc(nameDefault)}" required></label>
+    <label><span>VENUE / LOCATION</span><select id="sfVenue">${scheduleVenueOptions(selectedVenue)}</select></label>
+    <div class="schedule-form-grid two"><label><span>TIME</span><input id="sfTime" type="time" value="${esc(existing?.time||'')}" required></label><label><span>ARRIVE EARLY</span><select id="sfEarly">${[5,10,15,20,30,45,60].map(n=>`<option value="${n}" ${(Number(existing?.early||defaults)===n)?'selected':''}>${n} min</option>`).join('')}</select></label></div>
+    <label><span>NOTES</span><textarea id="sfNotes" rows="3" maxlength="220" placeholder="Reservation details, seat notes, who you are meeting, etc.">${esc(existing?.notes||'')}</textarea></label>
+    <div class="schedule-form-actions"><button type="button" class="secondary-venue-btn" id="scheduleCancel">Cancel</button><button type="submit" class="primary-venue-btn">${existing?'Save Changes':'Add to Schedule'}</button></div>
+    ${existing?`<button type="button" class="danger-btn" id="scheduleDelete">Delete this item</button>`:''}
+  </form>`;
+  el('mapOverlay').classList.add('show');el('mapOverlay').setAttribute('aria-hidden','false');
+  const typeSel=el('sfType'),showWrap=el('showPickerWrap'),showSel=el('sfShow'),nameInput=el('sfName'),venueSel=el('sfVenue');
+  function syncShow(){
+    const isShow=typeSel.value==='show'; showWrap.style.display=isShow?'block':'none';
+    if(isShow && showSel.value){
+      const v=showOpts.find(x=>x.id===showSel.value); if(v){nameInput.value=v.name; const match=[...venueSel.options].find(o=>o.textContent.includes(v.venueName)); if(match)venueSel.value=match.value;}
+    }
+  }
+  typeSel.onchange=()=>{syncShow();if(typeSel.value!=='show'&&!existing){el('sfEarly').value=SCHEDULE_EARLY_DEFAULT[typeSel.value]||15}};
+  showSel.onchange=syncShow;
+  el('scheduleCancel').onclick=closeMap;
+  syncShow();
+  el('scheduleForm').onsubmit=(evt)=>{evt.preventDefault();
+    const venue=locationById(venueSel.value) || scheduleKnownPlaces().find(x=>x.id===venueSel.value);
+    const knownVenue=scheduleKnownPlaces().find(x=>x.id===venueSel.value);
+    const selectedShow=showOpts.find(x=>x.id===showSel.value);
+    const routeId=selectedShow?selectedShow.id:(knownVenue?.routeId||'');
+    const venueName=selectedShow?selectedShow.venueName:(knownVenue?.name||'');
+    const entry={id:existing?.id||('sched-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7)),type:typeSel.value,day:Number(el('sfDay').value),name:nameInput.value.trim(),venueId:venueSel.value,time:el('sfTime').value,early:Number(el('sfEarly').value),notes:el('sfNotes').value.trim(),routeId,venueName,attended:existing?.attended||false};
+    if(!entry.name){nameInput.focus();return;}
+    if(existing) scheduleEntries=scheduleEntries.map(x=>x.id===existing.id?entry:x); else scheduleEntries.push(entry);
+    saveSchedule();closeMap();renderSchedule();renderSchedulePreview();navigate('schedule');
+  };
+  if(existing)el('scheduleDelete').onclick=()=>{if(confirm('Delete this schedule item?')){scheduleEntries=scheduleEntries.filter(x=>x.id!==existing.id);saveSchedule();closeMap();renderSchedule();renderSchedulePreview();}};
+}
+function jumpToScheduleDay(){
+  const host=el('scheduleContent');const section=[...host.querySelectorAll('.schedule-day')].find(x=>x.querySelector('h3')?.textContent===`Day ${selectedTripDay}`);
+  if(section)section.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+loadSchedule();
 function renderCategories(){el('categoryGrid').innerHTML=categories.map(c=>`<button class="cat" data-cat="${c.id}"><strong>${c.icon} ${c.title}</strong><span>${c.note}</span></button>`).join('')}
 function row(d){return `<button class="dest-row" data-dest="${d.id}"><span class="dest-icon">${d.icon}</span><span class="dest-main"><span class="dest-name">${d.name}${d.mustdo?' <b class="must-pill">MUST-DO</b>':''}</span><span class="dest-meta">Deck ${d.deck} · ${d.area}</span></span><span class="dest-arrow">›</span></button>`}
 function renderSearch(list, extra=''){el('destinationList').innerHTML=list.map(row).join('')+extra; el('destinationList').classList.toggle('hidden',list.length===0&&!extra)}
@@ -198,6 +336,16 @@ document.addEventListener('click',e=>{
   const go=e.target.closest('[data-go]');if(go){navigate(go.dataset.go);return}
   const open=e.target.closest('[data-openmap]');if(open){openMapFor(open.dataset.openmap);return}
 });
+
+document.addEventListener('click',e=>{
+  const add=e.target.closest('[data-schedule-add]'); if(add){closeMap();openScheduleEditor(add.dataset.scheduleAdd);return;}
+  const addDay=e.target.closest('[data-schedule-add-day]'); if(addDay){openScheduleEditor('other',null,Number(addDay.dataset.scheduleAddDay));return;}
+  const edit=e.target.closest('[data-schedule-edit]'); if(edit){openScheduleEditor('other',edit.dataset.scheduleEdit);return;}
+  const route=e.target.closest('[data-schedule-route]'); if(route && route.dataset.scheduleRoute){closeMap();showRoute(route.dataset.scheduleRoute);return;}
+  const attend=e.target.closest('[data-schedule-attend]'); if(attend){const item=scheduleEntries.find(x=>x.id===attend.dataset.scheduleAttend);if(item){item.attended=!item.attended;saveSchedule();renderSchedule();renderSchedulePreview();}return;}
+  if(e.target.closest('[data-schedule-current]')){jumpToScheduleDay();return;}
+});
+
 el('searchInput').addEventListener('input',e=>{const q=e.target.value.toLowerCase().trim();if(!q){renderSearch([]);return}renderSearch(destinations.filter(d=>(d.name+' '+d.area+' '+d.keywords).toLowerCase().includes(q)))});
 function renderHomeRoute(){
   const from=locationById(currentLocationId);
@@ -253,7 +401,7 @@ el('takeHome').addEventListener('click',()=>{
 el('infoBtn').onclick=()=>navigate('info');
 
 // v0.8: persistent local state + update detection
-const BUILD_VERSION = '0.9.5';
+const BUILD_VERSION = '0.10.0';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
@@ -559,5 +707,7 @@ function openCocoRoute(id){const p=cocoPlaces.find(x=>x.id===id);if(!p)return;el
 function openCocoPurchases(){el('overlayTitle').textContent='My Purchases';const rows=[['hideaway','Hideaway Beach Day Pass','Adults-only neighborhood + included dining'],['thrill','Thrill Waterpark','Separate admission'],['cocobeach','Coco Beach Club','Separate admission'],['beverage','Beverage Package','Applies at CocoCay bars when eligible']];el('overlayMap').innerHTML=`<div><p class="deck-overview-note">Turn on anything you purchase later. Cost labels throughout Island Mode will update for you.</p>${rows.map(([k,n,d])=>`<div class="purchase-row"><span><strong>${n}</strong><small>${d}</small></span><button class="purchase-toggle ${cocoState[k]?'on':''}" data-purchase="${k}">${cocoState[k]?'✓ SAVED':'NOT ADDED'}</button></div>`).join('')}</div>`;el('mapOverlay').classList.add('show');el('mapOverlay').setAttribute('aria-hidden','false');}
 function openPassPlan(){el('overlayTitle').textContent='Make the Most of My Pass';el('overlayMap').innerHTML=`<div class="access-card"><span class="access-badge">HIDEAWAY BEACH</span><h3>A flexible day, not a schedule</h3><p>Use this as a suggested flow and change it however you like.</p></div><div class="pass-itinerary"><div class="pass-step"><div><strong>Enter + get oriented</strong><small>Scan your SeaPass, find lockers/towel exchange if needed, then choose your chairs or beach base.</small></div></div><div class="pass-step"><div><strong>Hideaway Pool + swim-up bar</strong><small>See the infinity pool and DJ area early. Drinks are separate unless covered by your beverage package.</small></div></div><div class="pass-step"><div><strong>Lunch at Hideaway Hut</strong><small>Included with your pass. Coconut shrimp, burgers, chicken sandwiches, salads and more.</small></div></div><div class="pass-step"><div><strong>Beach + in-water hammocks</strong><small>Use the included loungers, umbrellas and in-water relaxation areas.</small></div></div><div class="pass-step"><div><strong>On the Rocks</strong><small>Stop for the sweeping view and live-music atmosphere. Beverage charges depend on your package.</small></div></div><div class="pass-step"><div><strong>Slice of Paradise</strong><small>Grab an included pizza before you leave or whenever you want another bite.</small></div></div></div><div class="island-map-card">${cocoMapSVG('hideaway')}</div>`;el('mapOverlay').classList.add('show');el('mapOverlay').setAttribute('aria-hidden','false');}
 renderCocoCay();
+renderSchedule();
+renderSchedulePreview();
 el('cocoCayHome').onclick=()=>navigate('cococay');
 document.addEventListener('click',e=>{const p=e.target.closest('[data-coco-place]');if(p){openCocoPlace(p.dataset.cocoPlace);return}const r=e.target.closest('[data-coco-route]');if(r){openCocoRoute(r.dataset.cocoRoute);return}const a=e.target.closest('[data-coco-action]');if(a){a.dataset.cocoAction==='pass'?openPassPlan():openCocoPurchases();return}const t=e.target.closest('[data-purchase]');if(t){const k=t.dataset.purchase;if(k==='hideaway')return;cocoState[k]=!cocoState[k];openCocoPurchases();renderCocoCay();return}if(e.target.closest('[data-coco-back]')){closeMap();navigate('cococay');}});

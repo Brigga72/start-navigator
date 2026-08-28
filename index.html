@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Cruise Navigator">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=093">
+  <link rel="stylesheet" href="styles.css?v=010">
   <title>Cruise Navigator</title>
 </head>
 <body>
@@ -42,10 +42,15 @@
         <input id="searchInput" type="search" placeholder="Search dining, shows, pools..." autocomplete="off">
       </div>
 
+      <div id="schedulePreview" class="schedule-preview"></div>
       <div id="categoryGrid" class="category-grid"></div>
       <div id="destinationList" class="destination-list hidden"></div>
 
       <div class="feature-grid">
+        <button class="feature-card" data-view="schedule">
+          <strong>📅 My Schedule</strong>
+          <span>Reservations, showtimes & leave-by reminders.</span>
+        </button>
         <button class="feature-card" data-view="explore">
           <strong>🗺 Explore</strong>
           <span>Learn the ship deck by deck.</span>
@@ -55,6 +60,12 @@
           <span>Practice the landmarks before sailing.</span>
         </button>
       </div>
+    </section>
+
+    <section id="scheduleView" class="view">
+      <button class="back-btn" data-go="home">‹ Back</button>
+      <div class="page-title"><div class="eyebrow">MY CRUISE</div><h2>My Schedule</h2><p>Enter shows, dining reservations, excursions, activities or anything else you want to remember.</p></div>
+      <div id="scheduleContent"></div>
     </section>
 
     <section id="cococayView" class="view">
@@ -107,11 +118,12 @@
 
     <nav class="tabbar" aria-label="Primary navigation">
       <button class="tab active" data-view="home"><span>⌂</span>Home</button>
+      <button class="tab" data-view="schedule"><span>📅</span>Schedule</button>
       <button class="tab" data-view="cococay"><span>🏝️</span>CocoCay</button>
       <button class="tab" data-view="explore"><span>🗺</span>Ship</button>
       <button class="tab" data-view="learn"><span>🎓</span>Learn</button>
     </nav>
   </main>
-  <script src="app.js?v=093"></script>
+  <script src="app.js?v=010"></script>
 </body>
 </html>
