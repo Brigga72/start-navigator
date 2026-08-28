@@ -253,7 +253,7 @@ el('takeHome').addEventListener('click',()=>{
 el('infoBtn').onclick=()=>navigate('info');
 
 // v0.8: persistent local state + update detection
-const BUILD_VERSION = '0.9.3';
+const BUILD_VERSION = '0.9.4';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v091';
 const LOCATION_KEY = 'star-nav-location-v091';
@@ -298,7 +298,23 @@ function ensureUpdateBanner(){
   document.body.prepend(b);
   document.getElementById('updateNowBtn').onclick=hardRefreshToLatest;
 }
+function normalizeVersion(v){
+  const m=String(v||'').trim().replace(/^v/i,'').match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:[-+].*)?$/);
+  return m ? [Number(m[1]||0),Number(m[2]||0),Number(m[3]||0)] : null;
+}
+function compareVersions(a,b){
+  const A=normalizeVersion(a), B=normalizeVersion(b);
+  if(!A || !B) return null;
+  for(let i=0;i<3;i++){ if(A[i]!==B[i]) return A[i]>B[i] ? 1 : -1; }
+  return 0;
+}
+function hideUpdateBanner(){
+  const b=document.getElementById('updateBanner');
+  if(b) b.hidden=true;
+}
 function showUpdateBanner(latest){
+  const cmp=compareVersions(latest, BUILD_VERSION);
+  if(cmp===null || cmp<=0){ hideUpdateBanner(); return; }
   ensureUpdateBanner();
   const b=document.getElementById('updateBanner');
   document.getElementById('updateBannerText').textContent=`Version ${latest} is ready. Tap UPDATE to reload.`;
@@ -306,7 +322,7 @@ function showUpdateBanner(latest){
 }
 async function checkForUpdate(){
   try{
-    const r=await fetch(BUILD_URL+'?client='+encodeURIComponent(BUILD_VERSION)+'&t='+Date.now(), {cache:'no-store'});
+    const r=await fetch(BUILD_URL+'?client='+encodeURIComponent(BUILD_VERSION)+'&t='+Date.now(), {cache:'no-store', headers:{'Cache-Control':'no-cache'}});
     if(!r.ok) return;
     const data=await r.json();
     if(data.version && data.version !== BUILD_VERSION) showUpdateBanner(data.version);
