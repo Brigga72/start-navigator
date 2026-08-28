@@ -253,7 +253,7 @@ el('takeHome').addEventListener('click',()=>{
 el('infoBtn').onclick=()=>navigate('info');
 
 // v0.8: persistent local state + update detection
-const BUILD_VERSION = '0.9.2';
+const BUILD_VERSION = '0.9.3';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v091';
 const LOCATION_KEY = 'star-nav-location-v091';
@@ -283,25 +283,11 @@ function updateHeaderVersion(){
 async function hardRefreshToLatest(){
   const btn=document.getElementById('updateNowBtn');
   if(btn){ btn.disabled=true; btn.textContent='UPDATING...'; }
-  try {
-    if('serviceWorker' in navigator){
-      const regs = await navigator.serviceWorker.getRegistrations();
-      for (const reg of regs){
-        try { await reg.update(); } catch(_) {}
-        if(reg.waiting){
-          try { reg.waiting.postMessage({type:'SKIP_WAITING'}); } catch(_) {}
-        }
-      }
-    }
-  } catch(_) {}
-  try {
-    if('caches' in window){
-      const keys=await caches.keys();
-      await Promise.all(keys.filter(k=>k.startsWith('cruise-nav-')).map(k=>caches.delete(k)));
-    }
-  } catch(_) {}
-  const url=new URL('./index.html', location.href);
-  url.searchParams.set('refresh', String(Date.now()));
+  // Use a dedicated migration page so updates work even when an older
+  // service worker is still controlling this page.
+  const url=new URL('./migrate.html', location.href);
+  url.searchParams.set('target', BUILD_VERSION);
+  url.searchParams.set('t', String(Date.now()));
   window.location.replace(url.href);
 }
 function ensureUpdateBanner(){

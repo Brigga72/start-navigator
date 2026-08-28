@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#0071ce">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Star Navigator">
+  <meta name="apple-mobile-web-app-title" content="Cruise Navigator">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=093">
   <title>Cruise Navigator</title>
 </head>
 <body>
@@ -17,7 +17,7 @@
     <header class="topbar">
       <div>
         <div class="eyebrow">ROYAL CARIBBEAN</div>
-        <h1>Cruise Navigator <span>v0.9.2</span></h1>
+        <h1>Cruise Navigator <span>v0.9.3</span></h1>
         <p class="sub">Star of the Seas · Home: Cabin 7456</p>
       </div>
       <button id="infoBtn" class="icon-btn" aria-label="About">i</button>
@@ -70,7 +70,7 @@
 
     <div id="mapOverlay" class="map-overlay" aria-hidden="true">
       <div class="map-sheet">
-        <div class="map-sheet-head"><div><div class="eyebrow">DECK MAP</div><h3 id="overlayTitle">Star Navigator</h3></div><button id="closeMap" class="icon-btn" aria-label="Close map">×</button></div>
+        <div class="map-sheet-head"><div><div class="eyebrow">DECK MAP</div><h3 id="overlayTitle">Cruise Navigator</h3></div><button id="closeMap" class="icon-btn" aria-label="Close map">×</button></div>
         <div id="overlayMap" class="overlay-map"></div>
         <div class="map-legend"><span><i class="legend-dot you"></i>You</span><span><i class="legend-dot dest"></i>Destination</span><span><i class="legend-dot lift"></i>Elevator / stairs</span></div>
         <div class="map-disclaimer">Schematic navigation map — not to scale. Ship signage and crew instructions take precedence.</div>
@@ -91,7 +91,7 @@
 
     <section id="infoView" class="view">
       <button class="back-btn" data-go="home">‹ Back</button>
-      <div class="page-title"><div class="eyebrow">ABOUT</div><h2>Star Navigator</h2><p>v0.9.2 improves update handling; v0.9.1 adds CocoCay Island Mode, personalized Hideaway Beach access, My Purchases, island navigation, and expanded Included/Extra status. v0.8.1 fixes Explore overlays and adds interactive Explore with deck-by-deck venue details, food descriptions, cost type, and Take Me There navigation. v0.6 combines visual mini-maps, guided routes, and flexible From/To location control.</p></div>
+      <div class="page-title"><div class="eyebrow">ABOUT</div><h2>Cruise Navigator</h2><p>v0.9.3 improves update handling; v0.9.1 adds CocoCay Island Mode, personalized Hideaway Beach access, My Purchases, island navigation, and expanded Included/Extra status. v0.8.1 fixes Explore overlays and adds interactive Explore with deck-by-deck venue details, food descriptions, cost type, and Take Me There navigation. v0.6 combines visual mini-maps, guided routes, and flexible From/To location control.</p></div>
       <div class="info-card">
         <h3>What v0.3 does</h3>
         <p>Adds a visual mini-map to the routing experience, with Cabin 7456 shown on Deck 7, a destination map on the correct deck, elevator/stair transitions, forward/aft orientation, and a full-screen map view. Johnny Rockets remains flagged for verification because current Star of the Seas venue lists do not show it onboard.</p>
@@ -112,6 +112,6 @@
       <button class="tab" data-view="learn"><span>🎓</span>Learn</button>
     </nav>
   </main>
-  <script src="app.js"></script>
+  <script src="app.js?v=093"></script>
 </body>
 </html>

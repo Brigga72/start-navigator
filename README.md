@@ -1,20 +1,10 @@
-# Cruise Navigator v0.9.2
+# Cruise Navigator v0.9.3
 
-Personal iPhone-first cruise navigation companion for Royal Caribbean's Star of the Seas, centered on Cabin 7456.
+Interactive iPhone-first cruise navigator for Royal Caribbean Star of the Seas, personalized around Cabin 7456.
 
-## v0.9.2
-- Explore is bundled into the main application script.
-- Explore -> Deck -> Venue -> Details -> Take Me There.
-- Personal Must-Do selections persist in local storage.
-- Current starting location persists.
-- Version/update detection added.
-- Service worker uses a versioned cache and network-first navigation/version checks.
-- Guided navigation, mini-maps, Forward/Aft ship compass, flexible From/To, and Take Me Home retained.
+## v0.9.3
+- Adds a migration-based update path that can escape older service-worker caches.
+- Keeps flexible From/To navigation, guided routes, visual deck maps, Explore, CocoCay, and personalized access/cost information.
+- Uses a versioned service-worker cache and a clean migration page.
 
-The map diagrams are simplified schematics based on deck references supplied during development and are not to scale. Follow ship signage and crew instructions onboard.
-
-
-v0.8.1 fixes the Explore deck selector, adds a general deck location map to each Explore detail view, and keeps the venue details connected to Take Me There.
-
-
-Update handling was rebuilt so a new service worker/cache is activated before reloading when the user taps UPDATE. Build version and version.json now match.
+The `migrate.html` page can be opened once after deployment if an older cached app is stuck on a previous release.
