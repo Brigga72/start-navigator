@@ -65,7 +65,7 @@ h1 span{font-size:10px;background:var(--soft);padding:4px 6px;border-radius:6px;
 
 
 /* v0.8 update banner */
-.update-banner{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:#eef8ff;border-bottom:1px solid #bddcf2;box-shadow:0 5px 18px rgba(15,60,90,.08)}
+.update-banner[hidden]{display:none!important}.update-banner{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:#eef8ff;border-bottom:1px solid #bddcf2;box-shadow:0 5px 18px rgba(15,60,90,.08)}
 .update-banner>div{min-width:0}.update-banner strong{display:block;font-size:11px}.update-banner span{display:block;color:#4e6678;font-size:9px;margin-top:2px}.update-banner button{border:0;border-radius:11px;background:#0071ce;color:#fff;font-size:10px;font-weight:900;padding:10px 12px;flex:0 0 auto}
 button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-card,.location-field,.next-action,.confused-action,.secondary-action{ -webkit-tap-highlight-color: rgba(0,113,206,.10)}
 

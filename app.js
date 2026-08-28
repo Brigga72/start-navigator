@@ -253,10 +253,10 @@ el('takeHome').addEventListener('click',()=>{
 el('infoBtn').onclick=()=>navigate('info');
 
 // v0.8: persistent local state + update detection
-const BUILD_VERSION = '0.9.4';
+const BUILD_VERSION = '0.9.5';
 const BUILD_URL = './version.json';
-const MUSTDO_KEY = 'star-nav-mustdo-v091';
-const LOCATION_KEY = 'star-nav-location-v091';
+const MUSTDO_KEY = 'star-nav-mustdo-v095';
+const LOCATION_KEY = 'star-nav-location-v095';
 
 function persistMustDoState(){
   try { localStorage.setItem(MUSTDO_KEY, JSON.stringify(destinations.filter(d=>d.mustdo).map(d=>d.id))); } catch(_) {}
@@ -293,7 +293,7 @@ async function hardRefreshToLatest(){
 function ensureUpdateBanner(){
   if(document.getElementById('updateBanner')) return;
   const b=document.createElement('div');
-  b.id='updateBanner'; b.className='update-banner'; b.hidden=true;
+  b.id='updateBanner'; b.className='update-banner'; b.hidden=true; b.style.display='none'; b.style.display='none';
   b.innerHTML='<div><strong>🔄 Cruise Navigator update ready</strong><span id="updateBannerText">A newer version is available.</span></div><button id="updateNowBtn" type="button">UPDATE</button>';
   document.body.prepend(b);
   document.getElementById('updateNowBtn').onclick=hardRefreshToLatest;
@@ -310,7 +310,7 @@ function compareVersions(a,b){
 }
 function hideUpdateBanner(){
   const b=document.getElementById('updateBanner');
-  if(b) b.hidden=true;
+  if(b) b.hidden=true; b.style.display='none';
 }
 function showUpdateBanner(latest){
   const cmp=compareVersions(latest, BUILD_VERSION);
@@ -318,14 +318,14 @@ function showUpdateBanner(latest){
   ensureUpdateBanner();
   const b=document.getElementById('updateBanner');
   document.getElementById('updateBannerText').textContent=`Version ${latest} is ready. Tap UPDATE to reload.`;
-  b.hidden=false;
+  b.hidden=false; b.style.display='flex';
 }
 async function checkForUpdate(){
   try{
     const r=await fetch(BUILD_URL+'?client='+encodeURIComponent(BUILD_VERSION)+'&t='+Date.now(), {cache:'no-store', headers:{'Cache-Control':'no-cache'}});
     if(!r.ok) return;
     const data=await r.json();
-    if(data.version && data.version !== BUILD_VERSION) showUpdateBanner(data.version);
+    if(data.version){ showUpdateBanner(data.version); }
   }catch(_){}
 }
 
