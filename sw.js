@@ -1,4 +1,4 @@
-const CACHE='star-nav-v090';
+const CACHE='cruise-nav-v091';
 const CORE=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./version.json'];
 
 self.addEventListener('install', event=>{
@@ -8,7 +8,7 @@ self.addEventListener('install', event=>{
 self.addEventListener('activate', event=>{
   event.waitUntil(
     caches.keys()
-      .then(keys=>Promise.all(keys.filter(k=>k.startsWith('star-nav-') && k!==CACHE).map(k=>caches.delete(k))))
+      .then(keys=>Promise.all(keys.filter(k=>k.startsWith('cruise-nav-') && k!==CACHE).map(k=>caches.delete(k))))
       .then(()=>self.clients.claim())
   );
 });

@@ -253,10 +253,10 @@ el('takeHome').addEventListener('click',()=>{
 el('infoBtn').onclick=()=>navigate('info');
 
 // v0.8: persistent local state + update detection
-const BUILD_VERSION = '0.8.1';
+const BUILD_VERSION = '0.9.1';
 const BUILD_URL = './version.json';
-const MUSTDO_KEY = 'star-nav-mustdo-v081';
-const LOCATION_KEY = 'star-nav-location-v081';
+const MUSTDO_KEY = 'star-nav-mustdo-v091';
+const LOCATION_KEY = 'star-nav-location-v091';
 
 function persistMustDoState(){
   try { localStorage.setItem(MUSTDO_KEY, JSON.stringify(destinations.filter(d=>d.mustdo).map(d=>d.id))); } catch(_) {}
@@ -287,12 +287,33 @@ function ensureUpdateBanner(){
   b.innerHTML='<div><strong>🔄 Star Navigator update ready</strong><span id="updateBannerText">A newer version is available.</span></div><button id="updateNowBtn">UPDATE</button>';
   document.body.prepend(b);
   document.getElementById('updateNowBtn').onclick=async()=>{
-    const reg = await navigator.serviceWorker?.getRegistration();
-    if(reg){
+    const btn=document.getElementById('updateNowBtn');
+    btn.disabled=true;
+    btn.textContent='UPDATING...';
+    try {
+      const reg = await navigator.serviceWorker?.getRegistration();
+      if(!reg){ location.reload(); return; }
+      let target = reg.waiting || reg.installing;
       try { await reg.update(); } catch(_) {}
-      if(reg.waiting){ reg.waiting.postMessage({type:'SKIP_WAITING'}); return; }
+      target = reg.waiting || reg.installing;
+      if(target){
+        if(reg.waiting){
+          reg.waiting.postMessage({type:'SKIP_WAITING'});
+        } else {
+          await new Promise(resolve=>{
+            const done=()=>{ target.removeEventListener('statechange', done); resolve(); };
+            target.addEventListener('statechange', ()=>{
+              if(target.state === 'installed') done();
+            });
+            setTimeout(resolve, 12000);
+          });
+          if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
+        }
+      }
+      setTimeout(()=>location.reload(), 500);
+    } catch(_) {
+      location.reload();
     }
-    location.reload();
   };
 }
 function showUpdateBanner(latest){
