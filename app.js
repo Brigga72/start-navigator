@@ -253,7 +253,7 @@ el('takeHome').addEventListener('click',()=>{
 el('infoBtn').onclick=()=>navigate('info');
 
 // v0.8: persistent local state + update detection
-const BUILD_VERSION = '0.9.1';
+const BUILD_VERSION = '0.9.2';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v091';
 const LOCATION_KEY = 'star-nav-location-v091';
@@ -280,41 +280,37 @@ function updateHeaderVersion(){
   const h = document.querySelector('.topbar h1');
   if(h) h.innerHTML = `Star Navigator <span>v${BUILD_VERSION}</span>`;
 }
+async function hardRefreshToLatest(){
+  const btn=document.getElementById('updateNowBtn');
+  if(btn){ btn.disabled=true; btn.textContent='UPDATING...'; }
+  try {
+    if('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const reg of regs){
+        try { await reg.update(); } catch(_) {}
+        if(reg.waiting){
+          try { reg.waiting.postMessage({type:'SKIP_WAITING'}); } catch(_) {}
+        }
+      }
+    }
+  } catch(_) {}
+  try {
+    if('caches' in window){
+      const keys=await caches.keys();
+      await Promise.all(keys.filter(k=>k.startsWith('cruise-nav-')).map(k=>caches.delete(k)));
+    }
+  } catch(_) {}
+  const url=new URL('./index.html', location.href);
+  url.searchParams.set('refresh', String(Date.now()));
+  window.location.replace(url.href);
+}
 function ensureUpdateBanner(){
   if(document.getElementById('updateBanner')) return;
   const b=document.createElement('div');
   b.id='updateBanner'; b.className='update-banner'; b.hidden=true;
-  b.innerHTML='<div><strong>🔄 Star Navigator update ready</strong><span id="updateBannerText">A newer version is available.</span></div><button id="updateNowBtn">UPDATE</button>';
+  b.innerHTML='<div><strong>🔄 Cruise Navigator update ready</strong><span id="updateBannerText">A newer version is available.</span></div><button id="updateNowBtn" type="button">UPDATE</button>';
   document.body.prepend(b);
-  document.getElementById('updateNowBtn').onclick=async()=>{
-    const btn=document.getElementById('updateNowBtn');
-    btn.disabled=true;
-    btn.textContent='UPDATING...';
-    try {
-      const reg = await navigator.serviceWorker?.getRegistration();
-      if(!reg){ location.reload(); return; }
-      let target = reg.waiting || reg.installing;
-      try { await reg.update(); } catch(_) {}
-      target = reg.waiting || reg.installing;
-      if(target){
-        if(reg.waiting){
-          reg.waiting.postMessage({type:'SKIP_WAITING'});
-        } else {
-          await new Promise(resolve=>{
-            const done=()=>{ target.removeEventListener('statechange', done); resolve(); };
-            target.addEventListener('statechange', ()=>{
-              if(target.state === 'installed') done();
-            });
-            setTimeout(resolve, 12000);
-          });
-          if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
-        }
-      }
-      setTimeout(()=>location.reload(), 500);
-    } catch(_) {
-      location.reload();
-    }
-  };
+  document.getElementById('updateNowBtn').onclick=hardRefreshToLatest;
 }
 function showUpdateBanner(latest){
   ensureUpdateBanner();
@@ -324,7 +320,7 @@ function showUpdateBanner(latest){
 }
 async function checkForUpdate(){
   try{
-    const r=await fetch(BUILD_URL+'?t='+Date.now(), {cache:'no-store'});
+    const r=await fetch(BUILD_URL+'?client='+encodeURIComponent(BUILD_VERSION)+'&t='+Date.now(), {cache:'no-store'});
     if(!r.ok) return;
     const data=await r.json();
     if(data.version && data.version !== BUILD_VERSION) showUpdateBanner(data.version);

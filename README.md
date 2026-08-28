@@ -1,8 +1,8 @@
-# Cruise Navigator v0.9.1
+# Cruise Navigator v0.9.2
 
 Personal iPhone-first cruise navigation companion for Royal Caribbean's Star of the Seas, centered on Cabin 7456.
 
-## v0.9.1
+## v0.9.2
 - Explore is bundled into the main application script.
 - Explore -> Deck -> Venue -> Details -> Take Me There.
 - Personal Must-Do selections persist in local storage.

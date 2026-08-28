@@ -1,4 +1,4 @@
-const CACHE='cruise-nav-v091';
+const CACHE='cruise-nav-v092';
 const CORE=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./version.json'];
 
 self.addEventListener('install', event=>{
