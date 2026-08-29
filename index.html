@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Cruise Navigator">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=012">
+  <link rel="stylesheet" href="styles.css?v=013">
   <title>Cruise Navigator</title>
 </head>
 <body>
@@ -17,7 +17,7 @@
     <header class="topbar">
       <div>
         <div class="eyebrow">ROYAL CARIBBEAN</div>
-        <h1>Cruise Navigator <span>v0.12.0</span></h1>
+        <h1>Cruise Navigator <span>v0.13.0</span></h1>
         <p class="sub">Star of the Seas · Home: Cabin 7456</p>
       </div>
       <button id="infoBtn" class="icon-btn" aria-label="About">i</button>
@@ -45,6 +45,7 @@
       </div>
 
       <div id="schedulePreview" class="schedule-preview"></div>
+      <div id="happeningHome" class="happening-home"></div>
       <div id="categoryGrid" class="category-grid"></div>
       <div id="destinationList" class="destination-list hidden"></div>
 
@@ -52,6 +53,10 @@
         <button class="feature-card" data-view="schedule">
           <strong>📅 My Schedule</strong>
           <span>Reservations, showtimes & leave-by reminders.</span>
+        </button>
+        <button class="feature-card" data-view="happening">
+          <strong>✨ What’s Happening</strong>
+          <span>Trivia, karaoke, games, music and smaller events.</span>
         </button>
         <button class="feature-card" data-view="explore">
           <strong>🗺 Explore</strong>
@@ -68,6 +73,12 @@
       <button class="back-btn" data-go="home">‹ Back</button>
       <div class="page-title"><div class="eyebrow">MY CRUISE</div><h2>My Schedule</h2><p>Your confirmed Royal Caribbean reservations are preloaded. Add anything else you want to remember.</p></div>
       <div id="scheduleContent"></div>
+    </section>
+
+    <section id="happeningView" class="view">
+      <button class="back-btn" data-go="home">‹ Back</button>
+      <div class="page-title"><div class="eyebrow">CRUISE COMPASS</div><h2>What’s Happening</h2><p>Learn the rhythm of Star of the Seas with recent-sailing reference events. Confirm actual times in the Royal Caribbean app for your sailing.</p></div>
+      <div id="happeningContent"></div>
     </section>
 
     <section id="cococayView" class="view">
@@ -104,9 +115,9 @@
 
     <section id="infoView" class="view">
       <button class="back-btn" data-go="home">‹ Back</button>
-      <div class="page-title"><div class="eyebrow">ABOUT</div><h2>Cruise Navigator</h2><p>v0.12.0 adds your confirmed 2026 sailing profile, port itinerary, purchases, excursions and show reservations; v0.11.0 adds the Detailed Navigation foundation with route confidence levels, safer deck transitions, and explicit signage fallbacks; v0.10.0 adds My Schedule; v0.9.5 fixes version detection and update-banner behavior; v0.9.1 adds CocoCay Island Mode, personalized Hideaway Beach access, My Purchases, island navigation, and expanded Included/Extra status. v0.8.1 fixes Explore overlays and adds interactive Explore with deck-by-deck venue details, food descriptions, cost type, and Take Me There navigation. v0.6 combines visual mini-maps, guided routes, and flexible From/To location control.</p></div>
+      <div class="page-title"><div class="eyebrow">ABOUT</div><h2>Cruise Navigator</h2><p>v0.13.0 adds What’s Happening with recent Cruise Compass reference events, category filters, routing and Add to My Schedule; v0.12.0 adds your confirmed 2026 sailing profile, port itinerary, purchases, excursions and show reservations; v0.11.0 adds the Detailed Navigation foundation with route confidence levels, safer deck transitions, and explicit signage fallbacks; v0.10.0 adds My Schedule; v0.9.5 fixes version detection and update-banner behavior; v0.9.1 adds CocoCay Island Mode, personalized Hideaway Beach access, My Purchases, island navigation, and expanded Included/Extra status. v0.8.1 fixes Explore overlays and adds interactive Explore with deck-by-deck venue details, food descriptions, cost type, and Take Me There navigation. v0.6 combines visual mini-maps, guided routes, and flexible From/To location control.</p></div>
       <div class="info-card">
-        <h3>Personal cruise profile</h3><p>v0.12.0 is personalized to the September 13–20, 2026 Star of the Seas sailing. Royal Caribbean confirmations preload your Hideaway Beach pass, Deluxe Beverage Package, three shore excursions, and two show reservations.</p><h3>Navigation foundation</h3>
+        <h3>What’s Happening</h3><p>v0.13.0 uses the user-supplied July 5–12, 2026 Star of the Seas Cruise Compass as clearly labeled reference data for trivia, karaoke, games, parties and other smaller activities. Reference times are never presented as confirmed September times.</p><h3>Personal cruise profile</h3><p>v0.12.0 is personalized to the September 13–20, 2026 Star of the Seas sailing. Royal Caribbean confirmations preload your Hideaway Beach pass, Deluxe Beverage Package, three shore excursions, and two show reservations.</p><h3>Navigation foundation</h3>
         <p>Adds a visual mini-map to the routing experience, with Cabin 7456 shown on Deck 7, a destination map on the correct deck, elevator/stair transitions, forward/aft orientation, and a full-screen map view. Johnny Rockets remains flagged for verification because current Star of the Seas venue lists do not show it onboard.</p>
         <h3>Data confidence</h3>
         <p><strong>Verified:</strong> Cabin 7456 is Deck 7, Category Q2 Interior Plus, in the forward/center section. Venue decks and neighborhoods come from Royal Caribbean deck-plan information and supporting ship references.</p>
@@ -126,6 +137,6 @@
       <button class="tab" data-view="learn"><span>🎓</span>Learn</button>
     </nav>
   </main>
-  <script src="app.js?v=012"></script>
+  <script src="app.js?v=013"></script>
 </body>
 </html>

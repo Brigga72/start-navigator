@@ -21,7 +21,15 @@ const destinations = [
   {id:'centralpark', name:'Central Park', deck:'8', area:'Midship · Neighborhood', category:'dining', icon:'🌳', keywords:'central park chops park cafe izumi', note:'Central Park occupies Deck 8.', confidence:'NEIGHBORHOOD LOCATION VERIFIED; ROUTE CONSERVATIVE', mapDeck:'8', mapNode:'centralpark', route:[{kind:'walk',text:'Leave Cabin 7456 and follow the corridor toward the forward elevator bank shown on the Deck 7 map.'},{kind:'elevator',text:'Go up to Deck 8.'},{kind:'orient',text:'Orient toward the Central Park neighborhood.'},{kind:'arrive',text:'Follow signs into Central Park.'}]},
   {id:'category6', name:'Category 6 Waterpark', deck:'16 & 20', area:'Aft · Thrill Island', category:'activities', icon:'🎢', keywords:'waterpark slides category 6 thrill island', note:'Category 6 is concentrated in the Thrill Island area on the upper decks; follow slide-specific signage.', confidence:'ATTRACTION LOCATION VERIFIED; ROUTE CONSERVATIVE', mapDeck:'16', mapNode:'category6', route:[{kind:'walk',text:'Leave Cabin 7456 and follow the corridor toward the forward elevator bank shown on the Deck 7 map.'},{kind:'elevator',text:'Go up to Deck 16.'},{kind:'orient',text:'Orient aft toward Thrill Island / Category 6.'},{kind:'arrive',text:'Follow the specific slide signs; some access points continue to higher decks.'}]},
   {id:'royalbay', name:'Royal Bay Pool', deck:'15', area:'Midship · Chill Island', category:'pools', icon:'🏖️', keywords:'royal bay pool swim tonic chill island', note:'Royal Bay Pool is on Deck 15 in Chill Island.', confidence:'POOL LOCATION VERIFIED; ROUTE CONSERVATIVE', mapDeck:'15', mapNode:'royalbay', route:[{kind:'walk',text:'Leave Cabin 7456 and follow the corridor toward the forward elevator bank shown on the Deck 7 map.'},{kind:'elevator',text:'Go up to Deck 15.'},{kind:'orient',text:'Orient toward Chill Island / Royal Bay.'},{kind:'arrive',text:'Follow the pool deck signs to Royal Bay Pool.'}]},
-  {id:'guestservices', name:'Guest Services', deck:'5', area:'Midship · Services', category:'services', icon:'🧑‍💼', keywords:'guest services reception help desk', note:'Guest Services is on Deck 5.', confidence:'SERVICE LOCATION VERIFIED; ROUTE CONSERVATIVE', mapDeck:'5', mapNode:'guestservices', route:[{kind:'walk',text:'Leave Cabin 7456 and follow the corridor toward the forward elevator bank shown on the Deck 7 map.'},{kind:'elevator',text:'Go down to Deck 5.'},{kind:'orient',text:'Orient toward Guest Services.'},{kind:'arrive',text:'Follow the Guest Services signs.'}]}
+  {id:'guestservices', name:'Guest Services', deck:'5', area:'Midship · Services', category:'services', icon:'🧑‍💼', keywords:'guest services reception help desk', note:'Guest Services is on Deck 5.', confidence:'SERVICE LOCATION VERIFIED; ROUTE CONSERVATIVE', mapDeck:'5', mapNode:'guestservices', route:[{kind:'walk',text:'Leave Cabin 7456 and follow the corridor toward the forward elevator bank shown on the Deck 7 map.'},{kind:'elevator',text:'Go down to Deck 5.'},{kind:'orient',text:'Orient toward Guest Services.'},{kind:'arrive',text:'Follow the Guest Services signs.'}]},
+  {id:'spotlight', name:'Spotlight Karaoke', deck:'5', area:'Royal Promenade · Entertainment', category:'shows', icon:'🎤', keywords:'spotlight karaoke trivia name that tune', note:'Cruise Compass reference places Spotlight Karaoke on Deck 5.', confidence:'VENUE + DECK VERIFIED FROM CRUISE COMPASS; EXACT CORRIDOR ROUTE NOT TRACED', mapDeck:'5', mapNode:'promenade', route:[]},
+  {id:'schooner', name:'Schooner Bar', deck:'6', area:'Royal Promenade · Bar', category:'dining', icon:'🎹', keywords:'schooner bar trivia piano', note:'Cruise Compass reference places Schooner Bar on Deck 6.', confidence:'VENUE + DECK VERIFIED FROM CRUISE COMPASS; EXACT CORRIDOR ROUTE NOT TRACED', mapDeck:'6', mapNode:'promenade', route:[]},
+  {id:'dueling', name:'Dueling Pianos', deck:'6', area:'Royal Promenade · Entertainment', category:'shows', icon:'🎹', keywords:'dueling pianos trivia music', note:'Cruise Compass reference places Dueling Pianos on Deck 6.', confidence:'VENUE + DECK VERIFIED FROM CRUISE COMPASS; EXACT CORRIDOR ROUTE NOT TRACED', mapDeck:'6', mapNode:'promenade', route:[]},
+  {id:'musichall', name:'Music Hall', deck:'3–4', area:'Entertainment · Music Hall', category:'shows', icon:'🎸', keywords:'music hall game show concert nightlife', note:'Cruise Compass reference places Music Hall on Decks 3 and 4.', confidence:'VENUE + DECK VERIFIED FROM CRUISE COMPASS; EXACT CORRIDOR ROUTE NOT TRACED', mapDeck:'5', mapNode:'theater', route:[]},
+  {id:'boleros', name:'Boleros', deck:'6', area:'Royal Promenade · Bar', category:'dining', icon:'💃', keywords:'boleros latin dance music', note:'Cruise Compass reference places Boleros on Deck 6.', confidence:'VENUE + DECK VERIFIED FROM CRUISE COMPASS; EXACT CORRIDOR ROUTE NOT TRACED', mapDeck:'6', mapNode:'promenade', route:[]},
+  {id:'thorn', name:'Thorn & Thistle', deck:'5', area:'Royal Promenade · Pub', category:'dining', icon:'🍺', keywords:'thorn thistle pub trivia', note:'Cruise Compass reference places Thorn & Thistle on Deck 5.', confidence:'VENUE + DECK VERIFIED FROM CRUISE COMPASS; EXACT CORRIDOR ROUTE NOT TRACED', mapDeck:'5', mapNode:'promenade', route:[]},
+  {id:'aotheater', name:'AO Theater', deck:'6', area:'Adventure Ocean · Theater', category:'shows', icon:'🎭', keywords:'ao theater family puppet movie', note:'Cruise Compass reference places AO Theater on Deck 6.', confidence:'VENUE + DECK VERIFIED FROM CRUISE COMPASS; EXACT CORRIDOR ROUTE NOT TRACED', mapDeck:'6', mapNode:'promenade', route:[]},
+  {id:'sportscourt', name:'Sports Court', deck:'17', area:'Upper Deck · Sports', category:'activities', icon:'🏀', keywords:'sports court basketball pickleball competition', note:'Cruise Compass reference places Sports Court on Deck 17.', confidence:'VENUE + DECK VERIFIED FROM CRUISE COMPASS; EXACT CORRIDOR ROUTE NOT TRACED', mapDeck:'16', mapNode:'category6', route:[]}
 ];
 
 
@@ -443,6 +451,9 @@ document.addEventListener('click',e=>{
   const cat=e.target.closest('[data-cat]');if(cat){if(cat.dataset.cat==='mustdo')showMustDo();else renderSearch(destinations.filter(d=>d.category===cat.dataset.cat));el('searchInput').value='';return}
   const dest=e.target.closest('[data-dest]');if(dest){showRoute(dest.dataset.dest);return}
   const view=e.target.closest('[data-view]');if(view){navigate(view.dataset.view);return}
+  const hf=e.target.closest('[data-happening-filter]');if(hf){happeningFilter=hf.dataset.happeningFilter;localStorage.setItem(HAPPENING_FILTER_KEY,happeningFilter);renderHappening();return}
+  const ha=e.target.closest('[data-happening-add]');if(ha){addReferenceEventToSchedule(ha.dataset.happeningAdd);return}
+  const hr=e.target.closest('[data-happening-route]');if(hr){closeMap();showRoute(hr.dataset.happeningRoute);return}
   const go=e.target.closest('[data-go]');if(go){navigate(go.dataset.go);return}
   const open=e.target.closest('[data-openmap]');if(open){openMapFor(open.dataset.openmap);return}
 });
@@ -511,7 +522,80 @@ el('takeHome').addEventListener('click',()=>{
 el('infoBtn').onclick=()=>navigate('info');
 
 // v0.8: persistent local state + update detection
-const BUILD_VERSION = '0.12.0';
+
+/* v0.13 What's Happening
+   Reference events are transcribed from the user-supplied Star of the Seas
+   Cruise Compass for the July 5-12, 2026 sailing. They are intentionally
+   labeled REFERENCE, not confirmed for the September 13 sailing. */
+const COMPASS_REFERENCE={
+  sailing:'July 5–12, 2026',
+  source:'Star of the Seas Cruise Compass supplied by user',
+  events:[
+    {day:1,time:'14:00',end:'14:45',name:'Basketball Hot Shots Competition',venue:'Sports Court',deck:'17',category:'Games',routeId:'sportscourt'},
+    {day:1,time:'16:15',end:'17:15',name:'Star Sailaway Poolside Party',venue:'Pool Deck',deck:'15–17',category:'Party'},
+    {day:1,time:'19:30',end:'20:15',name:'Family Karaoke',venue:'Spotlight Karaoke',deck:'5',category:'Karaoke',routeId:'spotlight'},
+    {day:1,time:'20:30',end:'21:15',name:'If You Know It, Sing It!',venue:'Music Hall',deck:'3–4',category:'Games',routeId:'musichall'},
+    {day:1,time:'20:30',end:'21:15',name:'Karaoke: Teens',venue:'Spotlight Karaoke',deck:'5',category:'Karaoke',routeId:'spotlight'},
+    {day:1,time:'21:30',end:'22:15',name:'Adult Karaoke (18+)',venue:'Spotlight Karaoke',deck:'5',category:'Karaoke',routeId:'spotlight'},
+    {day:2,time:'14:30',end:'15:00',name:"Name That Tune: '80s Hits",venue:'Spotlight Karaoke',deck:'5',category:'Trivia',routeId:'spotlight'},
+    {day:2,time:'17:30',end:'18:15',name:'Name That Tune: Taylor Swift',venue:'AquaTheater',deck:'15',category:'Trivia',routeId:'aquadome'},
+    {day:2,time:'21:30',end:'22:15',name:'Finish That Lyric',venue:'AquaTheater',deck:'15',category:'Games',routeId:'aquadome'},
+    {day:3,time:'10:00',end:'10:30',name:'Royal Trivia LIVE! (Your Phone, Your Power!)',venue:'Spotlight Karaoke',deck:'5',category:'Trivia',routeId:'spotlight'},
+    {day:3,time:'15:45',end:'16:15',name:'Blacklight Puppet Show: Away In Time!',venue:'AO Theater',deck:'6',category:'Family',routeId:'aotheater'},
+    {day:3,time:'16:45',end:'17:15',name:'Blacklight Puppet Show: Away In Time!',venue:'AO Theater',deck:'6',category:'Family',routeId:'aotheater'},
+    {day:3,time:'17:30',end:'18:00',name:'Royal Trivia LIVE! (Your Phone, Your Power!)',venue:'Spotlight Karaoke',deck:'5',category:'Trivia',routeId:'spotlight'},
+    {day:3,time:'22:00',end:'23:00',name:'SHUSH! Silent Party',venue:'Royal Promenade',deck:'5',category:'Party',routeId:'promenade'},
+    {day:3,time:'23:15',end:'23:59',name:'Adult Game Show: Blankety Blank (18+)',venue:'Music Hall',deck:'3–4',category:'Games',routeId:'musichall'},
+    {day:4,time:'10:00',end:'10:30',name:'Royal Trivia LIVE! (Your Phone, Your Power!)',venue:'Spotlight Karaoke',deck:'5',category:'Trivia',routeId:'spotlight'},
+    {day:4,time:'11:00',end:'11:30',name:'Who in the World Am I Trivia?',venue:'Schooner Bar',deck:'6',category:'Trivia',routeId:'schooner'},
+    {day:4,time:'13:30',end:'14:00',name:'Karaoke Power Hour',venue:'Spotlight Karaoke',deck:'5',category:'Karaoke',routeId:'spotlight'},
+    {day:4,time:'14:00',end:'14:30',name:'Name That Tune: Divas',venue:'Dueling Pianos',deck:'6',category:'Trivia',routeId:'dueling'},
+    {day:4,time:'14:30',end:'15:00',name:'Bachata Dance Class (Beginners)',venue:'Boleros',deck:'6',category:'Dance',routeId:'boleros'},
+    {day:4,time:'17:00',end:'17:30',name:'Royal Trivia LIVE! (Your Phone, Your Power!)',venue:'Spotlight Karaoke',deck:'5',category:'Trivia',routeId:'spotlight'},
+    {day:4,time:'22:30',end:'23:15',name:'Adult Karaoke (18+)',venue:'Spotlight Karaoke',deck:'5',category:'Karaoke',routeId:'spotlight'},
+    {day:5,time:'19:30',end:'20:15',name:"The Price Is Right: Everyone's A Contestant!",venue:'Royal Theater',deck:'3–5',category:'Games',routeId:'theater'},
+    {day:5,time:'21:30',end:'22:15',name:"The Price Is Right: Everyone's A Contestant!",venue:'Royal Theater',deck:'3–5',category:'Games',routeId:'theater'},
+    {day:5,time:'22:45',end:'23:30',name:'The Crazy Quest (18+)',venue:'Absolute Zero',deck:'6',category:'Games',routeId:'absolute'},
+    {day:6,time:'10:00',end:'10:30',name:'Morning Trivia',venue:'Schooner Bar',deck:'6',category:'Trivia',routeId:'schooner'},
+    {day:6,time:'11:00',end:'11:30',name:"Captain's & Rivers Challenge",venue:'Schooner Bar',deck:'6',category:'Trivia',routeId:'schooner'},
+    {day:6,time:'14:00',end:'14:30',name:'Movie Quotes Challenge',venue:'Spotlight Karaoke',deck:'5',category:'Trivia',routeId:'spotlight'},
+    {day:6,time:'14:45',end:'15:15',name:'Themed Trivia: Broadway Musicals',venue:'Spotlight Karaoke',deck:'5',category:'Trivia',routeId:'spotlight'},
+    {day:6,time:'15:30',end:'16:00',name:'Visual Trivia: Movie Posters',venue:'Spotlight Karaoke',deck:'5',category:'Trivia',routeId:'spotlight'},
+    {day:6,time:'15:45',end:'16:05',name:'Ocean Odyssey Parade',venue:'Royal Promenade',deck:'5',category:'Party',routeId:'promenade'},
+    {day:6,time:'17:30',end:'18:00',name:'Royal Trivia LIVE! (Your Phone, Your Power!)',venue:'Spotlight Karaoke',deck:'5',category:'Trivia',routeId:'spotlight'},
+    {day:6,time:'18:15',end:'18:45',name:"Name That Tune: '80s",venue:'Schooner Bar',deck:'6',category:'Trivia',routeId:'schooner'},
+    {day:6,time:'19:30',end:'20:15',name:'Family Karaoke',venue:'Spotlight Karaoke',deck:'5',category:'Karaoke',routeId:'spotlight'},
+    {day:6,time:'20:30',end:'21:15',name:'Karaoke: Teens',venue:'Spotlight Karaoke',deck:'5',category:'Karaoke',routeId:'spotlight'},
+    {day:6,time:'22:30',end:'23:59',name:'Adult Karaoke (18+)',venue:'Spotlight Karaoke',deck:'5',category:'Karaoke',routeId:'spotlight'},
+    {day:7,time:'10:30',end:'11:00',name:'Royal Trivia LIVE! (Your Phone, Your Power!)',venue:'Spotlight Karaoke',deck:'5',category:'Trivia',routeId:'spotlight'},
+    {day:7,time:'11:00',end:'11:30',name:'Jedi Chronicles Trivia',venue:'Spotlight Karaoke',deck:'5',category:'Trivia',routeId:'spotlight'},
+    {day:7,time:'11:30',end:'12:00',name:'Guess the Romance Movie',venue:'Spotlight Karaoke',deck:'5',category:'Trivia',routeId:'spotlight'},
+    {day:7,time:'12:15',end:'12:45',name:'Charades Challenge',venue:'Spotlight Karaoke',deck:'5',category:'Games',routeId:'spotlight'},
+    {day:7,time:'13:00',end:'13:30',name:'Name That Tune: Cartoons',venue:'Dueling Pianos',deck:'6',category:'Trivia',routeId:'dueling'},
+    {day:7,time:'13:30',end:'14:00',name:'Tri-Bond Trivia',venue:'Thorn & Thistle',deck:'5',category:'Trivia',routeId:'thorn'},
+    {day:7,time:'14:30',end:'15:00',name:"Name That Tune: '2000s Hits",venue:'Dueling Pianos',deck:'6',category:'Trivia',routeId:'dueling'},
+    {day:7,time:'17:00',end:'17:30',name:'Trivia @ 5',venue:'Dueling Pianos',deck:'6',category:'Trivia',routeId:'dueling'},
+    {day:7,time:'18:15',end:'18:45',name:"Visual Trivia: All About '80s",venue:'Spotlight Karaoke',deck:'5',category:'Trivia',routeId:'spotlight'},
+    {day:7,time:'18:45',end:'19:15',name:'Name That Tune: Millennium Hits',venue:'Spotlight Karaoke',deck:'5',category:'Trivia',routeId:'spotlight'},
+    {day:7,time:'19:30',end:'20:15',name:'Family Karaoke',venue:'Spotlight Karaoke',deck:'5',category:'Karaoke',routeId:'spotlight'},
+    {day:7,time:'20:30',end:'21:15',name:'Karaoke: Teens',venue:'Spotlight Karaoke',deck:'5',category:'Karaoke',routeId:'spotlight'},
+    {day:7,time:'21:30',end:'22:15',name:'Karaoke Superstar Competition: Finals (18+)',venue:'Spotlight Karaoke',deck:'5',category:'Karaoke',routeId:'spotlight'},
+    {day:7,time:'23:15',end:'23:59',name:'Adult Karaoke (18+)',venue:'Spotlight Karaoke',deck:'5',category:'Karaoke',routeId:'spotlight'}
+  ]
+};
+const HAPPENING_DAY_KEY='cruise-nav-happening-day-v013';
+const HAPPENING_FILTER_KEY='cruise-nav-happening-filter-v013';
+let happeningDay=Number(localStorage.getItem(HAPPENING_DAY_KEY)||1);
+let happeningFilter=localStorage.getItem(HAPPENING_FILTER_KEY)||'All';
+function compassDayName(day){const names={1:'Port Canaveral',2:'Perfect Day at CocoCay',3:'At Sea',4:'St. Thomas',5:'St. Kitts & Nevis',6:'At Sea',7:'At Sea'};return names[day]||''}
+function happeningEventHtml(e){
+  return `<article class="happening-event"><div class="happening-time"><strong>${scheduleTimeLabel(e.time)}</strong><small>${e.end?scheduleTimeLabel(e.end):''}</small></div><div class="happening-main"><div class="happening-row"><span class="happening-category">${esc(e.category)}</span><span class="happening-reference">REFERENCE</span></div><h3>${esc(e.name)}</h3><p>📍 ${esc(e.venue)} · Deck ${esc(e.deck)}</p><div class="happening-actions">${e.routeId?`<button data-happening-route="${esc(e.routeId)}">🧭 Take Me There</button>`:''}<button data-happening-add="${COMPASS_REFERENCE.events.indexOf(e)}">+ Add to My Schedule</button></div></div></article>`;
+}
+function renderHappeningHome(){const host=el('happeningHome');if(!host)return;const trivia=COMPASS_REFERENCE.events.filter(e=>e.category==='Trivia').length;host.innerHTML=`<button class="happening-home-card" data-view="happening"><span class="happening-home-icon">✨</span><span><strong>What’s Happening</strong><small>${COMPASS_REFERENCE.events.length} reference events · ${trivia} trivia sessions from a recent Star sailing</small></span><span>›</span></button>`}
+function renderHappening(){const host=el('happeningContent');if(!host)return;const cats=['All',...new Set(COMPASS_REFERENCE.events.map(e=>e.category))];const events=COMPASS_REFERENCE.events.filter(e=>e.day===happeningDay&&(happeningFilter==='All'||e.category===happeningFilter));host.innerHTML=`<div class="happening-warning"><strong>RECENT SAILING REFERENCE</strong><p>These times come from the July 5–12, 2026 Star of the Seas Cruise Compass you supplied. They are useful for learning recurring programming, but they are not confirmed for your September sailing.</p></div><div class="happening-controls"><label><span>REFERENCE DAY</span><select id="happeningDaySelect">${Array.from({length:7},(_,i)=>`<option value="${i+1}" ${happeningDay===i+1?'selected':''}>Day ${i+1} · ${compassDayName(i+1)}</option>`).join('')}</select></label><div class="happening-filters">${cats.map(c=>`<button class="${happeningFilter===c?'active':''}" data-happening-filter="${esc(c)}">${esc(c)}</button>`).join('')}</div></div><div class="happening-source"><b>Source:</b> ${esc(COMPASS_REFERENCE.sailing)} Star of the Seas Cruise Compass</div><div class="happening-list">${events.length?events.map(happeningEventHtml).join(''):`<div class="schedule-empty"><h3>No ${esc(happeningFilter)} events transcribed for this reference day yet.</h3></div>`}</div>`;const sel=el('happeningDaySelect');if(sel)sel.onchange=()=>{happeningDay=Number(sel.value);localStorage.setItem(HAPPENING_DAY_KEY,happeningDay);renderHappening()}}
+function addReferenceEventToSchedule(index){const e=COMPASS_REFERENCE.events[Number(index)];if(!e)return;const id='compass-ref-'+e.day+'-'+e.time.replace(':','')+'-'+Number(index);if(scheduleEntries.some(x=>x.id===id)){navigate('schedule');return;}scheduleEntries.push({id,type:'activity',day:e.day,time:e.time,name:e.name,venueName:e.venue,venueId:e.routeId||'',routeId:e.routeId||'',early:15,notes:`REFERENCE ONLY: ${COMPASS_REFERENCE.sailing} Cruise Compass. Verify the actual time in the Royal Caribbean app for your September sailing.`,confirmed:false,source:COMPASS_REFERENCE.source});saveSchedule();renderSchedule();renderSchedulePreview();navigate('schedule')}
+
+const BUILD_VERSION = '0.13.0';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
@@ -536,7 +620,7 @@ function persistCurrentLocation(){ try { localStorage.setItem(LOCATION_KEY, curr
 
 function updateHeaderVersion(){
   const h = document.querySelector('.topbar h1');
-  if(h) h.innerHTML = `Star Navigator <span>v${BUILD_VERSION}</span>`;
+  if(h) h.innerHTML = `Cruise Navigator <span>v${BUILD_VERSION}</span>`;
 }
 async function hardRefreshToLatest(){
   const btn=document.getElementById('updateNowBtn');
@@ -823,5 +907,7 @@ renderCocoCay();
 renderCruiseProfile();
 renderSchedule();
 renderSchedulePreview();
+renderHappeningHome();
+renderHappening();
 el('cocoCayHome').onclick=()=>navigate('cococay');
 document.addEventListener('click',e=>{const p=e.target.closest('[data-coco-place]');if(p){openCocoPlace(p.dataset.cocoPlace);return}const r=e.target.closest('[data-coco-route]');if(r){openCocoRoute(r.dataset.cocoRoute);return}const a=e.target.closest('[data-coco-action]');if(a){a.dataset.cocoAction==='pass'?openPassPlan():openCocoPurchases();return}const t=e.target.closest('[data-purchase]');if(t){const k=t.dataset.purchase;if(k==='hideaway'||k==='beverage')return;cocoState[k]=!cocoState[k];saveCocoState();openCocoPurchases();renderCocoCay();return}if(e.target.closest('[data-coco-back]')){closeMap();navigate('cococay');}});

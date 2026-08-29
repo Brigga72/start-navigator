@@ -1,4 +1,4 @@
-# Cruise Navigator v0.12.0
+# Cruise Navigator v0.13.0
 
 Personal cruise navigation companion for Royal Caribbean's Star of the Seas, optimized for iPhone 13 Pro.
 
@@ -27,3 +27,12 @@ v0.11.0's Detailed Navigation foundation remains intact. Exact turn-by-turn dire
 ## Update architecture
 
 The existing GitHub Pages update architecture is preserved. v0.12.0 only advances the versioned asset URLs and service-worker cache to `cruise-nav-v012`.
+
+
+## v0.13.0
+- Added What’s Happening using user-supplied July 5–12, 2026 Star of the Seas Cruise Compass reference data.
+- Added filters for trivia, karaoke, games, parties, dance, family activities and more.
+- Reference events are clearly labeled and never presented as confirmed September times.
+- Added Take Me There and Add to My Schedule actions for reference activities.
+- Added mapped venue records for Spotlight Karaoke, Schooner Bar, Dueling Pianos, Music Hall, Boleros, Thorn & Thistle, AO Theater and Sports Court.
+- Fixed the runtime header branding so it remains Cruise Navigator instead of reverting to Star Navigator.
