@@ -24,6 +24,45 @@ const destinations = [
   {id:'guestservices', name:'Guest Services', deck:'5', area:'Midship · Services', category:'services', icon:'🧑‍💼', keywords:'guest services reception help desk', note:'Guest Services is on Deck 5.', confidence:'SERVICE LOCATION VERIFIED; ROUTE CONSERVATIVE', mapDeck:'5', mapNode:'guestservices', route:[{kind:'walk',text:'Leave Cabin 7456 and follow the corridor toward the forward elevator bank shown on the Deck 7 map.'},{kind:'elevator',text:'Go down to Deck 5.'},{kind:'orient',text:'Orient toward Guest Services.'},{kind:'arrive',text:'Follow the Guest Services signs.'}]}
 ];
 
+
+
+/* v0.11 Detailed Navigation Foundation
+   Navigation knowledge is split into three confidence levels:
+   verified     = deck / venue / neighborhood relationship supported by supplied source material
+   orientation  = useful forward/aft or transition guidance without exact turn geometry
+   signage      = exact corridor geometry is not yet encoded, so posted ship signage must finish the segment
+   Coordinates below are schematic map anchors only, never claimed as measured ship coordinates. */
+const NAV_ACCURACY={
+  verified:{label:'VERIFIED',detail:'Supported location or deck relationship.'},
+  orientation:{label:'ORIENTATION',detail:'Direction is useful, exact corridor turns are not yet encoded.'},
+  signage:{label:'SIGNAGE',detail:'Use posted ship signs for this untraced segment.'}
+};
+
+const navigationFoundation={
+  home:{id:'cabin7456',name:'Cabin 7456',deck:'7',role:'home',accuracy:'verified'},
+  decks:{
+    '5':{orientation:'mixed',anchors:['theater','guestservices','mdr','absolute'],transitions:['elevator/stair lobby']},
+    '6':{orientation:'mixed',anchors:['promenade'],transitions:['elevator/stair lobby','Surfside stairs']},
+    '7':{orientation:'home',anchors:['cabin7456','surfside'],transitions:['elevator/stair lobby']},
+    '8':{orientation:'mixed',anchors:['centralpark'],transitions:['elevator/stair lobby','stairs to Deck 7']},
+    '15':{orientation:'forward-to-aft',anchors:['aquadome','royalbay','windjammer'],transitions:['elevator/stair lobby']},
+    '16':{orientation:'aft-activities',anchors:['basecamp','category6'],transitions:['elevator/stair lobby','Hideaway entrance']}
+  }
+};
+
+function routeAccuracyMeta(level){return NAV_ACCURACY[level]||NAV_ACCURACY.signage}
+function routeStep(kind,text,accuracy='orientation',deck=null){return {kind,text,accuracy,deck}}
+function destinationOrientation(to){
+  if(/Forward/i.test(to.area))return 'FORWARD / BOW';
+  if(/Aft/i.test(to.area))return 'AFT / STERN';
+  return null;
+}
+function routeAccuracySummary(route){
+  if(route.some(s=>s.accuracy==='signage'))return {level:'orientation',label:'ORIENTATION ROUTE',text:'Deck and neighborhood guidance is available. One or more corridor segments still rely on ship signage.'};
+  if(route.some(s=>s.accuracy==='orientation'))return {level:'orientation',label:'ORIENTATION ROUTE',text:'The route is useful for deck and forward/aft orientation, but is not yet exact turn-by-turn geometry.'};
+  return {level:'verified',label:'VERIFIED ROUTE',text:'All encoded route segments are supported by the current navigation dataset.'};
+}
+
 const unavailableRecommendations=[{name:'Johnny Rockets', icon:'🍔', text:'Current Star of the Seas venue lists do not show Johnny Rockets. Kept here as a CHECK item so we don’t route you to the wrong venue.'}];
 
 const deckInfo = [
@@ -45,9 +84,66 @@ const lessons=[
 
 function el(id){return document.getElementById(id)}
 
+/* v0.12 Personal Cruise Profile
+   Confirmed from Royal Caribbean sailing documents and order confirmations.
+   This data is intentionally sailing-specific and is not inferred from generic cruise information. */
+const CRUISE_PROFILE = {
+  ship:'Star of the Seas',
+  sailingName:'7 Night Eastern Caribbean & Perfect Day',
+  startDate:'2026-09-13',
+  endDate:'2026-09-20',
+  home:'Cabin 7456',
+  homeDeck:7,
+  dining:'My Time',
+  embarkation:{port:'Port Canaveral',terminal:'Cruise Terminal 1',sailTime:'16:30'},
+  purchases:{
+    hideaway:true,
+    beverage:true,
+    guests:2
+  },
+  itinerary:[
+    {day:1,date:'2026-09-13',short:'Port Canaveral',title:'Port Canaveral',detail:'Embarkation',depart:'16:30'},
+    {day:2,date:'2026-09-14',short:'CocoCay',title:'Perfect Day at CocoCay',detail:'Bahamas',arrive:'07:00',depart:'17:00'},
+    {day:3,date:'2026-09-15',short:'Sea Day',title:'Cruising',detail:'Sea day'},
+    {day:4,date:'2026-09-16',short:'San Juan',title:'San Juan',detail:'Puerto Rico',arrive:'11:00',depart:'20:00'},
+    {day:5,date:'2026-09-17',short:'St. Maarten',title:'Philipsburg',detail:'St. Maarten',arrive:'08:00',depart:'17:00'},
+    {day:6,date:'2026-09-18',short:'Sea Day',title:'Cruising',detail:'Sea day'},
+    {day:7,date:'2026-09-19',short:'Sea Day',title:'Cruising',detail:'Sea day'},
+    {day:8,date:'2026-09-20',short:'Port Canaveral',title:'Port Canaveral',detail:'Disembarkation',arrive:'06:00'}
+  ]
+};
+const CONFIRMED_SCHEDULE_V012 = [
+  {id:'rc-hideaway-20260914',type:'activity',day:2,time:'08:00',name:'Hideaway Beach Day Pass',venueName:'Hideaway Beach',venueId:'',routeId:'',early:0,notes:'Confirmed Royal Caribbean purchase for both guests. Access day is Perfect Day at CocoCay.',confirmed:true,source:'Royal Caribbean order confirmation'},
+  {id:'rc-pigs-stingray-20260914',type:'excursion',day:2,time:'10:30',name:'Swimming Pigs & Stingray Tour',venueName:'Perfect Day at CocoCay',venueId:'',routeId:'',early:30,notes:'Confirmed Royal Caribbean shore excursion for both guests. Meeting location is not encoded because the confirmation does not specify it.',confirmed:true,source:'Royal Caribbean order confirmation'},
+  {id:'rc-backfuture-20260915',type:'show',day:3,time:'20:30',name:'Back to the Future: The Musical',venueName:'Royal Theater',venueId:'backfuture',routeId:'backfuture',early:20,notes:'Confirmed Royal Caribbean reservation for both guests.',confirmed:true,source:'Royal Caribbean order confirmation'},
+  {id:'rc-campo-rico-20260916',type:'excursion',day:4,time:'14:00',name:'Campo Rico ATV Adventure',venueName:'San Juan, Puerto Rico',venueId:'',routeId:'',early:30,notes:'Confirmed Royal Caribbean shore excursion for both guests. Meeting location is not encoded because the confirmation does not specify it.',confirmed:true,source:'Royal Caribbean order confirmation'},
+  {id:'rc-torque-20260916',type:'show',day:4,time:'22:00',name:'Torque',venueName:'AquaTheater',venueId:'torque',routeId:'torque',early:20,notes:'Confirmed Royal Caribbean reservation for both guests.',confirmed:true,source:'Royal Caribbean order confirmation'},
+  {id:'rc-kayak-snorkel-20260917',type:'excursion',day:5,time:'08:30',name:'Kayak and Snorkel Adventure',venueName:'Philipsburg, St. Maarten',venueId:'',routeId:'',early:30,notes:'Confirmed Royal Caribbean shore excursion for both guests. Meeting location is not encoded because the confirmation does not specify it.',confirmed:true,source:'Royal Caribbean order confirmation'}
+];
+const PROFILE_SEED_KEY='cruise-nav-profile-seeded-v012';
+
+function itineraryDay(day){return CRUISE_PROFILE.itinerary.find(x=>Number(x.day)===Number(day))||null}
+function tripDayFromToday(){
+  const now=new Date(); const local=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const match=CRUISE_PROFILE.itinerary.find(x=>x.date===local); return match?match.day:null;
+}
+function profileDateLabel(iso){const d=new Date(`${iso}T12:00:00`);return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})}
+function cruiseCountdown(){
+  const today=new Date(); today.setHours(0,0,0,0); const sail=new Date(`${CRUISE_PROFILE.startDate}T00:00:00`); const end=new Date(`${CRUISE_PROFILE.endDate}T23:59:59`);
+  if(today<sail)return {label:'UNTIL SAILING',value:String(Math.ceil((sail-today)/86400000)),unit:'days'};
+  if(today<=end){const d=tripDayFromToday();return {label:'CRUISE MODE',value:d?`Day ${d}`:'Onboard',unit:''};}
+  return {label:'SAILING',value:'Complete',unit:''};
+}
+function renderCruiseProfile(){
+  const host=el('cruiseProfileHome'); if(!host)return; const c=cruiseCountdown();
+  const ports=CRUISE_PROFILE.itinerary.filter(x=>x.day>1&&x.day<8&&x.title!=='Cruising').map(x=>`${profileDateLabel(x.date)} · ${x.short}`).join('  •  ');
+  host.innerHTML=`<button class="profile-card" data-view="schedule"><div class="profile-count"><span>${esc(c.label)}</span><strong>${esc(c.value)}</strong><small>${esc(c.unit)}</small></div><div class="profile-main"><div class="profile-kicker">YOUR 2026 SAILING</div><h3>${esc(CRUISE_PROFILE.sailingName)}</h3><p>Sep 13–20 · ${esc(CRUISE_PROFILE.ship)}</p><small>${esc(ports)}</small><div class="profile-benefits"><b>✓ Deluxe Beverage Package</b><b>✓ Hideaway Beach</b><b>✓ 3 excursions</b><b>✓ 2 shows</b></div></div><span class="profile-arrow">›</span></button>`;
+}
+
 /* v0.10 My Schedule: persistent personal cruise itinerary */
 const SCHEDULE_KEY = 'cruise-nav-schedule-v1';
 const TRIP_DAY_KEY = 'cruise-nav-trip-day-v1';
+const SAILING_DAY_COUNT = CRUISE_PROFILE.itinerary.length;
 const SCHEDULE_EARLY_DEFAULT = {show:20,dining:10,excursion:30,activity:15,other:15};
 let scheduleEntries = [];
 let selectedTripDay = 1;
@@ -58,7 +154,17 @@ function loadSchedule(){
     const raw=JSON.parse(localStorage.getItem(SCHEDULE_KEY)||'[]');
     scheduleEntries=Array.isArray(raw)?raw:[];
   }catch(_){scheduleEntries=[]}
-  try{selectedTripDay=Math.max(1,Math.min(14,Number(localStorage.getItem(TRIP_DAY_KEY)||1)));}catch(_){selectedTripDay=1}
+  try{
+    if(!localStorage.getItem(PROFILE_SEED_KEY)){
+      const ids=new Set(scheduleEntries.map(x=>x.id));
+      CONFIRMED_SCHEDULE_V012.forEach(item=>{if(!ids.has(item.id))scheduleEntries.push({...item})});
+      localStorage.setItem(PROFILE_SEED_KEY,'1'); saveSchedule();
+    }
+  }catch(_){}
+  try{
+    const stored=localStorage.getItem(TRIP_DAY_KEY); const liveDay=tripDayFromToday();
+    selectedTripDay=Math.max(1,Math.min(SAILING_DAY_COUNT,Number(stored||liveDay||1)));
+  }catch(_){selectedTripDay=1}
 }
 function saveSchedule(){try{localStorage.setItem(SCHEDULE_KEY,JSON.stringify(scheduleEntries));}catch(_) {}}
 function saveTripDay(){try{localStorage.setItem(TRIP_DAY_KEY,String(selectedTripDay));}catch(_) {}}
@@ -82,7 +188,7 @@ function scheduleTimeLabel(t){
   const [hh,mm]=String(t).split(':').map(Number); if(Number.isNaN(hh)||Number.isNaN(mm))return t;
   const suffix=hh>=12?'PM':'AM'; const h=hh%12||12; return `${h}:${String(mm).padStart(2,'0')} ${suffix}`;
 }
-function scheduleDayLabel(day){return `Day ${Number(day)}`}
+function scheduleDayLabel(day){const i=itineraryDay(day);return i?`Day ${Number(day)} · ${i.short}`:`Day ${Number(day)}`}
 function scheduleLeaveBy(entry){
   if(!entry.time)return '';
   const [h,m]=entry.time.split(':').map(Number); if(Number.isNaN(h)||Number.isNaN(m))return '';
@@ -98,7 +204,7 @@ function scheduleEntryHtml(entry,{compact=false}={}){
     <div class="schedule-icon">${scheduleEventIcon(entry.type)}</div>
     <div class="schedule-main">
       <div class="schedule-top"><div><span class="schedule-type">${scheduleTypeLabel(entry.type)} · ${scheduleDayLabel(entry.day)}</span><h3>${esc(entry.name)}</h3></div><button class="schedule-menu" data-schedule-edit="${esc(entry.id)}" aria-label="Edit ${esc(entry.name)}">•••</button></div>
-      <div class="schedule-time">${scheduleTimeLabel(entry.time)}${entry.venueName?` · 📍 ${esc(entry.venueName)}`:''}</div>
+      <div class="schedule-time">${scheduleTimeLabel(entry.time)}${entry.venueName?` · 📍 ${esc(entry.venueName)}`:''}</div>${entry.confirmed?`<div class="schedule-confirmed">✓ CONFIRMED BY ROYAL CARIBBEAN</div>`:''}
       ${leave?`<div class="schedule-leave">Leave about <strong>${scheduleTimeLabel(leave)}</strong> <span>(${Number(entry.early)||15} min early)</span></div>`:''}
       ${entry.notes&&!compact?`<div class="schedule-notes">${esc(entry.notes)}</div>`:''}
       <div class="schedule-actions">
@@ -123,10 +229,10 @@ function renderSchedule(){
   const sorted=[...scheduleEntries].sort(scheduleSort);
   const byDay=new Map();
   sorted.forEach(e=>{if(!byDay.has(Number(e.day)))byDay.set(Number(e.day),[]);byDay.get(Number(e.day)).push(e)});
-  const dayOptions=Array.from({length:14},(_,i)=>`<option value="${i+1}" ${i+1===selectedTripDay?'selected':''}>Day ${i+1}</option>`).join('');
-  const days=Array.from({length:14},(_,i)=>i+1).filter(d=>byDay.has(d));
+  const dayOptions=Array.from({length:SAILING_DAY_COUNT},(_,i)=>{const info=itineraryDay(i+1);return `<option value="${i+1}" ${i+1===selectedTripDay?'selected':''}>Day ${i+1}${info?' · '+profileDateLabel(info.date)+' · '+info.short:''}</option>`}).join('');
+  const days=Array.from({length:SAILING_DAY_COUNT},(_,i)=>i+1).filter(d=>byDay.has(d));
   const showEmpty=`<div class="schedule-empty"><div class="schedule-empty-icon">📅</div><h3>Your schedule is empty</h3><p>Add a show reservation to start building your personal cruise timeline.</p><button class="next-action" data-schedule-add="show">+ Add Show Reservation</button><button class="secondary-action" data-schedule-add="other">+ Add Other Event</button></div>`;
-  host.innerHTML=`<div class="schedule-toolbar"><label><span>CURRENT TRIP DAY</span><select id="tripDaySelect">${dayOptions}</select></label><div class="schedule-toolbar-actions"><button class="schedule-add-btn" data-schedule-add="show">🎭 Add Show</button><button class="schedule-add-btn alt" data-schedule-add="other">+ Add Event</button></div></div>${!sorted.length?showEmpty:`<div class="schedule-next-card"><div><div class="eyebrow">NEXT UP</div><strong>${esc((sorted.find(x=>!x.attended&&Number(x.day)>=selectedTripDay)||sorted[0]).name)}</strong><span>${scheduleDayLabel((sorted.find(x=>!x.attended&&Number(x.day)>=selectedTripDay)||sorted[0]).day)} · ${scheduleTimeLabel((sorted.find(x=>!x.attended&&Number(x.day)>=selectedTripDay)||sorted[0]).time)}</span></div><button class="schedule-jump" data-schedule-current>Jump to Day ${selectedTripDay}</button></div>${days.map(day=>`<section class="schedule-day"><div class="schedule-day-head"><h3>${scheduleDayLabel(day)}</h3><button class="schedule-add-inline" data-schedule-add-day="${day}">+ Add</button></div>${byDay.get(day).map(e=>scheduleEntryHtml(e)).join('')}</section>`).join('')}`}`;
+  host.innerHTML=`<div class="schedule-toolbar"><label><span>CURRENT TRIP DAY</span><select id="tripDaySelect">${dayOptions}</select></label><div class="schedule-toolbar-actions"><button class="schedule-add-btn" data-schedule-add="show">🎭 Add Show</button><button class="schedule-add-btn alt" data-schedule-add="other">+ Add Event</button></div></div>${!sorted.length?showEmpty:`<div class="schedule-next-card"><div><div class="eyebrow">NEXT UP</div><strong>${esc((sorted.find(x=>!x.attended&&Number(x.day)>=selectedTripDay)||sorted[0]).name)}</strong><span>${scheduleDayLabel((sorted.find(x=>!x.attended&&Number(x.day)>=selectedTripDay)||sorted[0]).day)} · ${scheduleTimeLabel((sorted.find(x=>!x.attended&&Number(x.day)>=selectedTripDay)||sorted[0]).time)}</span></div><button class="schedule-jump" data-schedule-current>Jump to Day ${selectedTripDay}</button></div>${days.map(day=>{const info=itineraryDay(day);return `<section class="schedule-day"><div class="schedule-day-head"><div><h3>${scheduleDayLabel(day)}</h3>${info?`<small class="schedule-day-meta">${profileDateLabel(info.date)}${info.arrive?' · Arrive '+scheduleTimeLabel(info.arrive):''}${info.depart?' · Depart '+scheduleTimeLabel(info.depart):''}</small>`:''}</div><button class="schedule-add-inline" data-schedule-add-day="${day}">+ Add</button></div>${byDay.get(day).map(e=>scheduleEntryHtml(e)).join('')}</section>`}).join('')}`}`;
   const sel=el('tripDaySelect'); if(sel)sel.onchange=()=>{selectedTripDay=Number(sel.value);saveTripDay();renderSchedule();renderSchedulePreview()};
 }
 function scheduleVenueOptions(selected=''){
@@ -142,7 +248,7 @@ function openScheduleEditor(mode='other', id=null, dayOverride=null){
   const selectedVenue=existing?.venueId||'';
   el('overlayTitle').textContent=existing?'Edit Schedule Item':'Add to My Schedule';
   el('overlayMap').innerHTML=`<form id="scheduleForm" class="schedule-form">
-    <div class="schedule-form-grid two"><label><span>TYPE</span><select id="sfType"><option value="show" ${type==='show'?'selected':''}>🎭 Show</option><option value="dining" ${type==='dining'?'selected':''}>🍴 Dining</option><option value="excursion" ${type==='excursion'?'selected':''}>🚌 Excursion</option><option value="activity" ${type==='activity'?'selected':''}>🎢 Activity</option><option value="other" ${type==='other'?'selected':''}>📌 Other</option></select></label><label><span>DAY</span><select id="sfDay">${Array.from({length:14},(_,i)=>`<option value="${i+1}" ${(Number(existing?.day||dayOverride||selectedTripDay)===i+1)?'selected':''}>Day ${i+1}</option>`).join('')}</select></label></div>
+    <div class="schedule-form-grid two"><label><span>TYPE</span><select id="sfType"><option value="show" ${type==='show'?'selected':''}>🎭 Show</option><option value="dining" ${type==='dining'?'selected':''}>🍴 Dining</option><option value="excursion" ${type==='excursion'?'selected':''}>🚌 Excursion</option><option value="activity" ${type==='activity'?'selected':''}>🎢 Activity</option><option value="other" ${type==='other'?'selected':''}>📌 Other</option></select></label><label><span>DAY</span><select id="sfDay">${Array.from({length:SAILING_DAY_COUNT},(_,i)=>`<option value="${i+1}" ${(Number(existing?.day||dayOverride||selectedTripDay)===i+1)?'selected':''}>Day ${i+1}</option>`).join('')}</select></label></div>
     <label id="showPickerWrap"><span>SHOW</span><select id="sfShow"><option value="">Choose a show…</option>${showOpts.map(v=>`<option value="${esc(v.id)}" ${existing?.routeId===v.id?'selected':''}>${esc(v.icon)} ${esc(v.name)}</option>`).join('')}</select></label>
     <label><span>EVENT / RESERVATION NAME</span><input id="sfName" type="text" maxlength="80" placeholder="Example: Back to the Future" value="${esc(nameDefault)}" required></label>
     <label><span>VENUE / LOCATION</span><select id="sfVenue">${scheduleVenueOptions(selectedVenue)}</select></label>
@@ -196,8 +302,8 @@ function shipMapSVG(deck, destinationNode=null, mode='route'){
   let v='', cores='', home='', path='';
   const pts={};
   if(d==='7'){
-    v=`<rect x="129" y="38" width="132" height="73" rx="11" class="map-zone"/><text x="195" y="56" text-anchor="middle" class="map-muted">INTERIOR CABINS</text><text x="195" y="75" text-anchor="middle" class="map-zone-text">7456</text><path d="M195 82 L195 126" class="route-line"/><rect x="67" y="164" width="256" height="45" rx="12" class="map-zone destzone"/><text x="195" y="184" text-anchor="middle" class="map-zone-text">SURFSIDE / PUBLIC AREA</text><text x="195" y="200" text-anchor="middle" class="map-muted">second elevator core farther aft</text>`;
-    cores=core(118,'FORWARD LIFTS')+core(211,'AFT LIFTS'); home=`<circle cx="195" cy="76" r="11" class="map-you"/><text x="214" y="80" class="map-label">HOME</text>`;
+    v=`<rect x="129" y="38" width="132" height="73" rx="11" class="map-zone"/><text x="195" y="56" text-anchor="middle" class="map-muted">INTERIOR CABINS</text><text x="195" y="75" text-anchor="middle" class="map-zone-text">7456</text><rect x="67" y="164" width="256" height="45" rx="12" class="map-zone destzone"/><text x="195" y="184" text-anchor="middle" class="map-zone-text">SURFSIDE / PUBLIC AREA</text><text x="195" y="200" text-anchor="middle" class="map-muted">second elevator core farther aft</text>`;
+    cores=core(118,'LIFT / STAIR CORE')+core(211,'LIFT / STAIR CORE'); home=`<circle cx="195" cy="76" r="11" class="map-you"/><text x="214" y="80" class="map-label">HOME</text>`;
   } else if(d==='5'){
     v=`<rect x="92" y="34" width="206" height="35" rx="10" class="map-zone destzone"/><text x="195" y="56" text-anchor="middle" class="map-zone-text">ROYAL THEATER</text><rect x="72" y="98" width="246" height="35" rx="10" class="map-zone"/><text x="195" y="120" text-anchor="middle" class="map-zone-text">THE PEARL / GUEST SERVICES</text><rect x="76" y="176" width="110" height="36" rx="10" class="map-zone destzone"/><text x="131" y="198" text-anchor="middle" class="map-zone-text">DINING ROOM</text><rect x="204" y="176" width="110" height="36" rx="10" class="map-zone destzone"/><text x="259" y="198" text-anchor="middle" class="map-zone-text">ABSOLUTE ZERO</text>`;
     cores=core(72,'FORWARD LIFTS')+core(139,'AFT LIFTS'); Object.assign(pts,{theater:[195,51],guestservices:[132,115],mdr:[131,194],absolute:[259,194]});
@@ -233,27 +339,28 @@ const locations=[
 function locationById(id){return locations.find(x=>x.id===id)||locations[0]}
 function routeFor(fromId,toId){
   const from=locationById(fromId); const to=destinations.find(x=>x.id===toId); if(!to)return [];
-  if(from.id==='cabin7456') return to.route;
   const sameDeck=String(from.mapDeck)===String(to.mapDeck);
-  const areaForward=/Forward/i.test(to.area);
-  const areaAft=/Aft/i.test(to.area);
-  const homeLike=from.name.toLowerCase().includes('cabin');
-  const departText=homeLike
-    ? `Start at ${from.name} and use the cabin corridor toward the most useful elevator/stair connection shown on the deck map.`
-    : `Start at ${from.name}. Use the nearby ship landmarks and signs to reach the next navigation point.`;
-  if(sameDeck){
-    return [
-      {kind:'walk',text:departText},
-      {kind:'orient',text:`Stay on Deck ${from.mapDeck} and orient ${areaForward?'forward':areaAft?'aft':'toward the destination area'} toward ${to.name}.`},
-      {kind:'arrive',text:`Follow signs and nearby landmarks to ${to.name}.`}
-    ];
+  const orient=destinationOrientation(to);
+  const route=[];
+
+  if(from.id==='cabin7456'){
+    route.push(routeStep('walk','Leave Cabin 7456. Use cabin-number and deck signage to reach an elevator or stair lobby on Deck 7.','signage','7'));
+  }else{
+    route.push(routeStep('walk',`Start at ${from.name}. Use the nearest clearly signed elevator, stair lobby, or major neighborhood landmark as your next navigation anchor.`,'signage',from.mapDeck));
   }
-  return [
-    {kind:'walk',text:departText},
-    {kind:'elevator',text:`Take the appropriate elevator or stair connection from Deck ${from.mapDeck} to Deck ${to.mapDeck}.`},
-    {kind:'orient',text:`On Deck ${to.mapDeck}, orient ${areaForward?'forward':areaAft?'aft':'toward the destination area'} toward ${to.name}.`},
-    {kind:'arrive',text:`Follow signs and nearby landmarks to ${to.name}.`}
-  ];
+
+  if(!sameDeck){
+    route.push(routeStep('elevator',`Use an elevator or stair connection that serves Deck ${to.mapDeck}. Confirm Deck ${to.mapDeck} on the lobby signage before continuing.`,'orientation',to.mapDeck));
+  }
+
+  if(orient){
+    route.push(routeStep('orient',`On Deck ${to.mapDeck}, use the ship's FORWARD / AFT signs and head ${orient} toward the ${to.area.replace(/^[^·]*·\s*/,'')} area.`,'verified',to.mapDeck));
+  }else{
+    route.push(routeStep('orient',`On Deck ${to.mapDeck}, orient toward the signed ${to.area} area.`,'orientation',to.mapDeck));
+  }
+
+  route.push(routeStep('arrive',`Use posted venue and neighborhood signs for the final approach to ${to.name}. Exact final corridor turns will be added only after they are traced from the supplied deck plans.`,'signage',to.mapDeck));
+  return route;
 }
 function routeAreaLabel(fromId,to){const from=locationById(fromId);return `${from.name} → ${to.name}`;}
 function guidedMapFor(d,idx){
@@ -276,7 +383,10 @@ function renderGuidedRoute(){
   const from=locationById(currentLocationId);
   const nearby=d.id==='aquadome'||d.id==='torque'?`<div class="nearby-card"><div class="confidence">WHILE YOU'RE HERE</div><h3>Nearby in AquaDome</h3><div class="nearby-chips"><span>💎 The Overlook</span><span>☕ Rye & Bean</span><span>🍴 AquaDome Market</span></div></div>`:d.id==='basecamp'?`<div class="nearby-card"><div class="confidence">WHILE YOU'RE HERE</div><h3>Nearby in Thrill Island</h3><div class="nearby-chips"><span>🧗 Adrenaline Peak</span><span>⛳ Lost Dunes</span><span>🏄 FlowRider</span></div></div>`:'';
   const progressText=`STEP ${idx+1} OF ${d.route.length}`;
-  el('routeContent').innerHTML=`<div class="location-picker"><button class="location-field" id="fromLocationBtn"><span>📍 FROM</span><strong>${esc(from.name)}</strong><small>Deck ${esc(from.mapDeck)} · change</small></button><div class="location-arrow">→</div><button class="location-field" id="toLocationBtn"><span>🎯 TO</span><strong>${esc(d.name)}</strong><small>Deck ${esc(d.mapDeck)}</small></button></div><div class="guided-top"><button class="back-btn" onclick="navigate('home')">‹ Exit</button><div class="guided-progress"><span>${progressText}</span><div><i style="width:${pct}%"></i></div></div></div><div class="route-hero guided-hero"><div class="eyebrow">${esc(routeAreaLabel(currentLocationId,d))}</div><h2>${type}</h2><div class="route-tag">Deck ${idx<2?esc(from.mapDeck):esc(d.mapDeck)} · ${esc(d.area)}</div></div><div class="guided-map">${guidedMapFor(d,idx)}<button class="map-open guided-full" data-openmap="${d.id}">Expand map</button></div><div class="instruction-card"><div class="step-num big">${idx+1}</div><div><div class="step-type">${type}</div><div class="instruction-text">${esc(s.text)}</div></div></div>${idx===d.route.length-1?nearby:''}<div class="guided-actions">${idx>0?'<button class="secondary-action" id="prevGuide">← Previous</button>':''}<button class="confused-action" id="confusedBtn">? I'm confused</button>${idx<d.route.length-1?'<button class="next-action" id="nextGuide">NEXT →</button>':'<button class="next-action" id="finishGuide">✓ ARRIVED</button>'}</div>`;
+  const accuracy=routeAccuracyMeta(s.accuracy);
+  const routeSummary=routeAccuracySummary(d.route);
+  el('routeContent').innerHTML=`<div class="route-accuracy ${esc(routeSummary.level)}"><div><span>${esc(routeSummary.label)}</span><strong>${esc(routeSummary.text)}</strong></div><button class="accuracy-help" id="accuracyHelp" aria-label="Navigation accuracy information">?</button></div><div class="location-picker"><button class="location-field" id="fromLocationBtn"><span>📍 FROM</span><strong>${esc(from.name)}</strong><small>Deck ${esc(from.mapDeck)} · change</small></button><div class="location-arrow">→</div><button class="location-field" id="toLocationBtn"><span>🎯 TO</span><strong>${esc(d.name)}</strong><small>Deck ${esc(d.mapDeck)}</small></button></div><div class="guided-top"><button class="back-btn" onclick="navigate('home')">‹ Exit</button><div class="guided-progress"><span>${progressText}</span><div><i style="width:${pct}%"></i></div></div></div><div class="route-hero guided-hero"><div class="eyebrow">${esc(routeAreaLabel(currentLocationId,d))}</div><h2>${type}</h2><div class="route-tag">Deck ${idx<2?esc(from.mapDeck):esc(d.mapDeck)} · ${esc(d.area)}</div></div><div class="guided-map">${guidedMapFor(d,idx)}<button class="map-open guided-full" data-openmap="${d.id}">Expand map</button></div><div class="instruction-card"><div class="step-num big">${idx+1}</div><div><div class="step-type">${type} <span class="step-accuracy ${esc(s.accuracy)}">${esc(accuracy.label)}</span></div><div class="instruction-text">${esc(s.text)}</div></div></div>${idx===d.route.length-1?nearby:''}<div class="guided-actions">${idx>0?'<button class="secondary-action" id="prevGuide">← Previous</button>':''}<button class="confused-action" id="confusedBtn">? I'm confused</button>${idx<d.route.length-1?'<button class="next-action" id="nextGuide">NEXT →</button>':'<button class="next-action" id="finishGuide">✓ ARRIVED</button>'}</div>`;
+  el('accuracyHelp').onclick=()=>{el('overlayTitle').textContent='Navigation accuracy';el('overlayMap').innerHTML=`<div class="accuracy-sheet"><h3>How Cruise Navigator treats route accuracy</h3><p><b>Verified</b> means the deck, venue, or forward/aft relationship is supported by the current source material.</p><p><b>Orientation</b> means the guidance is useful for choosing a deck or ship direction, but exact corridor turns are not yet traced.</p><p><b>Signage</b> means Navigator intentionally stops short of inventing a turn. Use posted ship signs for that segment.</p><div class="recovery-tip"><strong>v0.11 foundation:</strong> future deck-plan tracing can upgrade individual segments from Signage or Orientation to Verified without changing the rest of the route engine.</div></div>`;el('mapOverlay').classList.add('show');el('mapOverlay').setAttribute('aria-hidden','false');};
   el('fromLocationBtn').onclick=()=>openLocationPicker('from');
   el('toLocationBtn').onclick=()=>openLocationPicker('to');
   if(el('nextGuide'))el('nextGuide').onclick=()=>{guidedState.step++;renderGuidedRoute()};
@@ -303,7 +413,7 @@ function openLocationPicker(mode){
 }
 function renderLocationChoices(list,current){return list.map(x=>`<button class="location-choice ${x.id===current?'selected':''}" data-location-choice="${x.id}"><span>${x.icon||'📍'}</span><span><strong>${esc(x.name)}</strong><small>Deck ${esc(x.mapDeck)} · ${esc(x.area)}</small></span>${x.id===current?'<b>✓</b>':''}</button>`).join('')||'<div class="empty-choice">No matching locations.</div>'}
 function showRecovery(d,idx){
-  const landmarks=d.mapDeck==='15'?['AquaDome / AquaTheater','Royal Bay Pool','Windjammer Marketplace','Elevator lobby']:d.mapDeck==='16'?['Basecamp','Slide entrances','Lost Dunes / FlowRider','Elevator lobby']:d.mapDeck==='5'?['Royal Theater','The Pearl','Dining Room','Absolute Zero','Elevator lobby']:d.mapDeck==='8'?['Central Park','Park Café','Lou’s','Elevator lobby']:['Cabin-number signs','Forward elevator lobby','Surfside','Another elevator lobby'];
+  const landmarks=d.mapDeck==='15'?['AquaDome / AquaTheater','Royal Bay Pool','Windjammer Marketplace','Elevator lobby']:d.mapDeck==='16'?['Basecamp','Slide entrances','Lost Dunes / FlowRider','Elevator lobby']:d.mapDeck==='5'?['Royal Theater','The Pearl','Dining Room','Absolute Zero','Elevator lobby']:d.mapDeck==='8'?['Central Park','Park Café','Lou’s','Elevator lobby']:['Cabin-number signs','Elevator / stair lobby','Surfside','Another elevator / stair lobby'];
   el('overlayTitle').textContent='Where are you now?';
   el('overlayMap').innerHTML=`<div class="recovery"><p>Select a landmark you can see. This does not use GPS; it helps you re-orient from a known place.</p>${landmarks.map(x=>`<button class="recovery-place">📍 ${esc(x)}</button>`).join('')}<div class="recovery-tip"><strong>Ship compass:</strong> keep the pointed bow toward <b>FORWARD</b>. Check nearby wall/elevator signage for deck and venue names.</div></div><div class="overlay-section">${shipMapSVG(idx<2?'7':d.mapDeck,idx<2?null:d.mapNode,'route')}</div>`;
   el('mapOverlay').classList.add('show');el('mapOverlay').setAttribute('aria-hidden','false');
@@ -319,7 +429,7 @@ function openMapFor(id){
   const d=destinations.find(x=>x.id===id);if(!d)return;
   const from=locationById(currentLocationId);
   el('overlayTitle').textContent=`${from.name} → ${d.name}`;
-  el('overlayMap').innerHTML=`<div class="overlay-section"><div class="overlay-label">DECK ${esc(from.mapDeck)} · CURRENT LOCATION</div>${shipMapSVG(from.mapDeck,from.mapNode,'route')}</div><div class="overlay-connector">↓ ${String(from.mapDeck)===String(d.mapDeck)?'ROUTE ON SAME DECK':'ELEVATOR / STAIR TRANSITION'} ↓</div><div class="overlay-section"><div class="overlay-label">DECK ${esc(d.mapDeck)} · DESTINATION</div>${shipMapSVG(d.mapDeck,d.mapNode,'route')}</div>`;
+  el('overlayMap').innerHTML=`<div class="overlay-section"><div class="overlay-label">DECK ${esc(from.mapDeck)} · CURRENT LOCATION</div>${shipMapSVG(from.mapDeck,from.mapNode,'route')}</div><div class="overlay-connector">↓ ${String(from.mapDeck)===String(d.mapDeck)?'ROUTE ON SAME DECK':'DECK TRANSITION · CONFIRM ON SIGNAGE'} ↓</div><div class="overlay-section"><div class="overlay-label">DECK ${esc(d.mapDeck)} · DESTINATION</div>${shipMapSVG(d.mapDeck,d.mapNode,'route')}</div>`;
   el('mapOverlay').classList.add('show');el('mapOverlay').setAttribute('aria-hidden','false');
 }
 function closeMap(){el('mapOverlay').classList.remove('show');el('mapOverlay').setAttribute('aria-hidden','true')}
@@ -401,7 +511,7 @@ el('takeHome').addEventListener('click',()=>{
 el('infoBtn').onclick=()=>navigate('info');
 
 // v0.8: persistent local state + update detection
-const BUILD_VERSION = '0.10.0';
+const BUILD_VERSION = '0.12.0';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
@@ -653,7 +763,10 @@ document.addEventListener('click',e=>{
 
 
 /* v0.9 CocoCay Island Mode + personalized access */
-const cocoState={hideaway:true,thrill:false,cocobeach:false,beverage:false,current:'arrivals'};
+const COCO_STATE_KEY='cruise-nav-coco-state-v2';
+const cocoState={hideaway:true,thrill:false,cocobeach:false,beverage:true,current:'arrivals'};
+try{const saved=JSON.parse(localStorage.getItem(COCO_STATE_KEY)||'{}');Object.assign(cocoState,saved,{hideaway:CRUISE_PROFILE.purchases.hideaway,beverage:CRUISE_PROFILE.purchases.beverage});}catch(_){}
+function saveCocoState(){try{localStorage.setItem(COCO_STATE_KEY,JSON.stringify({thrill:cocoState.thrill,cocobeach:cocoState.cocobeach}))}catch(_){}}
 const cocoPlaces=[
  {id:'arrivals',name:'Arrivals Plaza / Ship',icon:'🚢',zone:'Arrival',status:'free',type:'Navigation',desc:'Your island starting point after walking off the ship. Use this as Home for CocoCay navigation.',food:'',best:'Start / return to ship'},
  {id:'hideaway',name:'Hideaway Beach',icon:'🏖️',zone:'Hideaway Beach',status:'hideaway',type:'Beach neighborhood',desc:'Adults-only beach neighborhood with Hideaway Pool, DJ entertainment, five bars, loungers, umbrellas and in-water hammocks.',food:'Two dining venues are included with your Hideaway Beach pass.',best:'Adults-only beach day'},
@@ -695,7 +808,7 @@ function renderCocoCay(){
  const hide=cocoPlaces.filter(p=>['hideaway','hideawaypool','hideawayhut','slice','ontherocks','hideawaybar','hammocks'].includes(p.id));
  const free=cocoPlaces.filter(p=>['oasis','chill','harbor','south','cove','splashaway','snackshack','chillgrill','skippers','tram'].includes(p.id));
  const extra=cocoPlaces.filter(p=>['thrill','cocobeach','captainjacks'].includes(p.id));
- el('cococayContent').innerHTML=`<div class="island-hero"><div class="eyebrow">ISLAND MODE</div><h2>Perfect Day at CocoCay</h2><p>Explore the island, see what your cruise fare or purchased access includes, and use a simplified theme-park-style map to get oriented.</p></div><div class="access-card"><span class="access-badge">✓ PURCHASE SAVED</span><h3>Hideaway Beach Day Pass</h3><p>Your app treats Hideaway Beach as unlocked. Hideaway Hut and Slice of Paradise are included with your pass; five bars are accessible, while drinks depend on your beverage package or individual purchase.</p></div><div class="island-actions"><button class="island-action" data-coco-action="pass"><strong>✨ Make the Most of My Pass</strong><small>A suggested Hideaway Beach day</small></button><button class="island-action" data-coco-action="purchases"><strong>🎟️ My Purchases</strong><small>Tell Navigator what you already bought</small></button></div><div class="island-map-card"><h3>General island map</h3>${cocoMapSVG()}<div class="island-legend"><span><i class="cost-dot free"></i>Included</span><span><i class="cost-dot unlocked"></i>Your access</span><span><i class="cost-dot paid"></i>Extra</span></div></div><div class="island-section"><div class="island-section-head"><h3>💜 Your Hideaway Beach access</h3><small>Tap for details + map</small></div><div class="island-list">${hide.map(cocoPlaceCard).join('')}</div></div><div class="island-section"><div class="island-section-head"><h3>✓ Included around CocoCay</h3><small>No separate island admission</small></div><div class="island-list">${free.map(cocoPlaceCard).join('')}</div></div><div class="island-section"><div class="island-section-head"><h3>$ Extra / separate access</h3><small>Unless purchased</small></div><div class="island-list">${extra.map(cocoPlaceCard).join('')}</div></div><div class="explore-source-v07">CocoCay information is based on Royal Caribbean’s current official wayfinding map and Hideaway Beach information. Hours, availability and charges can change; verify sailing-specific details in the Royal Caribbean app.</div>`;
+ el('cococayContent').innerHTML=`<div class="island-hero"><div class="eyebrow">ISLAND MODE</div><h2>Perfect Day at CocoCay</h2><p>Explore the island, see what your cruise fare or purchased access includes, and use a simplified theme-park-style map to get oriented.</p></div><div class="access-card"><span class="access-badge">✓ ROYAL CARIBBEAN CONFIRMED</span><h3>Hideaway Beach + Deluxe Beverage Package</h3><p>Your June 15 Royal Caribbean order confirms both for the two guests on this sailing. Hideaway access and included dining are unlocked, and eligible drinks are personalized as covered by your Deluxe Beverage Package.</p></div><div class="island-actions"><button class="island-action" data-coco-action="pass"><strong>✨ Make the Most of My Pass</strong><small>A suggested Hideaway Beach day</small></button><button class="island-action" data-coco-action="purchases"><strong>🎟️ My Purchases</strong><small>Tell Navigator what you already bought</small></button></div><div class="island-map-card"><h3>General island map</h3>${cocoMapSVG()}<div class="island-legend"><span><i class="cost-dot free"></i>Included</span><span><i class="cost-dot unlocked"></i>Your access</span><span><i class="cost-dot paid"></i>Extra</span></div></div><div class="island-section"><div class="island-section-head"><h3>💜 Your Hideaway Beach access</h3><small>Tap for details + map</small></div><div class="island-list">${hide.map(cocoPlaceCard).join('')}</div></div><div class="island-section"><div class="island-section-head"><h3>✓ Included around CocoCay</h3><small>No separate island admission</small></div><div class="island-list">${free.map(cocoPlaceCard).join('')}</div></div><div class="island-section"><div class="island-section-head"><h3>$ Extra / separate access</h3><small>Unless purchased</small></div><div class="island-list">${extra.map(cocoPlaceCard).join('')}</div></div><div class="explore-source-v07">CocoCay information is based on Royal Caribbean’s current official wayfinding map and Hideaway Beach information. Hours, availability and charges can change; verify sailing-specific details in the Royal Caribbean app.</div>`;
 }
 function openCocoPlace(id){
  const p=cocoPlaces.find(x=>x.id===id);if(!p)return; const [cls,label]=cocoStatus(p);
@@ -704,10 +817,11 @@ function openCocoPlace(id){
  el('mapOverlay').classList.add('show');el('mapOverlay').setAttribute('aria-hidden','false');
 }
 function openCocoRoute(id){const p=cocoPlaces.find(x=>x.id===id);if(!p)return;el('overlayTitle').textContent=`Route to ${p.name}`;el('overlayMap').innerHTML=`<div class="deck-explorer-v07"><div class="deck-explorer-head"><div><div class="eyebrow">ISLAND NAVIGATION</div><h2>Arrivals → ${esc(p.name)}</h2><p>Use this as an orientation aid; follow posted CocoCay signs and tram information on the island.</p></div></div><div class="island-map-card">${cocoMapSVG(p.zone==='Hideaway Beach'?'hideaway':p.id)}</div><div class="pass-itinerary"><div class="pass-step"><div><strong>Start at Arrivals Plaza</strong><small>After leaving the ship, orient yourself using the main island signage.</small></div></div><div class="pass-step"><div><strong>${p.id==='hideaway'||p.zone==='Hideaway Beach'?'Head toward Hideaway Beach':'Follow signs toward '+esc(p.name)}</strong><small>${p.id==='hideaway'||p.zone==='Hideaway Beach'?'Royal Caribbean’s official map lists Hideaway Beach about a 5-minute walk from Arrivals and also shows tram service.':'Use the highlighted general direction and island signs.'}</small></div></div><div class="pass-step"><div><strong>Confirm at the neighborhood entrance</strong><small>${p.zone==='Hideaway Beach'?'Scan/tap your SeaPass at Hideaway Beach access. Your pass allows re-entry.':'Look for the venue or neighborhood sign before continuing.'}</small></div></div></div></div>`;}
-function openCocoPurchases(){el('overlayTitle').textContent='My Purchases';const rows=[['hideaway','Hideaway Beach Day Pass','Adults-only neighborhood + included dining'],['thrill','Thrill Waterpark','Separate admission'],['cocobeach','Coco Beach Club','Separate admission'],['beverage','Beverage Package','Applies at CocoCay bars when eligible']];el('overlayMap').innerHTML=`<div><p class="deck-overview-note">Turn on anything you purchase later. Cost labels throughout Island Mode will update for you.</p>${rows.map(([k,n,d])=>`<div class="purchase-row"><span><strong>${n}</strong><small>${d}</small></span><button class="purchase-toggle ${cocoState[k]?'on':''}" data-purchase="${k}">${cocoState[k]?'✓ SAVED':'NOT ADDED'}</button></div>`).join('')}</div>`;el('mapOverlay').classList.add('show');el('mapOverlay').setAttribute('aria-hidden','false');}
+function openCocoPurchases(){el('overlayTitle').textContent='My Purchases';const rows=[['hideaway','Hideaway Beach Day Pass','Confirmed for both guests · Day 2','confirmed'],['beverage','Deluxe Beverage Package','Confirmed for both guests','confirmed'],['thrill','Thrill Waterpark','Separate admission','optional'],['cocobeach','Coco Beach Club','Separate admission','optional']];el('overlayMap').innerHTML=`<div><p class="deck-overview-note">Confirmed purchases come from your Royal Caribbean order. Optional items can still be tracked locally if you add them later.</p>${rows.map(([k,n,d,status])=>`<div class="purchase-row"><span><strong>${n}</strong><small>${d}</small></span>${status==='confirmed'?`<span class="purchase-confirmed">✓ CONFIRMED</span>`:`<button class="purchase-toggle ${cocoState[k]?'on':''}" data-purchase="${k}">${cocoState[k]?'✓ SAVED':'NOT ADDED'}</button>`}</div>`).join('')}</div>`;el('mapOverlay').classList.add('show');el('mapOverlay').setAttribute('aria-hidden','false');}
 function openPassPlan(){el('overlayTitle').textContent='Make the Most of My Pass';el('overlayMap').innerHTML=`<div class="access-card"><span class="access-badge">HIDEAWAY BEACH</span><h3>A flexible day, not a schedule</h3><p>Use this as a suggested flow and change it however you like.</p></div><div class="pass-itinerary"><div class="pass-step"><div><strong>Enter + get oriented</strong><small>Scan your SeaPass, find lockers/towel exchange if needed, then choose your chairs or beach base.</small></div></div><div class="pass-step"><div><strong>Hideaway Pool + swim-up bar</strong><small>See the infinity pool and DJ area early. Drinks are separate unless covered by your beverage package.</small></div></div><div class="pass-step"><div><strong>Lunch at Hideaway Hut</strong><small>Included with your pass. Coconut shrimp, burgers, chicken sandwiches, salads and more.</small></div></div><div class="pass-step"><div><strong>Beach + in-water hammocks</strong><small>Use the included loungers, umbrellas and in-water relaxation areas.</small></div></div><div class="pass-step"><div><strong>On the Rocks</strong><small>Stop for the sweeping view and live-music atmosphere. Beverage charges depend on your package.</small></div></div><div class="pass-step"><div><strong>Slice of Paradise</strong><small>Grab an included pizza before you leave or whenever you want another bite.</small></div></div></div><div class="island-map-card">${cocoMapSVG('hideaway')}</div>`;el('mapOverlay').classList.add('show');el('mapOverlay').setAttribute('aria-hidden','false');}
 renderCocoCay();
+renderCruiseProfile();
 renderSchedule();
 renderSchedulePreview();
 el('cocoCayHome').onclick=()=>navigate('cococay');
-document.addEventListener('click',e=>{const p=e.target.closest('[data-coco-place]');if(p){openCocoPlace(p.dataset.cocoPlace);return}const r=e.target.closest('[data-coco-route]');if(r){openCocoRoute(r.dataset.cocoRoute);return}const a=e.target.closest('[data-coco-action]');if(a){a.dataset.cocoAction==='pass'?openPassPlan():openCocoPurchases();return}const t=e.target.closest('[data-purchase]');if(t){const k=t.dataset.purchase;if(k==='hideaway')return;cocoState[k]=!cocoState[k];openCocoPurchases();renderCocoCay();return}if(e.target.closest('[data-coco-back]')){closeMap();navigate('cococay');}});
+document.addEventListener('click',e=>{const p=e.target.closest('[data-coco-place]');if(p){openCocoPlace(p.dataset.cocoPlace);return}const r=e.target.closest('[data-coco-route]');if(r){openCocoRoute(r.dataset.cocoRoute);return}const a=e.target.closest('[data-coco-action]');if(a){a.dataset.cocoAction==='pass'?openPassPlan():openCocoPurchases();return}const t=e.target.closest('[data-purchase]');if(t){const k=t.dataset.purchase;if(k==='hideaway'||k==='beverage')return;cocoState[k]=!cocoState[k];saveCocoState();openCocoPurchases();renderCocoCay();return}if(e.target.closest('[data-coco-back]')){closeMap();navigate('cococay');}});
