@@ -234,3 +234,9 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 .guided-map-placeholder-v0261{min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:24px;border:1px dashed #9aa8b7;border-radius:16px;background:#f7f9fc}
 .guided-map-placeholder-v0261 strong{font-size:.9rem}
 .guided-map-placeholder-v0261 span{max-width:320px;font-size:.78rem;color:#607080;line-height:1.45}
+
+/* v0.27 navigation cleanup */
+.guided-map-placeholder-v027{min-height:170px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:24px;border:1px dashed #9aa8b7;border-radius:16px;background:#f7f9fc}
+.guided-map-placeholder-v027 strong{font-size:.95rem}
+.guided-map-placeholder-v027 span{max-width:340px;font-size:.8rem;color:#607080;line-height:1.45}
+.prod-confidence-v026.mixed{opacity:.9}

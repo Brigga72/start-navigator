@@ -200,3 +200,30 @@ The existing GitHub Pages update architecture is preserved. v0.12.0 only advance
 - Expanded orientation-only segments now show the same no-exact-line placeholder as the normal guided view.
 - Prevents the obsolete Crown's Edge -> elevator lobby -> Adrenaline Peak -> Basecamp diagonal from reappearing in expanded view.
 - No walking-network remapping or re-export is required.
+
+## v0.27.0 - Navigation Cleanup
+
+This release recenters Cruise Navigator on its primary goal: provide the clearest trustworthy passenger guidance supported by the mapped data, without inventing walking geometry.
+
+### Navigation policy
+- **Verified** steps use the user-mapped ship walking graph and may display an exact highlighted route on the clean deck plan.
+- **Orientation** steps are used when the app knows the deck or general area but does not have continuous verified corridor geometry.
+- **Signage** steps explicitly hand navigation over to Royal Caribbean's posted ship signs when the remaining path has not been mapped.
+- Confidence is now evaluated per guided step. A trip may contain both verified and orientation/signage segments.
+- The overall trip summary reports **VERIFIED ROUTE** only when every step is verified. Mixed routes are labeled **VERIFIED + ORIENTATION**.
+
+### Map behavior
+- Guided navigation shows an exact map only for steps backed by verified geometry.
+- Unmapped portions display a clear orientation/signage message instead of a fabricated route line.
+- The old Expand Map control is removed from guided navigation for now. A future full-screen map should be built directly on the production graph rather than the legacy route renderer.
+- Remaining v0.18 Basecamp-specific UI routing is retired from normal guided navigation.
+
+### Basecamp
+- Cabin 7456 to Basecamp uses verified graph geometry through the mapped portions of Decks 7 and 16.
+- Near Crown's Edge, where the current exported network no longer contains continuous verified geometry to Basecamp, navigation explicitly hands off to orientation/signage.
+- No line is drawn through the unmapped Thrill Island section.
+
+### Data and editor
+- The v0.25 user-exported ship network remains the authoritative detailed-routing source embedded in production navigation.
+- Existing editor functionality and local-storage keys are preserved.
+- No remapping or re-export is required for this release.
