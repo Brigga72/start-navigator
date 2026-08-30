@@ -121,3 +121,14 @@ The existing GitHub Pages update architecture is preserved. v0.12.0 only advance
 - Fixes verticalGroup data so only elevator nodes can retain an elevator-bank ID.
 - Hides elevator-bank selection unless the selected point type is Elevator.
 - Adds a recommended mapping order banner: walking paths, intersections, elevators/stairs, destinations last.
+
+## v0.22.0
+- Adds Place Stairs / Elevator mode to the ship walking-network editor.
+- Tap on an existing walking path to insert a transportation node directly into that path.
+- If tapped between two path nodes, the existing edge is split automatically so routing must pass through the new elevator/stair point.
+- Elevator placement includes Forward, Midship, Aft, or Other bank classification.
+- Stair nodes do not receive elevator-bank metadata.
+- Existing v0.20 ship-network local storage is preserved.
+- Cleans invalid verticalGroup values from non-elevator nodes when loading older editor data.
+- Keeps walking geometry, transportation nodes, and later destination placement as separate mapping phases.
+- Fixes the older graph-guided SVG overlay sizing rule in production navigation styles.
