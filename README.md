@@ -132,3 +132,16 @@ The existing GitHub Pages update architecture is preserved. v0.12.0 only advance
 - Cleans invalid verticalGroup values from non-elevator nodes when loading older editor data.
 - Keeps walking geometry, transportation nodes, and later destination placement as separate mapping phases.
 - Fixes the older graph-guided SVG overlay sizing rule in production navigation styles.
+
+## v0.23.0
+- Adds explicit cross-deck stair links using the user-marked stair nodes.
+- Stair routing now connects only physically matched stair endpoints instead of using elevator-style all-deck grouping.
+- Added matched links:
+  - Forward port stairs: Deck 5↔6, 6↔7, 7↔8, 15↔16.
+  - Forward starboard stairs: Deck 5↔6 and 15↔16.
+  - Royal Promenade stair: Deck 5↔6.
+  - Royal Promenade/Central Park stair: Deck 6↔8.
+- Existing forward elevators continue to use the shared Forward elevator-bank vertical group.
+- Deck exports are now version 3 and include `verticalEdges` for stair links touching that deck.
+- Deck import accepts `verticalEdges` and restores them when both endpoints exist.
+- Existing v0.20 ship-network local storage remains authoritative and is migrated in place.

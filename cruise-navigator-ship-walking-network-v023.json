@@ -1,0 +1,1616 @@
+{
+  "version": 3,
+  "nodes": [
+    {
+      "id": "n_mtg86pyq_6gz7",
+      "deck": "5",
+      "panel": "forward",
+      "x": 223,
+      "y": 698,
+      "type": "elevator",
+      "label": "Forward elevators",
+      "verticalGroup": "forward"
+    },
+    {
+      "id": "n_mtg86r73_bg7n",
+      "deck": "5",
+      "panel": "forward",
+      "x": 108,
+      "y": 695,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg86uh6_ssvg",
+      "deck": "5",
+      "panel": "forward",
+      "x": 345,
+      "y": 692,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg86vyd_ld0d",
+      "deck": "5",
+      "panel": "forward",
+      "x": 223,
+      "y": 581,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8709p_j1yu",
+      "deck": "5",
+      "panel": "forward",
+      "x": 223,
+      "y": 773,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg871cw_97hb",
+      "deck": "5",
+      "panel": "forward",
+      "x": 271,
+      "y": 829,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg873kl_ftjh",
+      "deck": "5",
+      "panel": "forward",
+      "x": 262,
+      "y": 966,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg874at_atel",
+      "deck": "5",
+      "panel": "forward",
+      "x": 263,
+      "y": 1051,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg876dy_t8xk",
+      "deck": "5",
+      "panel": "forward",
+      "x": 296,
+      "y": 1133,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg87lcj_7qjh",
+      "deck": "5",
+      "panel": "forward",
+      "x": 206,
+      "y": 946,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg87s16_dd0y",
+      "deck": "5",
+      "panel": "forward",
+      "x": 186,
+      "y": 1072,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8wi0z_i4qf",
+      "deck": "5",
+      "panel": "forward",
+      "x": 151,
+      "y": 696,
+      "type": "stairs",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8wtei_b5wq",
+      "deck": "5",
+      "panel": "forward",
+      "x": 304,
+      "y": 694,
+      "type": "stairs",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8xd17_enr5",
+      "deck": "5",
+      "panel": "forward",
+      "x": 251,
+      "y": 805,
+      "type": "stairs",
+      "label": "Stairs to Deck 6"
+    },
+    {
+      "id": "n_mtg8djsn_pk5l",
+      "deck": "6",
+      "panel": "forward",
+      "x": 235,
+      "y": 666,
+      "type": "elevator",
+      "label": "Forward elevators",
+      "verticalGroup": "forward"
+    },
+    {
+      "id": "n_mtg8dkil_fk8o",
+      "deck": "6",
+      "panel": "forward",
+      "x": 115,
+      "y": 666,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8dola_z4lt",
+      "deck": "6",
+      "panel": "forward",
+      "x": 350,
+      "y": 664,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8dx01_apwb",
+      "deck": "6",
+      "panel": "forward",
+      "x": 244,
+      "y": 759,
+      "type": "stairs",
+      "label": "Stairs to Royal Promenade"
+    },
+    {
+      "id": "n_mtg8dyhq_qz14",
+      "deck": "6",
+      "panel": "forward",
+      "x": 287,
+      "y": 785,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8dzb8_nj7u",
+      "deck": "6",
+      "panel": "forward",
+      "x": 291,
+      "y": 887,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8e2dz_62c6",
+      "deck": "6",
+      "panel": "forward",
+      "x": 284,
+      "y": 966,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8e3w3_vvce",
+      "deck": "6",
+      "panel": "forward",
+      "x": 254,
+      "y": 1062,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8e4fu_ylwd",
+      "deck": "6",
+      "panel": "forward",
+      "x": 253,
+      "y": 1143,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8edcg_nyxm",
+      "deck": "6",
+      "panel": "forward",
+      "x": 195,
+      "y": 802,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8efa0_xawl",
+      "deck": "6",
+      "panel": "forward",
+      "x": 188,
+      "y": 926,
+      "type": "stairs",
+      "label": "Stairs to Central Park"
+    },
+    {
+      "id": "n_mtg8xs1h_mnhb",
+      "deck": "6",
+      "panel": "forward",
+      "x": 161,
+      "y": 666,
+      "type": "stairs",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8xzsw_a5ni",
+      "deck": "6",
+      "panel": "forward",
+      "x": 320,
+      "y": 665,
+      "type": "stairs",
+      "label": ""
+    },
+    {
+      "id": "n_cabin7456",
+      "x": 214,
+      "y": 397,
+      "type": "cabin",
+      "label": "Cabin 7456",
+      "deck": "7",
+      "panel": "main"
+    },
+    {
+      "id": "n_cross_port",
+      "x": 119,
+      "y": 408,
+      "type": "junction",
+      "label": "Cross corridor",
+      "deck": "7",
+      "panel": "main"
+    },
+    {
+      "id": "n_port_corridor",
+      "x": 119,
+      "y": 691,
+      "type": "junction",
+      "label": "Port corridor",
+      "deck": "7",
+      "panel": "main"
+    },
+    {
+      "id": "n_forward_lobby",
+      "x": 229,
+      "y": 697,
+      "type": "elevator",
+      "label": "Forward elevators",
+      "deck": "7",
+      "panel": "main",
+      "verticalGroup": "forward"
+    },
+    {
+      "id": "n_mtg8v6kk_uwf9",
+      "deck": "7",
+      "panel": "main",
+      "x": 147,
+      "y": 693,
+      "type": "stairs",
+      "label": "Stairs"
+    },
+    {
+      "id": "n_mtg8ijzy_ckbn",
+      "deck": "8",
+      "panel": "forward",
+      "x": 232,
+      "y": 635,
+      "type": "elevator",
+      "label": "Forward elevators",
+      "verticalGroup": "forward"
+    },
+    {
+      "id": "n_mtg8iklk_ty8n",
+      "deck": "8",
+      "panel": "forward",
+      "x": 231,
+      "y": 594,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8in7i_34b0",
+      "deck": "8",
+      "panel": "forward",
+      "x": 114,
+      "y": 640,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8ioz9_5xie",
+      "deck": "8",
+      "panel": "forward",
+      "x": 357,
+      "y": 638,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8iroj_lvj4",
+      "deck": "8",
+      "panel": "forward",
+      "x": 234,
+      "y": 734,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8iscl_7cp6",
+      "deck": "8",
+      "panel": "forward",
+      "x": 248,
+      "y": 793,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8isxm_1ct0",
+      "deck": "8",
+      "panel": "forward",
+      "x": 253,
+      "y": 837,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8itth_it1x",
+      "deck": "8",
+      "panel": "forward",
+      "x": 219,
+      "y": 895,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8iv4r_12js",
+      "deck": "8",
+      "panel": "forward",
+      "x": 219,
+      "y": 960,
+      "type": "stairs",
+      "label": "Stairs to Royal Promenade"
+    },
+    {
+      "id": "n_mtg8ixac_cazu",
+      "deck": "8",
+      "panel": "forward",
+      "x": 261,
+      "y": 1051,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8iy6u_lids",
+      "deck": "8",
+      "panel": "forward",
+      "x": 235,
+      "y": 1135,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8iyy4_3rh6",
+      "deck": "8",
+      "panel": "forward",
+      "x": 223,
+      "y": 1179,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8zapp_9pt7",
+      "deck": "8",
+      "panel": "forward",
+      "x": 157,
+      "y": 638,
+      "type": "stairs",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8zhtg_vyxn",
+      "deck": "8",
+      "panel": "forward",
+      "x": 320,
+      "y": 637,
+      "type": "stairs",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8k04f_1sy6",
+      "deck": "15",
+      "panel": "forward",
+      "x": 183,
+      "y": 499,
+      "type": "elevator",
+      "label": "Forward elevators",
+      "verticalGroup": "forward"
+    },
+    {
+      "id": "n_mtg8k3r9_yae0",
+      "deck": "15",
+      "panel": "forward",
+      "x": 77,
+      "y": 499,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8k55h_t5wr",
+      "deck": "15",
+      "panel": "forward",
+      "x": 63,
+      "y": 463,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8k8ky_mmy1",
+      "deck": "15",
+      "panel": "forward",
+      "x": 88,
+      "y": 558,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8k93j_pkxz",
+      "deck": "15",
+      "panel": "forward",
+      "x": 72,
+      "y": 615,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8ka6x_fwf3",
+      "deck": "15",
+      "panel": "forward",
+      "x": 64,
+      "y": 662,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8kbll_50c2",
+      "deck": "15",
+      "panel": "forward",
+      "x": 58,
+      "y": 704,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8kcec_nj2p",
+      "deck": "15",
+      "panel": "forward",
+      "x": 68,
+      "y": 747,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8kd0i_uvam",
+      "deck": "15",
+      "panel": "forward",
+      "x": 74,
+      "y": 799,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8kh05_bi76",
+      "deck": "15",
+      "panel": "forward",
+      "x": 93,
+      "y": 829,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8kifs_w59m",
+      "deck": "15",
+      "panel": "forward",
+      "x": 116,
+      "y": 883,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8kizc_fp9w",
+      "deck": "15",
+      "panel": "forward",
+      "x": 120,
+      "y": 971,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8kjwk_d1zg",
+      "deck": "15",
+      "panel": "forward",
+      "x": 95,
+      "y": 1006,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8klrl_505e",
+      "deck": "15",
+      "panel": "forward",
+      "x": 76,
+      "y": 1035,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8knqa_muxd",
+      "deck": "15",
+      "panel": "forward",
+      "x": 87,
+      "y": 1076,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8kt6f_joj3",
+      "deck": "15",
+      "panel": "forward",
+      "x": 99,
+      "y": 1119,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8kts4_e55k",
+      "deck": "15",
+      "panel": "forward",
+      "x": 76,
+      "y": 1154,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8l2ic_9kwd",
+      "deck": "15",
+      "panel": "forward",
+      "x": 282,
+      "y": 497,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8l6vn_tmsz",
+      "deck": "15",
+      "panel": "forward",
+      "x": 190,
+      "y": 561,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8l7x9_ld68",
+      "deck": "15",
+      "panel": "forward",
+      "x": 257,
+      "y": 568,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8l8g3_vamc",
+      "deck": "15",
+      "panel": "forward",
+      "x": 293,
+      "y": 608,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8l9t4_yjva",
+      "deck": "15",
+      "panel": "forward",
+      "x": 301,
+      "y": 676,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8le2z_pa9m",
+      "deck": "15",
+      "panel": "forward",
+      "x": 217,
+      "y": 717,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8lesr_vd7c",
+      "deck": "15",
+      "panel": "forward",
+      "x": 188,
+      "y": 761,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8lfmd_jpfx",
+      "deck": "15",
+      "panel": "forward",
+      "x": 184,
+      "y": 804,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8lock_kjrt",
+      "deck": "15",
+      "panel": "forward",
+      "x": 315,
+      "y": 724,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8lqqd_u48k",
+      "deck": "15",
+      "panel": "forward",
+      "x": 323,
+      "y": 772,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8ls49_tq1m",
+      "deck": "15",
+      "panel": "forward",
+      "x": 316,
+      "y": 822,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8lsnb_7aiq",
+      "deck": "15",
+      "panel": "forward",
+      "x": 317,
+      "y": 854,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8lu6c_xfvq",
+      "deck": "15",
+      "panel": "forward",
+      "x": 351,
+      "y": 925,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8lyju_ymvm",
+      "deck": "15",
+      "panel": "forward",
+      "x": 367,
+      "y": 1010,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8lzro_e1pt",
+      "deck": "15",
+      "panel": "forward",
+      "x": 360,
+      "y": 1081,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8m0x4_jp60",
+      "deck": "15",
+      "panel": "forward",
+      "x": 328,
+      "y": 1145,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8m4gy_l3ac",
+      "deck": "15",
+      "panel": "forward",
+      "x": 316,
+      "y": 1170,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8m4wn_gg19",
+      "deck": "15",
+      "panel": "forward",
+      "x": 337,
+      "y": 1194,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8m6s5_n8zh",
+      "deck": "15",
+      "panel": "forward",
+      "x": 265,
+      "y": 1150,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8m7c2_px7p",
+      "deck": "15",
+      "panel": "forward",
+      "x": 227,
+      "y": 1157,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8m84s_9hb2",
+      "deck": "15",
+      "panel": "forward",
+      "x": 198,
+      "y": 1202,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8miu5_sor5",
+      "deck": "15",
+      "panel": "forward",
+      "x": 133,
+      "y": 1147,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8mlf7_wv5p",
+      "deck": "15",
+      "panel": "forward",
+      "x": 160,
+      "y": 1167,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg90jan_9hta",
+      "deck": "15",
+      "panel": "forward",
+      "x": 129,
+      "y": 499,
+      "type": "stairs",
+      "label": "Stairs"
+    },
+    {
+      "id": "n_mtg9109c_pe92",
+      "deck": "15",
+      "panel": "forward",
+      "x": 256,
+      "y": 498,
+      "type": "stairs",
+      "label": "Stairs"
+    },
+    {
+      "id": "n_mtg8n11u_kyza",
+      "deck": "16",
+      "panel": "forward",
+      "x": 222,
+      "y": 471,
+      "type": "elevator",
+      "label": "Forward elevators",
+      "verticalGroup": "forward"
+    },
+    {
+      "id": "n_mtg8n3fo_660f",
+      "deck": "16",
+      "panel": "forward",
+      "x": 141,
+      "y": 471,
+      "type": "stairs",
+      "label": "Stairs"
+    },
+    {
+      "id": "n_mtg8n4y7_zxd8",
+      "deck": "16",
+      "panel": "forward",
+      "x": 304,
+      "y": 471,
+      "type": "stairs",
+      "label": "Stairs"
+    },
+    {
+      "id": "n_mtg8n618_91m4",
+      "deck": "16",
+      "panel": "forward",
+      "x": 219,
+      "y": 437,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8ncwj_qqx1",
+      "deck": "16",
+      "panel": "forward",
+      "x": 219,
+      "y": 535,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8negw_fprt",
+      "deck": "16",
+      "panel": "forward",
+      "x": 171,
+      "y": 560,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8nggs_io5v",
+      "deck": "16",
+      "panel": "forward",
+      "x": 122,
+      "y": 569,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8nh35_95mp",
+      "deck": "16",
+      "panel": "forward",
+      "x": 88,
+      "y": 597,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8nhkp_j3gt",
+      "deck": "16",
+      "panel": "forward",
+      "x": 81,
+      "y": 641,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8ni5o_0de8",
+      "deck": "16",
+      "panel": "forward",
+      "x": 97,
+      "y": 686,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8niqo_seug",
+      "deck": "16",
+      "panel": "forward",
+      "x": 99,
+      "y": 740,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8njpq_iyft",
+      "deck": "16",
+      "panel": "forward",
+      "x": 103,
+      "y": 776,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8nk5u_oqqp",
+      "deck": "16",
+      "panel": "forward",
+      "x": 127,
+      "y": 816,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8nmsc_rg82",
+      "deck": "16",
+      "panel": "forward",
+      "x": 148,
+      "y": 868,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8nncl_mntk",
+      "deck": "16",
+      "panel": "forward",
+      "x": 146,
+      "y": 901,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8no66_esjg",
+      "deck": "16",
+      "panel": "forward",
+      "x": 139,
+      "y": 941,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8npde_nlhu",
+      "deck": "16",
+      "panel": "forward",
+      "x": 115,
+      "y": 992,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8npts_ejek",
+      "deck": "16",
+      "panel": "forward",
+      "x": 115,
+      "y": 1031,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8nr8q_cy02",
+      "deck": "16",
+      "panel": "forward",
+      "x": 119,
+      "y": 1103,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8ns9j_nxny",
+      "deck": "16",
+      "panel": "forward",
+      "x": 120,
+      "y": 1130,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8nvr5_rcr2",
+      "deck": "16",
+      "panel": "forward",
+      "x": 157,
+      "y": 1122,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8nw8z_lccw",
+      "deck": "16",
+      "panel": "forward",
+      "x": 188,
+      "y": 1131,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8nx9v_6rp3",
+      "deck": "16",
+      "panel": "forward",
+      "x": 203,
+      "y": 1166,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8odaz_0ix9",
+      "deck": "16",
+      "panel": "forward",
+      "x": 193,
+      "y": 788,
+      "type": "corridor",
+      "label": ""
+    },
+    {
+      "id": "n_mtg8oemx_79nh",
+      "deck": "16",
+      "panel": "forward",
+      "x": 222,
+      "y": 767,
+      "type": "corridor",
+      "label": ""
+    }
+  ],
+  "edges": [
+    {
+      "a": "n_mtg86pyq_6gz7",
+      "b": "n_mtg86vyd_ld0d",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg86pyq_6gz7",
+      "b": "n_mtg8709p_j1yu",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg871cw_97hb",
+      "b": "n_mtg873kl_ftjh",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg873kl_ftjh",
+      "b": "n_mtg874at_atel",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg874at_atel",
+      "b": "n_mtg876dy_t8xk",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg87lcj_7qjh",
+      "b": "n_mtg87s16_dd0y",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg87lcj_7qjh",
+      "b": "n_mtg8709p_j1yu",
+      "kind": "bridge"
+    },
+    {
+      "a": "n_mtg86pyq_6gz7",
+      "b": "n_mtg8wi0z_i4qf",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8wi0z_i4qf",
+      "b": "n_mtg86r73_bg7n",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg86pyq_6gz7",
+      "b": "n_mtg8wtei_b5wq",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8wtei_b5wq",
+      "b": "n_mtg86uh6_ssvg",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8709p_j1yu",
+      "b": "n_mtg8xd17_enr5",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8xd17_enr5",
+      "b": "n_mtg871cw_97hb",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8djsn_pk5l",
+      "b": "n_mtg8dx01_apwb",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8dx01_apwb",
+      "b": "n_mtg8dyhq_qz14",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8dyhq_qz14",
+      "b": "n_mtg8dzb8_nj7u",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8dzb8_nj7u",
+      "b": "n_mtg8e2dz_62c6",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8e2dz_62c6",
+      "b": "n_mtg8e3w3_vvce",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8e3w3_vvce",
+      "b": "n_mtg8e4fu_ylwd",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8edcg_nyxm",
+      "b": "n_mtg8efa0_xawl",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8edcg_nyxm",
+      "b": "n_mtg8dx01_apwb",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8djsn_pk5l",
+      "b": "n_mtg8xs1h_mnhb",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8xs1h_mnhb",
+      "b": "n_mtg8dkil_fk8o",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8djsn_pk5l",
+      "b": "n_mtg8xzsw_a5ni",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8xzsw_a5ni",
+      "b": "n_mtg8dola_z4lt",
+      "kind": "walk"
+    },
+    {
+      "a": "n_cabin7456",
+      "b": "n_cross_port"
+    },
+    {
+      "a": "n_cross_port",
+      "b": "n_port_corridor"
+    },
+    {
+      "a": "n_port_corridor",
+      "b": "n_mtg8v6kk_uwf9",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8v6kk_uwf9",
+      "b": "n_forward_lobby",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8ijzy_ckbn",
+      "b": "n_mtg8iklk_ty8n",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8ijzy_ckbn",
+      "b": "n_mtg8iroj_lvj4",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8iroj_lvj4",
+      "b": "n_mtg8iscl_7cp6",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8iscl_7cp6",
+      "b": "n_mtg8isxm_1ct0",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8isxm_1ct0",
+      "b": "n_mtg8itth_it1x",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8itth_it1x",
+      "b": "n_mtg8iv4r_12js",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8iv4r_12js",
+      "b": "n_mtg8ixac_cazu",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8ixac_cazu",
+      "b": "n_mtg8iy6u_lids",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8iy6u_lids",
+      "b": "n_mtg8iyy4_3rh6",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8ijzy_ckbn",
+      "b": "n_mtg8zapp_9pt7",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8zapp_9pt7",
+      "b": "n_mtg8in7i_34b0",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8ijzy_ckbn",
+      "b": "n_mtg8zhtg_vyxn",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8zhtg_vyxn",
+      "b": "n_mtg8ioz9_5xie",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8k3r9_yae0",
+      "b": "n_mtg8k55h_t5wr",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8k3r9_yae0",
+      "b": "n_mtg8k8ky_mmy1",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8k8ky_mmy1",
+      "b": "n_mtg8k93j_pkxz",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8k93j_pkxz",
+      "b": "n_mtg8ka6x_fwf3",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8ka6x_fwf3",
+      "b": "n_mtg8kbll_50c2",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8kbll_50c2",
+      "b": "n_mtg8kcec_nj2p",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8kcec_nj2p",
+      "b": "n_mtg8kd0i_uvam",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8kd0i_uvam",
+      "b": "n_mtg8kh05_bi76",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8kh05_bi76",
+      "b": "n_mtg8kifs_w59m",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8kifs_w59m",
+      "b": "n_mtg8kizc_fp9w",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8kizc_fp9w",
+      "b": "n_mtg8kjwk_d1zg",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8kjwk_d1zg",
+      "b": "n_mtg8klrl_505e",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8klrl_505e",
+      "b": "n_mtg8knqa_muxd",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8knqa_muxd",
+      "b": "n_mtg8kt6f_joj3",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8kt6f_joj3",
+      "b": "n_mtg8kts4_e55k",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8k04f_1sy6",
+      "b": "n_mtg8l6vn_tmsz",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8l6vn_tmsz",
+      "b": "n_mtg8l7x9_ld68",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8l7x9_ld68",
+      "b": "n_mtg8l8g3_vamc",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8l8g3_vamc",
+      "b": "n_mtg8l9t4_yjva",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8l9t4_yjva",
+      "b": "n_mtg8le2z_pa9m",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8le2z_pa9m",
+      "b": "n_mtg8lesr_vd7c",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8lesr_vd7c",
+      "b": "n_mtg8lfmd_jpfx",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8lock_kjrt",
+      "b": "n_mtg8l9t4_yjva",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8lock_kjrt",
+      "b": "n_mtg8lqqd_u48k",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8lqqd_u48k",
+      "b": "n_mtg8ls49_tq1m",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8ls49_tq1m",
+      "b": "n_mtg8lsnb_7aiq",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8lsnb_7aiq",
+      "b": "n_mtg8lu6c_xfvq",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8lu6c_xfvq",
+      "b": "n_mtg8lyju_ymvm",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8lyju_ymvm",
+      "b": "n_mtg8lzro_e1pt",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8lzro_e1pt",
+      "b": "n_mtg8m0x4_jp60",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8m0x4_jp60",
+      "b": "n_mtg8m4gy_l3ac",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8m4gy_l3ac",
+      "b": "n_mtg8m4wn_gg19",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8m4gy_l3ac",
+      "b": "n_mtg8m6s5_n8zh",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8m6s5_n8zh",
+      "b": "n_mtg8m7c2_px7p",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8m7c2_px7p",
+      "b": "n_mtg8m84s_9hb2",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8miu5_sor5",
+      "b": "n_mtg8kt6f_joj3",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8miu5_sor5",
+      "b": "n_mtg8mlf7_wv5p",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8mlf7_wv5p",
+      "b": "n_mtg8m84s_9hb2",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8k04f_1sy6",
+      "b": "n_mtg90jan_9hta",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg90jan_9hta",
+      "b": "n_mtg8k3r9_yae0",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8l2ic_9kwd",
+      "b": "n_mtg9109c_pe92",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg9109c_pe92",
+      "b": "n_mtg8k04f_1sy6",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8n11u_kyza",
+      "b": "n_mtg8n3fo_660f",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8n11u_kyza",
+      "b": "n_mtg8n4y7_zxd8",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8n11u_kyza",
+      "b": "n_mtg8n618_91m4",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8n11u_kyza",
+      "b": "n_mtg8ncwj_qqx1",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8ncwj_qqx1",
+      "b": "n_mtg8negw_fprt",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8negw_fprt",
+      "b": "n_mtg8nggs_io5v",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8nggs_io5v",
+      "b": "n_mtg8nh35_95mp",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8nh35_95mp",
+      "b": "n_mtg8nhkp_j3gt",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8nhkp_j3gt",
+      "b": "n_mtg8ni5o_0de8",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8ni5o_0de8",
+      "b": "n_mtg8niqo_seug",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8niqo_seug",
+      "b": "n_mtg8njpq_iyft",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8njpq_iyft",
+      "b": "n_mtg8nk5u_oqqp",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8nk5u_oqqp",
+      "b": "n_mtg8nmsc_rg82",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8nmsc_rg82",
+      "b": "n_mtg8nncl_mntk",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8nncl_mntk",
+      "b": "n_mtg8no66_esjg",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8no66_esjg",
+      "b": "n_mtg8npde_nlhu",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8npde_nlhu",
+      "b": "n_mtg8npts_ejek",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8npts_ejek",
+      "b": "n_mtg8nr8q_cy02",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8nr8q_cy02",
+      "b": "n_mtg8ns9j_nxny",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8ns9j_nxny",
+      "b": "n_mtg8nvr5_rcr2",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8nvr5_rcr2",
+      "b": "n_mtg8nw8z_lccw",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8nw8z_lccw",
+      "b": "n_mtg8nx9v_6rp3",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8nk5u_oqqp",
+      "b": "n_mtg8odaz_0ix9",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8odaz_0ix9",
+      "b": "n_mtg8oemx_79nh",
+      "kind": "walk"
+    },
+    {
+      "a": "n_mtg8wi0z_i4qf",
+      "b": "n_mtg8xs1h_mnhb",
+      "kind": "stairs",
+      "label": "Forward port stairs, Deck 5 to Deck 6"
+    },
+    {
+      "a": "n_mtg8xs1h_mnhb",
+      "b": "n_mtg8v6kk_uwf9",
+      "kind": "stairs",
+      "label": "Forward port stairs, Deck 6 to Deck 7"
+    },
+    {
+      "a": "n_mtg8v6kk_uwf9",
+      "b": "n_mtg8zapp_9pt7",
+      "kind": "stairs",
+      "label": "Forward port stairs, Deck 7 to Deck 8"
+    },
+    {
+      "a": "n_mtg90jan_9hta",
+      "b": "n_mtg8n3fo_660f",
+      "kind": "stairs",
+      "label": "Forward port stairs, Deck 15 to Deck 16"
+    },
+    {
+      "a": "n_mtg8wtei_b5wq",
+      "b": "n_mtg8xzsw_a5ni",
+      "kind": "stairs",
+      "label": "Forward starboard stairs, Deck 5 to Deck 6"
+    },
+    {
+      "a": "n_mtg9109c_pe92",
+      "b": "n_mtg8n4y7_zxd8",
+      "kind": "stairs",
+      "label": "Forward starboard stairs, Deck 15 to Deck 16"
+    },
+    {
+      "a": "n_mtg8xd17_enr5",
+      "b": "n_mtg8dx01_apwb",
+      "kind": "stairs",
+      "label": "Royal Promenade stairs, Deck 5 to Deck 6"
+    },
+    {
+      "a": "n_mtg8efa0_xawl",
+      "b": "n_mtg8iv4r_12js",
+      "kind": "stairs",
+      "label": "Royal Promenade to Central Park stairs, Deck 6 to Deck 8"
+    }
+  ]
+}

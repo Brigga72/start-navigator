@@ -204,3 +204,6 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 .shipnet-transport-v022{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin:10px 0}
 .shipnet-transport-v022 label{min-width:150px;flex:1}
 .shipnet-node.type-stairs{stroke-width:3}
+
+/* v0.23 explicit stair graph links */
+.shipnet-stair-status-v023{margin:8px 0 12px;padding:9px 11px;border-radius:10px;background:#f7f9fc;border:1px solid #d7e0ea;font-size:.78rem;color:#45586c}

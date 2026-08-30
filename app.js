@@ -568,6 +568,7 @@ function showMustDo(){const extra=unavailableRecommendations.map(x=>`<div class=
 
 // v0.20 Ship Walking Network Editor
 const SHIPNET_KEY_V020='cruise-nav-ship-walknet-v020';
+const STAIR_LINK_MIGRATION_V023='cruise-nav-stair-links-v023';
 const SHIPNET_DECKS_V020={
   '5':{name:'Deck 5',panels:[{id:'forward',name:'Forward / Royal Theater',src:'./assets/deck5-forward.png',w:475,h:1193},{id:'aft',name:'Aft / Dining & Absolute Zero',src:'./assets/deck5-aft.png',w:475,h:1193}]},
   '6':{name:'Deck 6',panels:[{id:'forward',name:'Forward / Royal Promenade',src:'./assets/deck6-forward.png',w:475,h:1193},{id:'aft',name:'Aft / Promenade & Surfside access',src:'./assets/deck6-aft.png',w:475,h:1193}]},
@@ -671,6 +672,26 @@ function placeTransportV022(x,y){
   saveShipnetV020();
   return n;
 }
+function applyStairLinksV023(){
+  const state=loadShipnetV020();
+  const ids=new Set(state.nodes.map(n=>n.id));
+  let changed=false,added=0;
+  STAIR_LINKS_V023.forEach(([a,b,label])=>{
+    if(!ids.has(a)||!ids.has(b))return;
+    const exists=state.edges.some(e=>(e.a===a&&e.b===b)||(e.a===b&&e.b===a));
+    if(!exists){
+      state.edges.push({a,b,kind:'stairs',label});
+      changed=true;added++;
+    }
+  });
+  if(changed)saveShipnetV020();
+  try{localStorage.setItem(STAIR_LINK_MIGRATION_V023,JSON.stringify({applied:true,added,version:'0.23.0'}))}catch(_){}
+  return added;
+}
+function stairLinksForDeckV023(deck){
+  const s=loadShipnetV020(),nodes=Object.fromEntries(s.nodes.map(n=>[n.id,n]));
+  return s.edges.filter(e=>e.kind==='stairs'&&((nodes[e.a]&&nodes[e.a].deck===deck)||(nodes[e.b]&&nodes[e.b].deck===deck)));
+}
 function adjV020(){
   const s=loadShipnetV020(),a={};s.nodes.forEach(n=>a[n.id]=[]);
   s.edges.forEach(e=>{if(a[e.a]&&a[e.b]){a[e.a].push(e.b);a[e.b].push(e.a)}});
@@ -737,7 +758,8 @@ function renderShipNetworkV020(){
       <div class="shipnet-test">${shipnetTestPathV020.length?`${shipnetTestPathV020.length} nodes in route. Open each involved deck/panel to inspect the highlighted segment.`:'No route test selected.'}</div>
     </section>
   </div>
-  <section class="shipnet-panel"><h3>Ship Network Data</h3><p>All decks save into one local ship-network database. Export a single deck for review or export the entire ship network for integration.</p>
+  <section class="shipnet-panel"><h3>Ship Network Data</h3><p>All decks save into one local ship-network database. Elevators connect automatically by elevator bank. Stair connections are explicit deck-to-deck links so routing cannot skip decks that a staircase does not serve.</p>
+    <div class="shipnet-stair-status-v023"><strong>Stair links touching Deck ${shipnetDeckV020}:</strong> ${stairLinksForDeckV023(shipnetDeckV020).length}</div>
     <div class="shipnet-actions wrap"><button id="shipnetExportDeck" class="primary-action">Export Current Deck</button><button id="shipnetExportShip" class="primary-action">Export Entire Ship Network</button><label class="file-action">Import Network JSON<input id="shipnetImport" type="file" accept=".json,application/json"></label><button id="shipnetClearDeck" class="danger-action">Clear Current Deck</button><button id="shipnetReset" class="secondary-action">Reset Entire Editor</button></div>
   </section>`;
   bindShipnetV020();
@@ -794,13 +816,21 @@ function bindShipnetV020(){
   };
   if(el('shipnetDeleteNode'))el('shipnetDeleteNode').onclick=()=>{if(confirm('Delete this network point and its connections?')){deleteNodeV020(shipnetSelectedV020);renderShipNetworkV020()}};
   el('shipnetTest').onclick=()=>{shipnetTestPathV020=findPathV020(el('shipnetFrom').value,el('shipnetTo').value);renderShipNetworkV020()};
-  el('shipnetExportDeck').onclick=()=>{const s=loadShipnetV020(),ids=new Set(s.nodes.filter(n=>n.deck===shipnetDeckV020).map(n=>n.id));exportJsonV020({version:2,deck:shipnetDeckV020,nodes:s.nodes.filter(n=>ids.has(n.id)),edges:s.edges.filter(e=>ids.has(e.a)&&ids.has(e.b))},`cruise-navigator-deck${shipnetDeckV020}-walking-network.json`)};
+  el('shipnetExportDeck').onclick=()=>{const s=loadShipnetV020(),ids=new Set(s.nodes.filter(n=>n.deck===shipnetDeckV020).map(n=>n.id));exportJsonV020({version:3,deck:shipnetDeckV020,nodes:s.nodes.filter(n=>ids.has(n.id)),edges:s.edges.filter(e=>ids.has(e.a)&&ids.has(e.b)),verticalEdges:s.edges.filter(e=>e.kind==='stairs'&&(ids.has(e.a)||ids.has(e.b)))},`cruise-navigator-deck${shipnetDeckV020}-walking-network.json`)};
   el('shipnetExportShip').onclick=()=>exportJsonV020(loadShipnetV020(),'cruise-navigator-ship-walking-network.json');
-  el('shipnetImport').onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.nodes)||!Array.isArray(d.edges))throw Error();if(d.deck){const s=loadShipnetV020(),ids=new Set(s.nodes.filter(n=>n.deck===d.deck).map(n=>n.id));s.nodes=s.nodes.filter(n=>!ids.has(n.id)).concat(d.nodes);s.edges=s.edges.filter(e=>!ids.has(e.a)&&!ids.has(e.b)).concat(d.edges);shipnetStateV020=s}else shipnetStateV020=d;saveShipnetV020();renderShipNetworkV020()}catch(_){alert('Could not import that network JSON.')}};r.readAsText(f)};
+  el('shipnetImport').onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.nodes)||!Array.isArray(d.edges))throw Error();if(d.deck){
+          const s=loadShipnetV020(),ids=new Set(s.nodes.filter(n=>n.deck===d.deck).map(n=>n.id));
+          s.nodes=s.nodes.filter(n=>!ids.has(n.id)).concat(d.nodes);
+          s.edges=s.edges.filter(e=>!ids.has(e.a)&&!ids.has(e.b)).concat(d.edges);
+          const allIds=new Set(s.nodes.map(n=>n.id));
+          (d.verticalEdges||[]).forEach(e=>{if(allIds.has(e.a)&&allIds.has(e.b)&&!s.edges.some(q=>(q.a===e.a&&q.b===e.b)||(q.a===e.b&&q.b===e.a)))s.edges.push(e)});
+          shipnetStateV020=s
+        }else shipnetStateV020=d;saveShipnetV020();applyStairLinksV023();renderShipNetworkV020()}catch(_){alert('Could not import that network JSON.')}};r.readAsText(f)};
   el('shipnetClearDeck').onclick=()=>{if(confirm(`Clear every mapped point and path from Deck ${shipnetDeckV020}? Other decks will not be changed.`)){clearCurrentDeckV021();renderShipNetworkV020()}};
   el('shipnetReset').onclick=()=>{if(confirm('Reset the entire ship-network editor to the verified Deck 7 seed? This affects all mapped decks.')){pushUndoV021();shipnetStateV020=cloneV020(SHIPNET_SEED_V020);saveShipnetV020();shipnetSelectedV020=null;shipnetTestPathV020=[];renderShipNetworkV020()}};
 }
 
+applyStairLinksV023();
 renderCategories();renderSearch([]);renderDecks();renderLesson();
 document.addEventListener('click',e=>{
   const cat=e.target.closest('[data-cat]');if(cat){if(cat.dataset.cat==='mustdo')showMustDo();else renderSearch(destinations.filter(d=>d.category===cat.dataset.cat));el('searchInput').value='';return}
@@ -1008,7 +1038,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.22.0';
+const BUILD_VERSION = '0.23.0';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
