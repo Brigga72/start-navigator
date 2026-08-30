@@ -1,5 +1,5 @@
-const CACHE='cruise-nav-v013';
-const CORE=['./','./index.html','./styles.css?v=013','./app.js?v=013','./manifest.webmanifest','./icon-192.png','./icon-512.png','./version.json','./migrate.html'];
+const CACHE='cruise-nav-v016';
+const CORE=['./','./index.html','./styles.css?v=016','./app.js?v=016','./manifest.webmanifest','./icon-192.png','./icon-512.png','./version.json','./migrate.html','./assets/deck7-forward.png','./assets/deck16-forward.png','./assets/deck16-thrill.png'];
 self.addEventListener('install', event=>{
   event.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()));
 });

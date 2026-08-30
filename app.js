@@ -347,6 +347,18 @@ const locations=[
 function locationById(id){return locations.find(x=>x.id===id)||locations[0]}
 function routeFor(fromId,toId){
   const from=locationById(fromId); const to=destinations.find(x=>x.id===toId); if(!to)return [];
+
+  // v0.16 first traced route, derived from the user-supplied Deck 7 and Deck 16 plans.
+  if(from.id==='cabin7456' && to.id==='basecamp'){
+    return [
+      routeStep('walk','Leave Cabin 7456 and follow the starboard cabin corridor aft to the forward elevator bank on Deck 7.','verified','7'),
+      routeStep('elevator','Take the forward elevator from Deck 7 to Deck 16. Confirm Deck 16 before exiting.','verified','16'),
+      routeStep('orient','On Deck 16, continue aft along the public walkway past the Swim & Tonic / Lime and Coconut area and the Dry Slide toward Crown’s Edge.','verified','16'),
+      routeStep('walk','Continue aft through the Crown’s Edge area to the next elevator lobby. Basecamp is just beyond this lobby on the port side of Thrill Island.','verified','16'),
+      routeStep('arrive','Arrive at Basecamp on Deck 16.','verified','16')
+    ];
+  }
+
   const sameDeck=String(from.mapDeck)===String(to.mapDeck);
   const orient=destinationOrientation(to);
   const route=[];
@@ -433,11 +445,66 @@ function showRoute(id){
   navigate('route'); renderGuidedRoute();
 }
 
+function tracedBasecampOverview(){
+  return `<div class="route-overview-v016">
+    <div class="route-overview-tabs"><button class="active" type="button">ROUTE OVERVIEW</button><button type="button" id="overviewNextStep">NEXT STEP</button></div>
+    <div class="route-summary-strip"><span>🏠 Cabin 7456</span><b>→</b><span>🛗 Deck 7 → 16</span><b>→</b><span>📍 Basecamp</span></div>
+    <div class="traced-note"><strong>TRACED FROM YOUR DECK PLANS</strong><span>This route uses the Deck 7 and Deck 16 plans you supplied. No walking-time or distance estimate is invented.</span></div>
+
+    <section class="route-deck-card">
+      <div class="route-deck-head"><b>DECK 7</b><span>Cabin 7456 → Forward Elevators</span></div>
+      <div class="source-map-wrap deck7-trace">
+        <img src="./assets/deck7-forward.png" alt="Deck 7 plan showing Cabin 7456 and the forward elevator bank">
+        <svg viewBox="0 0 475 1189" preserveAspectRatio="none" aria-hidden="true">
+          <polyline points="356,435 356,635 338,684 230,684" class="trace-line"/>
+          <circle cx="356" cy="435" r="13" class="trace-start"/><circle cx="230" cy="684" r="13" class="trace-lift"/>
+        </svg>
+        <span class="trace-label start-label">YOU ARE HERE<br>7456</span>
+        <span class="trace-label lift-label">FORWARD<br>ELEVATORS</span>
+      </div>
+    </section>
+
+    <div class="deck-transition-v016"><span>🛗</span><strong>TAKE FORWARD ELEVATOR TO DECK 16</strong><small>Confirm Deck 16 before exiting</small></div>
+
+    <section class="route-deck-card">
+      <div class="route-deck-head"><b>DECK 16</b><span>Forward Elevators → Crown's Edge</span></div>
+      <div class="source-map-wrap deck16-forward-trace">
+        <img src="./assets/deck16-forward.png" alt="Forward section of Deck 16">
+        <svg viewBox="0 0 455 1188" preserveAspectRatio="none" aria-hidden="true">
+          <polyline points="224,490 224,560 190,620 176,720 158,812 122,930 105,1085" class="trace-line"/>
+          <circle cx="224" cy="490" r="13" class="trace-lift"/>
+        </svg>
+      </div>
+    </section>
+
+    <div class="route-continuation-v016">↓ CONTINUE AFT THROUGH CROWN'S EDGE ↓</div>
+
+    <section class="route-deck-card">
+      <div class="route-deck-head"><b>DECK 16 · THRILL ISLAND</b><span>Crown's Edge → Basecamp</span></div>
+      <div class="source-map-wrap deck16-thrill-trace">
+        <img src="./assets/deck16-thrill.png" alt="Thrill Island section of Deck 16 showing Basecamp">
+        <svg viewBox="0 0 410 843" preserveAspectRatio="none" aria-hidden="true">
+          <polyline points="105,35 125,95 180,180 185,245 155,315 115,390" class="trace-line"/>
+          <circle cx="115" cy="390" r="14" class="trace-dest"/>
+        </svg>
+        <span class="trace-label dest-label">DESTINATION<br>BASECAMP</span>
+      </div>
+    </section>
+    <div class="trace-legend-v016"><span><i class="trace-key route"></i>Route</span><span><i class="trace-key start"></i>You</span><span><i class="trace-key elevator"></i>Elevator</span><span><i class="trace-key destination"></i>Destination</span></div>
+  </div>`;
+}
+
 function openMapFor(id){
   const d=destinations.find(x=>x.id===id);if(!d)return;
   const from=locationById(currentLocationId);
   el('overlayTitle').textContent=`${from.name} → ${d.name}`;
-  el('overlayMap').innerHTML=`<div class="overlay-section"><div class="overlay-label">DECK ${esc(from.mapDeck)} · CURRENT LOCATION</div>${shipMapSVG(from.mapDeck,from.mapNode,'route')}</div><div class="overlay-connector">↓ ${String(from.mapDeck)===String(d.mapDeck)?'ROUTE ON SAME DECK':'DECK TRANSITION · CONFIRM ON SIGNAGE'} ↓</div><div class="overlay-section"><div class="overlay-label">DECK ${esc(d.mapDeck)} · DESTINATION</div>${shipMapSVG(d.mapDeck,d.mapNode,'route')}</div>`;
+  if(from.id==='cabin7456' && d.id==='basecamp'){
+    el('overlayMap').innerHTML=tracedBasecampOverview();
+    const next=el('overviewNextStep');
+    if(next)next.onclick=()=>{closeMap();renderGuidedRoute();};
+  }else{
+    el('overlayMap').innerHTML=`<div class="overlay-section"><div class="overlay-label">DECK ${esc(from.mapDeck)} · CURRENT LOCATION</div>${shipMapSVG(from.mapDeck,from.mapNode,'route')}</div><div class="overlay-connector">↓ ${String(from.mapDeck)===String(d.mapDeck)?'ROUTE ON SAME DECK':'DECK TRANSITION · CONFIRM ON SIGNAGE'} ↓</div><div class="overlay-section"><div class="overlay-label">DECK ${esc(d.mapDeck)} · DESTINATION</div>${shipMapSVG(d.mapDeck,d.mapNode,'route')}</div>`;
+  }
   el('mapOverlay').classList.add('show');el('mapOverlay').setAttribute('aria-hidden','false');
 }
 function closeMap(){el('mapOverlay').classList.remove('show');el('mapOverlay').setAttribute('aria-hidden','true')}
@@ -454,6 +521,11 @@ document.addEventListener('click',e=>{
   const hf=e.target.closest('[data-happening-filter]');if(hf){happeningFilter=hf.dataset.happeningFilter;localStorage.setItem(HAPPENING_FILTER_KEY,happeningFilter);renderHappening();return}
   const ha=e.target.closest('[data-happening-add]');if(ha){addReferenceEventToSchedule(ha.dataset.happeningAdd);return}
   const hr=e.target.closest('[data-happening-route]');if(hr){closeMap();showRoute(hr.dataset.happeningRoute);return}
+  const dp=e.target.closest('[data-drink-profile]');if(dp){setDrinkProfile(dp.dataset.drinkProfile);return}
+  const df=e.target.closest('[data-drink-filter]');if(df){drinkFilter=df.dataset.drinkFilter;localStorage.setItem(DRINK_FILTER_KEY,drinkFilter);renderDrinks();return}
+  const ds=e.target.closest('[data-drink-state]');if(ds){if(activeDrinkProfile==='both')return;const id=ds.dataset.drinkId,key=ds.dataset.drinkState;const st=drinkStatus(id);st[key]=!st[key];if(key==='dislike'&&st.dislike){st.favorite=false;}drinkProfiles[activeDrinkProfile][id]=st;saveDrinkState();renderDrinks();renderDrinkHome();return}
+  const dr=e.target.closest('[data-drink-route]');if(dr){showRoute(dr.dataset.drinkRoute);return}
+  if(e.target.closest('[data-drink-surprise]')){surpriseDrink();return}
   const go=e.target.closest('[data-go]');if(go){navigate(go.dataset.go);return}
   const open=e.target.closest('[data-openmap]');if(open){openMapFor(open.dataset.openmap);return}
 });
@@ -595,7 +667,60 @@ function renderHappeningHome(){const host=el('happeningHome');if(!host)return;co
 function renderHappening(){const host=el('happeningContent');if(!host)return;const cats=['All',...new Set(COMPASS_REFERENCE.events.map(e=>e.category))];const events=COMPASS_REFERENCE.events.filter(e=>e.day===happeningDay&&(happeningFilter==='All'||e.category===happeningFilter));host.innerHTML=`<div class="happening-warning"><strong>RECENT SAILING REFERENCE</strong><p>These times come from the July 5–12, 2026 Star of the Seas Cruise Compass you supplied. They are useful for learning recurring programming, but they are not confirmed for your September sailing.</p></div><div class="happening-controls"><label><span>REFERENCE DAY</span><select id="happeningDaySelect">${Array.from({length:7},(_,i)=>`<option value="${i+1}" ${happeningDay===i+1?'selected':''}>Day ${i+1} · ${compassDayName(i+1)}</option>`).join('')}</select></label><div class="happening-filters">${cats.map(c=>`<button class="${happeningFilter===c?'active':''}" data-happening-filter="${esc(c)}">${esc(c)}</button>`).join('')}</div></div><div class="happening-source"><b>Source:</b> ${esc(COMPASS_REFERENCE.sailing)} Star of the Seas Cruise Compass</div><div class="happening-list">${events.length?events.map(happeningEventHtml).join(''):`<div class="schedule-empty"><h3>No ${esc(happeningFilter)} events transcribed for this reference day yet.</h3></div>`}</div>`;const sel=el('happeningDaySelect');if(sel)sel.onchange=()=>{happeningDay=Number(sel.value);localStorage.setItem(HAPPENING_DAY_KEY,happeningDay);renderHappening()}}
 function addReferenceEventToSchedule(index){const e=COMPASS_REFERENCE.events[Number(index)];if(!e)return;const id='compass-ref-'+e.day+'-'+e.time.replace(':','')+'-'+Number(index);if(scheduleEntries.some(x=>x.id===id)){navigate('schedule');return;}scheduleEntries.push({id,type:'activity',day:e.day,time:e.time,name:e.name,venueName:e.venue,venueId:e.routeId||'',routeId:e.routeId||'',early:15,notes:`REFERENCE ONLY: ${COMPASS_REFERENCE.sailing} Cruise Compass. Verify the actual time in the Royal Caribbean app for your September sailing.`,confirmed:false,source:COMPASS_REFERENCE.source});saveSchedule();renderSchedule();renderSchedulePreview();navigate('schedule')}
 
-const BUILD_VERSION = '0.13.0';
+
+
+/* v0.15 I Need a Drink
+   Two-person Drink Passport. Existing v0.14 ratings migrate to Daniel on first load.
+   Daniel and Wife remain independent. Both mode combines recommendations without merging preferences. */
+const DRINK_STATE_KEY='cruise-nav-drink-passport-v015';
+const DRINK_STATE_OLD_KEY='cruise-nav-drink-passport-v014';
+const DRINK_FILTER_KEY='cruise-nav-drink-filter-v014';
+const DRINK_PROFILE_KEY='cruise-nav-drink-profile-v015';
+const DRINK_PROFILES={daniel:'Daniel',wife:'Wife',both:'Both'};
+const DRINKS=[
+ {id:'marshmallow-old-fashioned',name:'Toasted Marshmallow Old Fashioned',emoji:'🥃',style:'Whiskey',venue:'Schooner Bar',routeId:'schooner',sweet:'Rich & sweet',why:'One of the most repeatedly recommended Royal Caribbean cocktails, especially at Schooner Bar.',community:'CRUISER FAVORITE',verifiedVenue:true},
+ {id:'lavender-daiquiri',name:'Lavender Daiquiri',emoji:'💜',style:'Rum',venue:'Schooner Bar',routeId:'schooner',sweet:'Floral & bright',why:'A recurring Schooner Bar favorite in Royal Caribbean cruiser discussions.',community:'CRUISER FAVORITE',verifiedVenue:true},
+ {id:'desert-pear-margarita',name:'Desert Pear Margarita',emoji:'🌵',style:'Tequila',venue:'Schooner Bar',routeId:'schooner',sweet:'Fruity & tart',why:'Frequently praised by Royal Caribbean cruisers as a Schooner Bar must-try.',community:'HIGHLY RECOMMENDED',verifiedVenue:true},
+ {id:'lavender-martini',name:'Lavender Martini',emoji:'🍸',style:'Martini',venue:'Ask at Schooner Bar',routeId:'schooner',sweet:'Floral',why:'Cruisers repeatedly mention the lavender martini alongside Schooner’s lavender daiquiri.',community:'COMMUNITY PICK'},
+ {id:'goombay-smash',name:'Goombay Smash',emoji:'🍍',style:'Tropical',venue:'Ask at a full-service bar',routeId:'',sweet:'Pineapple & rum',why:'A popular first-cruise-drink recommendation for people who want something unmistakably tropical.',community:'COMMUNITY PICK'},
+ {id:'miami-vice',name:'Miami Vice',emoji:'🍓',style:'Frozen',venue:'Ask at a blender bar',routeId:'',sweet:'Sweet & frozen',why:'Half strawberry daiquiri and half piña colada, a long-running cruise favorite that also works alcohol-free.',community:'CLASSIC CRUISE PICK'},
+ {id:'frozen-mojito',name:'Frozen Mojito',emoji:'🌿',style:'Frozen',venue:'Ask at a blender bar',routeId:'',sweet:'Minty & refreshing',why:'Often recommended as a sailaway drink by Royal Caribbean cruisers.',community:'COMMUNITY PICK'},
+ {id:'caribbean-mule',name:'Caribbean Mule',emoji:'🫚',style:'Tropical',venue:'Ask at a full-service bar',routeId:'',sweet:'Ginger & citrus',why:'A recurring Royal Caribbean menu favorite for something refreshing without going fully frozen.',community:'COMMUNITY PICK'},
+ {id:'espresso-martini',name:'Espresso Martini',emoji:'☕',style:'Coffee',venue:'Rye & Bean is worth checking',routeId:'ryebean',sweet:'Coffee & cocktail',why:'Espresso martinis are a frequent cruiser recommendation, and Royal Caribbean highlights Rye & Bean for coffee by day and cocktails by night.',community:'TRY ON STAR'},
+ {id:'french-75-lavender',name:'French 75 + Lavender',emoji:'🥂',style:'Sparkling',venue:'Ask the bartender',routeId:'',sweet:'Crisp & floral',why:'A cruiser-recommended customization: ask whether they can add lavender syrup to a French 75.',community:'BARTENDER REQUEST'},
+ {id:'blueberry-nojito',name:'Blueberry Nojito',emoji:'🫐',style:'No Alcohol',venue:'Ask the bartender',routeId:'',sweet:'Berry & mint',why:'A repeatedly mentioned alcohol-free Royal Caribbean recommendation.',community:'ZERO-PROOF PICK'},
+ {id:'bartenders-choice',name:"Bartender's Choice",emoji:'🎲',style:'Surprise',venue:'Schooner Bar',routeId:'schooner',sweet:'You decide the direction',why:'Royal Caribbean itself suggests telling the Schooner bartender your favorite spirit and asking for a surprise.',community:'ROYAL CARIBBEAN PRO TIP',verifiedVenue:true}
+];
+let drinkFilter=localStorage.getItem(DRINK_FILTER_KEY)||'All';
+let activeDrinkProfile=localStorage.getItem(DRINK_PROFILE_KEY)||'daniel';
+if(!DRINK_PROFILES[activeDrinkProfile])activeDrinkProfile='daniel';
+let drinkProfiles={daniel:{},wife:{}};
+try{
+  const saved=JSON.parse(localStorage.getItem(DRINK_STATE_KEY)||'null');
+  if(saved&&saved.daniel&&saved.wife) drinkProfiles=saved;
+  else {
+    const old=JSON.parse(localStorage.getItem(DRINK_STATE_OLD_KEY)||'{}')||{};
+    drinkProfiles={daniel:old,wife:{}};
+    localStorage.setItem(DRINK_STATE_KEY,JSON.stringify(drinkProfiles));
+  }
+}catch(_){drinkProfiles={daniel:{},wife:{}}}
+function setDrinkProfile(profile){if(!DRINK_PROFILES[profile])return;activeDrinkProfile=profile;localStorage.setItem(DRINK_PROFILE_KEY,profile);renderDrinks();renderDrinkHome()}
+function personDrinkStatus(profile,id){return (drinkProfiles[profile]&&drinkProfiles[profile][id])||{favorite:false,tried:false,dislike:false}}
+function drinkStatus(id){return activeDrinkProfile==='both'?combinedDrinkStatus(id):personDrinkStatus(activeDrinkProfile,id)}
+function combinedDrinkStatus(id){const d=personDrinkStatus('daniel',id),w=personDrinkStatus('wife',id);return {favorite:d.favorite&&w.favorite,tried:d.tried&&w.tried,dislike:d.dislike||w.dislike,daniel:d,wife:w}}
+function saveDrinkState(){try{localStorage.setItem(DRINK_STATE_KEY,JSON.stringify(drinkProfiles))}catch(_){}}
+function profileStats(profile){const vals=Object.values(drinkProfiles[profile]||{});return {tried:vals.filter(x=>x.tried).length,favorites:vals.filter(x=>x.favorite).length,dislikes:vals.filter(x=>x.dislike).length}}
+function drinkStats(){if(activeDrinkProfile!=='both')return profileStats(activeDrinkProfile);const allowed=DRINKS.filter(d=>!combinedDrinkStatus(d.id).dislike);const mutualFav=DRINKS.filter(d=>{const s=combinedDrinkStatus(d.id);return s.favorite&&!s.dislike}).length;const bothTried=DRINKS.filter(d=>combinedDrinkStatus(d.id).tried).length;return {tried:bothTried,favorites:mutualFav,dislikes:DRINKS.length-allowed.length}}
+function profileSelector(){return `<div class="drink-profile-wrap"><div class="drink-profile-label">WHO'S DRINKING?</div><div class="drink-profile-row">${Object.entries(DRINK_PROFILES).map(([id,name])=>`<button class="${activeDrinkProfile===id?'active':''}" data-drink-profile="${id}">${id==='both'?'👥':id==='daniel'?'👤':'👩'} ${esc(name)}</button>`).join('')}</div><small>${activeDrinkProfile==='both'?'Both mode hides anything either person marked Not for Me and looks for shared options. Ratings stay separate.':`Favorites, Tried and Not for Me are saved only to ${esc(DRINK_PROFILES[activeDrinkProfile])}.`}</small></div>`}
+function individualActions(d,s){return `${d.routeId?`<button class="drink-route" data-drink-route="${esc(d.routeId)}">🧭 Take Me There</button>`:''}<button class="${s.favorite?'on':''}" data-drink-state="favorite" data-drink-id="${d.id}">${s.favorite?'♥ Favorite':'♡ Favorite'}</button><button class="${s.tried?'on':''}" data-drink-state="tried" data-drink-id="${d.id}">${s.tried?'✓ Tried':'○ Tried it'}</button><button class="${s.dislike?'nope':''}" data-drink-state="dislike" data-drink-id="${d.id}">👎</button>`}
+function bothActions(d,s){const dS=s.daniel,wS=s.wife;return `${d.routeId?`<button class="drink-route" data-drink-route="${esc(d.routeId)}">🧭 Take Me There</button>`:''}<span class="drink-person-state">Daniel ${dS.favorite?'♥':dS.dislike?'👎':dS.tried?'✓':'○'}</span><span class="drink-person-state">Wife ${wS.favorite?'♥':wS.dislike?'👎':wS.tried?'✓':'○'}</span>`}
+function drinkCard(d){const s=drinkStatus(d.id);return `<article class="drink-card ${s.dislike?'drink-muted':''}"><div class="drink-card-top"><span class="drink-emoji">${d.emoji}</span><div><div class="drink-badges"><span>${esc(d.community)}</span><span>${esc(d.style)}</span></div><h3>${esc(d.name)}</h3><p class="drink-taste">${esc(d.sweet)}</p></div></div><p class="drink-why">${esc(d.why)}</p><div class="drink-venue">📍 ${esc(d.venue)}${d.verifiedVenue?' · <b>venue match supported</b>':''}</div><div class="drink-actions">${activeDrinkProfile==='both'?bothActions(d,s):individualActions(d,s)}</div></article>`}
+function filteredDrinks(){let a=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(drinkFilter==='Favorites')a=a.filter(d=>drinkStatus(d.id).favorite);else if(drinkFilter!=='All')a=a.filter(d=>d.style===drinkFilter);return a}
+function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkStats(),who=DRINK_PROFILES[activeDrinkProfile];h.innerHTML=`<button class="drink-home-card" data-view="drinks"><span class="drink-home-icon">🍹</span><span><strong>I Need a Drink</strong><small>${esc(who)} · ${s.tried} tried · ${s.favorites} favorites · separate passports</small></span><span>›</span></button>`}
+function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
+function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
+
+const BUILD_VERSION = '0.16.0';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
@@ -909,5 +1034,7 @@ renderSchedule();
 renderSchedulePreview();
 renderHappeningHome();
 renderHappening();
+renderDrinkHome();
+renderDrinks();
 el('cocoCayHome').onclick=()=>navigate('cococay');
 document.addEventListener('click',e=>{const p=e.target.closest('[data-coco-place]');if(p){openCocoPlace(p.dataset.cocoPlace);return}const r=e.target.closest('[data-coco-route]');if(r){openCocoRoute(r.dataset.cocoRoute);return}const a=e.target.closest('[data-coco-action]');if(a){a.dataset.cocoAction==='pass'?openPassPlan():openCocoPurchases();return}const t=e.target.closest('[data-purchase]');if(t){const k=t.dataset.purchase;if(k==='hideaway'||k==='beverage')return;cocoState[k]=!cocoState[k];saveCocoState();openCocoPurchases();renderCocoCay();return}if(e.target.closest('[data-coco-back]')){closeMap();navigate('cococay');}});

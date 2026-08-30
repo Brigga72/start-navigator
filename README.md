@@ -1,4 +1,4 @@
-# Cruise Navigator v0.13.0
+# Cruise Navigator v0.15.0
 
 Personal cruise navigation companion for Royal Caribbean's Star of the Seas, optimized for iPhone 13 Pro.
 
@@ -36,3 +36,32 @@ The existing GitHub Pages update architecture is preserved. v0.12.0 only advance
 - Added Take Me There and Add to My Schedule actions for reference activities.
 - Added mapped venue records for Spotlight Karaoke, Schooner Bar, Dueling Pianos, Music Hall, Boleros, Thorn & Thistle, AO Theater and Sports Court.
 - Fixed the runtime header branding so it remains Cruise Navigator instead of reverting to Star Navigator.
+
+
+## v0.14.0
+- Adds **I Need a Drink** to Home.
+- Seeds Royal Caribbean cruiser favorites, with conservative venue labeling.
+- Adds style filters and **Surprise Me**.
+- Adds a persistent **Drink Passport** with Favorite, Tried, and Not for Me states.
+- Adds Take Me There when a recommendation has an existing mapped venue.
+- Keeps drink recommendations available offline.
+- Preserves all existing schedule, navigation, CocoCay, and update behavior.
+
+
+## v0.15.0
+
+- Adds separate Daniel and Wife Drink Passports.
+- Adds a Both mode that excludes anything either person marked Not for Me.
+- Both mode shows each person's status without merging or overwriting ratings.
+- Surprise Me now respects the active profile and shared preferences in Both mode.
+- Existing v0.14 drink ratings automatically migrate into Daniel's profile on first load.
+- Remembers the last selected drink profile on the device.
+- Preserves all existing schedule, navigation, CocoCay, What's Happening, and cruise-profile storage keys.
+
+
+## v0.16.0
+- Adds the first source-traced full-deck Route Overview.
+- Cabin 7456 to Basecamp now uses the supplied Deck 7 and Deck 16 plans.
+- Shows a highlighted walking path, elevator transition, You Are Here, and destination marker.
+- Preserves conservative routing for destinations that have not yet been traced.
+- Adds deck-plan assets to the offline service-worker cache.
