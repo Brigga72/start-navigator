@@ -394,32 +394,102 @@ function prodFindPathV026(start,end){
 function prodRouteV026(fromId,d){
   if(fromId!=='cabin7456')return null;
   const start=VERIFIED_SHIPNET_V026.nodes.find(n=>n.id==='n_cabin7456'||(n.type==='cabin'&&normV026(n.label)==='cabin 7456'));
-  const end=prodNodeByDestinationV026(d);
+  let end=prodNodeByDestinationV026(d);
+  let hybridBasecamp=false;
+
+  // Basecamp is not present in the user's current exported v0.25 network.
+  // Route only through verified geometry to the end of the mapped Deck 16 Forward panel,
+  // then switch to orientation/signage guidance instead of drawing the old fake diagonal.
+  if(!end&&d.id==='basecamp'){
+    end=VERIFIED_SHIPNET_V026.nodes
+      .filter(n=>String(n.deck)==='16'&&n.panel==='forward'&&!isDestinationTypeV025(n.type))
+      .sort((a,b)=>b.y-a.y)[0]||null;
+    hybridBasecamp=!!end;
+  }
+
   if(!start||!end)return null;
   const p=prodFindPathV026(start.id,end.id);if(!p)return null;
   const by=Object.fromEntries(VERIFIED_SHIPNET_V026.nodes.map(n=>[n.id,n]));
-  const steps=[];let seg=[p.ids[0]],deck=by[p.ids[0]].deck;
-  const flush=()=>{if(seg.length<2)return;steps.push(routeStep('walk',`Follow the highlighted verified walking path on Deck ${deck}.`, 'verified',deck,{v026:{ids:[...seg],deck}}));};
+  const steps=[];
+  let seg=[p.ids[0]],deck=String(by[p.ids[0]].deck),panel=by[p.ids[0]].panel;
+
+  const flush=()=>{
+    if(seg.length<2)return;
+    const first=by[seg[0]],last=by[seg[seg.length-1]];
+    steps.push(routeStep(
+      'walk',
+      `Follow the highlighted verified walking path on Deck ${deck}.`,
+      'verified',
+      deck,
+      {v026:{ids:[...seg],deck,panel:panel||first.panel||last.panel}}
+    ));
+  };
+
   for(let i=1;i<p.ids.length;i++){
     const kind=p.kinds[i-1],n=by[p.ids[i]],prev=by[p.ids[i-1]];
-    if(kind==='elevator'&&n.deck!==prev.deck){
+    const nextDeck=String(n.deck),nextPanel=n.panel;
+
+    if(kind==='elevator'&&nextDeck!==String(prev.deck)){
       flush();seg=[];
-      steps.push(routeStep('elevator',`Take the Forward elevators from Deck ${prev.deck} to Deck ${n.deck}. Confirm Deck ${n.deck} before exiting.`,'verified',n.deck,{v026:{ids:[prev.id,n.id],deck:n.deck,kind:'elevator'}}));
-      deck=n.deck;seg=[n.id];
-    }else{if(!seg.length)seg=[p.ids[i-1]];seg.push(n.id);deck=n.deck}
+      steps.push(routeStep(
+        'elevator',
+        `Take the Forward elevators from Deck ${prev.deck} to Deck ${n.deck}. Confirm Deck ${n.deck} before exiting.`,
+        'verified',
+        nextDeck,
+        {v026:{ids:[prev.id,n.id],deck:nextDeck,panel:nextPanel,kind:'elevator'}}
+      ));
+      deck=nextDeck;panel=nextPanel;seg=[n.id];
+      continue;
+    }
+
+    // Never draw a single polyline across two different screenshot coordinate systems.
+    if(nextDeck===deck && nextPanel!==panel){
+      flush();
+      steps.push(routeStep(
+        'orient',
+        `Continue on Deck ${deck} into the next mapped section.`,
+        'verified',
+        deck,
+        {v026:{ids:[prev.id],deck,panel:panel,kind:'panel-transition'}}
+      ));
+      panel=nextPanel;
+      seg=[n.id];
+      continue;
+    }
+
+    if(!seg.length)seg=[p.ids[i-1]];
+    seg.push(n.id);
+    deck=nextDeck;
+    panel=nextPanel;
   }
   flush();
-  steps.push(routeStep('arrive',`Arrive at ${d.name}.`, 'verified',end.deck,{v026:{ids:[end.id],deck:end.deck,kind:'arrive'}}));
+
+  if(hybridBasecamp){
+    steps.push(routeStep(
+      'orient',
+      `The verified Deck 16 map coverage ends near Crown's Edge. Continue into Thrill Island using posted signs toward Adrenaline Peak and Basecamp. No exact line is drawn through the unmapped section.`,
+      'orientation',
+      '16'
+    ));
+    steps.push(routeStep(
+      'arrive',
+      `Arrive at Basecamp on Deck 16. The final Thrill Island approach remains orientation guidance until that panel is mapped into the verified network.`,
+      'signage',
+      '16'
+    ));
+  }else{
+    steps.push(routeStep('arrive',`Arrive at ${d.name}.`,'verified',end.deck,{v026:{ids:[end.id],deck:String(end.deck),panel:end.panel,kind:'arrive'}}));
+  }
   return steps;
 }
 function prodMapPanelV026(step){
   const meta=step&&step.v026;if(!meta||!meta.ids||!meta.ids.length)return null;
   const by=Object.fromEntries(VERIFIED_SHIPNET_V026.nodes.map(n=>[n.id,n]));
   const nodes=meta.ids.map(id=>by[id]).filter(Boolean);if(!nodes.length)return null;
-  const first=nodes.find(n=>n.panel)||nodes[0],deck=String(first.deck),panel=first.panel;
+  const first=nodes.find(n=>n.panel)||nodes[0],deck=String(meta.deck||first.deck),panel=meta.panel||first.panel;
   const cfg=SHIPNET_DECKS_V020[deck];if(!cfg)return null;
   const pcfg=cfg.panels.find(p=>p.id===panel);if(!pcfg)return null;
-  const pts=nodes.filter(n=>n.deck===deck&&n.panel===panel);
+  const pts=nodes.filter(n=>String(n.deck)===deck&&n.panel===panel);
   if(!pts.length)return null;
   const poly=pts.map(n=>`${n.x},${n.y}`).join(' ');
   const start=pts[0],end=pts[pts.length-1];
@@ -524,18 +594,7 @@ function routeFor(fromId,toId){
   const from=locationById(fromId); const to=destinations.find(x=>x.id===toId); if(!to)return [];
   const prod=prodRouteV026(fromId,to);if(prod)return prod;
 
-  // v0.16 first traced route, derived from the user-supplied Deck 7 and Deck 16 plans.
-  if(from.id==='cabin7456' && to.id==='basecamp'){
-    return [
-      routeStep('walk','Leave Cabin 7456 and follow the interior cabin corridor across to the port-side corridor. Continue aft along the port-side corridor to the forward elevator lobby on Deck 7.','verified','7'),
-      routeStep('elevator','Take the forward elevator from Deck 7 to Deck 16. Confirm Deck 16 before exiting.','verified','16'),
-      routeStep('orient','Exit toward the port side of the Deck 16 lobby, then follow the public walkway around the Whirlpool and Swim & Tonic area.','verified','16'),
-      routeStep('walk','Continue aft past The Lime and Coconut Frozen Bar and the Dry Slide, following the Chill Island walkway toward Crown’s Edge.','verified','16'),
-      routeStep('walk','Continue through Crown’s Edge, pass the next elevator lobby and Adrenaline Peak, then follow the walkway to Basecamp.','verified','16'),
-      routeStep('arrive','Arrive at Basecamp on Deck 16.','verified','16')
-    ];
-  }
-
+  // Legacy v0.18 Cabin 7456 to Basecamp route intentionally retired in v0.26.1.
   const sameDeck=String(from.mapDeck)===String(to.mapDeck);
   const orient=destinationOrientation(to);
   const route=[];
@@ -563,10 +622,9 @@ function routeAreaLabel(fromId,to){const from=locationById(fromId);return `${fro
 function guidedMapFor(d,idx){
   const from=locationById(currentLocationId);
   const prodMap=prodMapPanelV026(d.route&&d.route[idx]);if(prodMap)return prodMap;
-  if(from.id==='cabin7456' && d.id==='basecamp'){
-    const gm=guidedGraphMapV018(idx);
-    if(gm)return gm;
-  }
+  // v0.26.1: do not fall back to the legacy v0.18 Basecamp overlay.
+  // It uses obsolete coordinates and can draw misleading lines across Deck 16.
+  if(from.id==='cabin7456' && d.id==='basecamp')return `<div class="guided-map-placeholder-v0261"><strong>Orientation segment</strong><span>No exact route line is drawn where the verified network has no mapped geometry.</span></div>`;
   const step=d.route[idx]||d.route[0];
   if(step.kind==='walk') return `<div class="guided-map-label">DECK ${esc(from.mapDeck)} · ${esc(from.name)}</div>${shipMapSVG(from.mapDeck,from.mapNode,'route')}`;
   if(step.kind==='elevator'){
@@ -587,7 +645,7 @@ function renderGuidedRoute(){
   const progressText=`STEP ${idx+1} OF ${d.route.length}`;
   const accuracy=routeAccuracyMeta(s.accuracy);
   const routeSummary=routeAccuracySummary(d.route);
-  el('routeContent').innerHTML=`<div class="route-accuracy ${esc(routeSummary.level)}"><div><span>${esc(routeSummary.label)}</span><strong>${esc(routeSummary.text)}</strong></div><button class="accuracy-help" id="accuracyHelp" aria-label="Navigation accuracy information">?</button></div><div class="location-picker"><button class="location-field" id="fromLocationBtn"><span>📍 FROM</span><strong>${esc(from.name)}</strong><small>Deck ${esc(from.mapDeck)} · change</small></button><div class="location-arrow">→</div><button class="location-field" id="toLocationBtn"><span>🎯 TO</span><strong>${esc(d.name)}</strong><small>Deck ${esc(d.mapDeck)}</small></button></div><div class="guided-top"><button class="back-btn" onclick="navigate('home')">‹ Exit</button><div class="guided-progress"><span>${progressText}</span><div><i style="width:${pct}%"></i></div></div></div><div class="route-hero guided-hero"><div class="eyebrow">${esc(routeAreaLabel(currentLocationId,d))}</div><h2>${type}</h2><div class="route-tag">Deck ${idx<2?esc(from.mapDeck):esc(d.mapDeck)} · ${esc(d.area)}</div><div class="prod-confidence-v026 ${prodConfidenceV026(d)}">${prodConfidenceV026(d)==='verified'?'VERIFIED ROUTE':prodConfidenceV026(d)==='orientation'?'ORIENTATION ROUTE':'LOCATION ONLY'}</div></div><div class="guided-map">${guidedMapFor(d,idx)}<button class="map-open guided-full" data-openmap="${d.id}">Expand map</button></div><div class="instruction-card"><div class="step-num big">${idx+1}</div><div><div class="step-type">${type} <span class="step-accuracy ${esc(s.accuracy)}">${esc(accuracy.label)}</span></div><div class="instruction-text">${esc(s.text)}</div></div></div>${idx===d.route.length-1?nearby:''}<div class="guided-actions">${idx>0?'<button class="secondary-action" id="prevGuide">← Previous</button>':''}<button class="confused-action" id="confusedBtn">? I'm confused</button>${idx<d.route.length-1?'<button class="next-action" id="nextGuide">NEXT →</button>':'<button class="next-action" id="finishGuide">✓ ARRIVED</button>'}</div>`;
+  el('routeContent').innerHTML=`<div class="route-accuracy ${esc(routeSummary.level)}"><div><span>${esc(routeSummary.label)}</span><strong>${esc(routeSummary.text)}</strong></div><button class="accuracy-help" id="accuracyHelp" aria-label="Navigation accuracy information">?</button></div><div class="location-picker"><button class="location-field" id="fromLocationBtn"><span>📍 FROM</span><strong>${esc(from.name)}</strong><small>Deck ${esc(from.mapDeck)} · change</small></button><div class="location-arrow">→</div><button class="location-field" id="toLocationBtn"><span>🎯 TO</span><strong>${esc(d.name)}</strong><small>Deck ${esc(d.mapDeck)}</small></button></div><div class="guided-top"><button class="back-btn" onclick="navigate('home')">‹ Exit</button><div class="guided-progress"><span>${progressText}</span><div><i style="width:${pct}%"></i></div></div></div><div class="route-hero guided-hero"><div class="eyebrow">${esc(routeAreaLabel(currentLocationId,d))}</div><h2>${type}</h2><div class="route-tag">Deck ${idx<2?esc(from.mapDeck):esc(d.mapDeck)} · ${esc(d.area)}</div><div class="prod-confidence-v026 ${esc(routeSummary.level)}">${esc(routeSummary.label)}</div></div><div class="guided-map">${guidedMapFor(d,idx)}<button class="map-open guided-full" data-openmap="${d.id}">Expand map</button></div><div class="instruction-card"><div class="step-num big">${idx+1}</div><div><div class="step-type">${type} <span class="step-accuracy ${esc(s.accuracy)}">${esc(accuracy.label)}</span></div><div class="instruction-text">${esc(s.text)}</div></div></div>${idx===d.route.length-1?nearby:''}<div class="guided-actions">${idx>0?'<button class="secondary-action" id="prevGuide">← Previous</button>':''}<button class="confused-action" id="confusedBtn">? I'm confused</button>${idx<d.route.length-1?'<button class="next-action" id="nextGuide">NEXT →</button>':'<button class="next-action" id="finishGuide">✓ ARRIVED</button>'}</div>`;
   el('accuracyHelp').onclick=()=>{el('overlayTitle').textContent='Navigation accuracy';el('overlayMap').innerHTML=`<div class="accuracy-sheet"><h3>How Cruise Navigator treats route accuracy</h3><p><b>Verified</b> means the deck, venue, or forward/aft relationship is supported by the current source material.</p><p><b>Orientation</b> means the guidance is useful for choosing a deck or ship direction, but exact corridor turns are not yet traced.</p><p><b>Signage</b> means Navigator intentionally stops short of inventing a turn. Use posted ship signs for that segment.</p><div class="recovery-tip"><strong>v0.11 foundation:</strong> future deck-plan tracing can upgrade individual segments from Signage or Orientation to Verified without changing the rest of the route engine.</div></div>`;el('mapOverlay').classList.add('show');el('mapOverlay').setAttribute('aria-hidden','false');};
   el('fromLocationBtn').onclick=()=>openLocationPicker('from');
   el('toLocationBtn').onclick=()=>openLocationPicker('to');
@@ -1289,7 +1347,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.26.0';
+const BUILD_VERSION = '0.26.1';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';

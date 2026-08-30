@@ -183,3 +183,13 @@ The existing GitHub Pages update architecture is preserved. v0.12.0 only advance
 - Known destinations without mapped entrance geometry remain available through the existing conservative fallback and are labeled ORIENTATION ROUTE or LOCATION ONLY.
 - No exact corridor turns are invented for unmapped areas.
 - Existing editor and local-storage network remain intact.
+
+## v0.26.1
+- Retires the legacy v0.18 Cabin 7456 to Basecamp overlay from guided navigation.
+- Prevents a route polyline from spanning two different screenshot coordinate systems.
+- Production route segments are now grouped by both deck and map panel.
+- Fixes conflicting route-confidence labels by using the same route summary for the top card and route hero.
+- The current ship export does not contain Deck 16 Thrill-panel nodes or a mapped Basecamp entrance.
+- Cabin 7456 to Basecamp therefore follows verified graph geometry through the mapped Deck 16 Forward section, then changes to explicit orientation/signage guidance near Crown's Edge.
+- No exact red line is drawn across the unmapped Crown's Edge to Basecamp section.
+- Existing editor data, local-storage keys, maps, and verified ship network remain unchanged.
