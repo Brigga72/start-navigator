@@ -151,3 +151,13 @@ The existing GitHub Pages update architecture is preserved. v0.12.0 only advance
 - Restores the missing `STAIR_LINKS_V023` definition used by the stair-link migration.
 - Adds a startup safety guard so a future stair-link migration error cannot stop the rest of the app from initializing.
 - Preserves all existing walking-network local storage and v0.23 stair-link behavior.
+
+## v0.24.0
+- Adds a visible Connect Stairs editor mode.
+- Tap a stair, switch decks, and tap the matching stair to create an explicit cross-deck `stairs` edge.
+- Prevents stair pairing to another stair on the same deck.
+- Prevents duplicate stair links.
+- Linked and unlinked stair nodes now render with different visual treatment and status text.
+- Adds a cancel action while a first stair is selected.
+- Keeps elevator bank behavior unchanged.
+- Existing v0.23 stair links remain in the graph and show as already linked.

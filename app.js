@@ -595,6 +595,7 @@ let shipnetSelectedV020=null,shipnetPathLastV020=null,shipnetConnectFirstV020=nu
 let shipnetUndoV021=[];
 let shipnetTransportTypeV022='elevator';
 let shipnetTransportGroupV022='forward';
+let shipnetStairFirstV024=null;
 
 function cloneV020(v){return JSON.parse(JSON.stringify(v))}
 function pushUndoV021(){
@@ -608,6 +609,7 @@ function undoShipnetV021(){
   shipnetSelectedV020=null;
   shipnetPathLastV020=null;
   shipnetConnectFirstV020=null;
+  shipnetStairFirstV024=null;
   shipnetTestPathV020=[];
   renderShipNetworkV020();
 }
@@ -702,6 +704,38 @@ function stairLinksForDeckV023(deck){
   const s=loadShipnetV020(),nodes=Object.fromEntries(s.nodes.map(n=>[n.id,n]));
   return s.edges.filter(e=>e.kind==='stairs'&&((nodes[e.a]&&nodes[e.a].deck===deck)||(nodes[e.b]&&nodes[e.b].deck===deck)));
 }
+
+function stairLinkEdgesV024(){
+  return loadShipnetV020().edges.filter(e=>e.kind==='stairs');
+}
+function stairLinkCountV024(id){
+  return stairLinkEdgesV024().filter(e=>e.a===id||e.b===id).length;
+}
+function connectStairsV024(a,b){
+  if(!a||!b||a===b)return false;
+  const na=nodeV020(a),nb=nodeV020(b);
+  if(!na||!nb||na.type!=='stairs'||nb.type!=='stairs')return false;
+  if(na.deck===nb.deck){
+    alert('Choose a matching stair on a different deck.');
+    return false;
+  }
+  if(edgeExistsV020(a,b)){
+    alert('Those stairs are already connected.');
+    return false;
+  }
+  pushUndoV021();
+  loadShipnetV020().edges.push({
+    a,b,kind:'stairs',
+    label:`Stairs, Deck ${na.deck} to Deck ${nb.deck}`
+  });
+  saveShipnetV020();
+  return true;
+}
+function stairStatusTextV024(n){
+  if(n.type!=='stairs')return '';
+  const c=stairLinkCountV024(n.id);
+  return c?`Linked (${c})`:'Unlinked';
+}
 function adjV020(){
   const s=loadShipnetV020(),a={};s.nodes.forEach(n=>a[n.id]=[]);
   s.edges.forEach(e=>{if(a[e.a]&&a[e.b]){a[e.a].push(e.b);a[e.b].push(e.a)}});
@@ -732,7 +766,7 @@ function renderShipNetworkV020(){
   host.innerHTML=`
   <div class="shipnet-workflow-v021">
     <strong>Recommended mapping order</strong>
-    <span>1. Trace walking paths first &nbsp; 2. Verify intersections &nbsp; 3. Add elevators/stairs &nbsp; 4. Add destinations last</span>
+    <span>1. Trace walking paths &nbsp; 2. Add elevators/stairs &nbsp; 3. Connect matching stairs &nbsp; 4. Add destinations last</span>
   </div>
   <div class="shipnet-toolbar">
     <div class="shipnet-row">
@@ -740,11 +774,15 @@ function renderShipNetworkV020(){
       <label>Map panel<select id="shipnetPanel">${deck.panels.map(p=>`<option value="${p.id}" ${p.id===shipnetPanelV020?'selected':''}>${p.name}</option>`).join('')}</select></label>
     </div>
     <div class="shipnet-summary"><strong>${deck.name} · ${panel.name}</strong><span>${statsV020()}</span></div>
-    <div class="shipnet-modes">${[['select','Select'],['path','Draw Path'],['transport','Place Stairs / Elevator'],['connect','Connect'],['move','Move']].map(([k,v])=>`<button type="button" data-shipmode="${k}" class="${shipnetModeV020===k?'active':''}" ${k==='move'&&!selected?'disabled':''}>${v}</button>`).join('')}</div>
-    <p class="shipnet-help">${shipnetModeV020==='path'?'Tap along the center of every legal passenger walking area. Tap near an existing point to snap/connect instead of creating a duplicate. End the path before starting another disconnected walkway.':shipnetModeV020==='transport'?'Choose Elevator or Stairs below, then tap directly on an existing walking line. The editor inserts the transport point into the path automatically.':shipnetModeV020==='connect'?'Tap one existing point, switch panel/deck if needed, then tap the second point. This joins overlapping panels into one logical network.':shipnetModeV020==='move'?'Tap the corrected location of the selected point.':'Select a point to classify it. Elevator nodes can share a bank ID across decks.'}</p>
+    <div class="shipnet-modes">${[['select','Select'],['path','Draw Path'],['transport','Place Stairs / Elevator'],['stairslink','Connect Stairs'],['connect','Connect'],['move','Move']].map(([k,v])=>`<button type="button" data-shipmode="${k}" class="${shipnetModeV020===k?'active':''}" ${k==='move'&&!selected?'disabled':''}>${v}</button>`).join('')}</div>
+    <p class="shipnet-help">${shipnetModeV020==='path'?'Tap along the center of every legal passenger walking area. Tap near an existing point to snap/connect instead of creating a duplicate. End the path before starting another disconnected walkway.':shipnetModeV020==='transport'?'Choose Elevator or Stairs below, then tap directly on an existing walking line. The editor inserts the transport point into the path automatically.':shipnetModeV020==='stairslink'?(shipnetStairFirstV024?'First stair selected. Switch to the matching deck and tap the matching stair.':'Tap the first stair. Then switch decks and tap the matching stair to create an explicit cross-deck connection.'):shipnetModeV020==='connect'?'Tap one existing point, switch panel/deck if needed, then tap the second point. This joins overlapping panels into one logical network.':shipnetModeV020==='move'?'Tap the corrected location of the selected point.':'Select a point to classify it. Elevator nodes can share a bank ID across decks.'}</p>
     ${shipnetModeV020==='transport'?`<div class="shipnet-transport-v022">
       <label>Place<select id="shipnetTransportType"><option value="elevator" ${shipnetTransportTypeV022==='elevator'?'selected':''}>Elevator</option><option value="stairs" ${shipnetTransportTypeV022==='stairs'?'selected':''}>Stairs</option></select></label>
       <label id="shipnetTransportGroupWrap" style="${shipnetTransportTypeV022==='elevator'?'':'display:none'}">Elevator bank<select id="shipnetTransportGroup">${Object.entries(SHIPNET_VERTICAL_V020).map(([k,v])=>`<option value="${k}" ${shipnetTransportGroupV022===k?'selected':''}>${v}</option>`).join('')}</select></label>
+    </div>`:''}
+    ${shipnetModeV020==='stairslink'?`<div class="shipnet-stair-connect-v024">
+      <strong>${shipnetStairFirstV024?'First stair selected':'No stair selected'}</strong>
+      ${shipnetStairFirstV024?`<button id="shipnetCancelStairLink" class="secondary-action">Cancel Stair Pair</button>`:''}
     </div>`:''}
     <div class="shipnet-actions wrap">${shipnetModeV020==='path'?'<button id="shipnetEndPath" class="secondary-action">End Path</button>':''}<button id="shipnetUndo" class="secondary-action" ${shipnetUndoV021.length?'':'disabled'}>Undo</button></div>
   </div>
@@ -782,6 +820,7 @@ function bindShipnetV020(){
   el('shipnetPanel').onchange=e=>{shipnetPanelV020=e.target.value;shipnetPathLastV020=null;shipnetSelectedV020=null;renderShipNetworkV020()};
   document.querySelectorAll('[data-shipmode]').forEach(b=>b.onclick=()=>{shipnetModeV020=b.dataset.shipmode;if(shipnetModeV020!=='path')shipnetPathLastV020=null;if(shipnetModeV020!=='connect')shipnetConnectFirstV020=null;renderShipNetworkV020()});
   if(el('shipnetTransportType'))el('shipnetTransportType').onchange=e=>{shipnetTransportTypeV022=e.target.value;const w=el('shipnetTransportGroupWrap');if(w)w.style.display=shipnetTransportTypeV022==='elevator'?'':'none'};
+  if(el('shipnetCancelStairLink'))el('shipnetCancelStairLink').onclick=()=>{shipnetStairFirstV024=null;shipnetSelectedV020=null;renderShipNetworkV020()};
   if(el('shipnetTransportGroup'))el('shipnetTransportGroup').onchange=e=>shipnetTransportGroupV022=e.target.value;
   if(el('shipnetEndPath'))el('shipnetEndPath').onclick=()=>{shipnetPathLastV020=null;shipnetModeV020='select';renderShipNetworkV020()};
   if(el('shipnetUndo'))el('shipnetUndo').onclick=undoShipnetV021;
@@ -789,6 +828,22 @@ function bindShipnetV020(){
   map.addEventListener('pointermove',e=>{const p=mapPointV020(e),panel=currentPanelV020();el('shipnetCoord').textContent=`Native panel coordinates: x ${Math.round(p.x)}, y ${Math.round(p.y)} · ${panel.name}`});
   map.addEventListener('click',e=>{
     const p=mapPointV020(e),near=nearestV020(p.x,p.y);
+    if(shipnetModeV020==='stairslink'){
+      if(!near||near.type!=='stairs'){alert('Tap a stair point.');return}
+      if(!shipnetStairFirstV024){
+        shipnetStairFirstV024=near.id;
+        shipnetSelectedV020=near.id;
+        renderShipNetworkV020();
+        return;
+      }
+      if(connectStairsV024(shipnetStairFirstV024,near.id)){
+        shipnetStairFirstV024=null;
+        shipnetSelectedV020=near.id;
+        shipnetModeV020='select';
+        renderShipNetworkV020();
+      }
+      return
+    }
     if(shipnetModeV020==='transport'){
       const n=placeTransportV022(p.x,p.y);
       if(n){shipnetSelectedV020=n.id;shipnetModeV020='select';renderShipNetworkV020()}
@@ -1048,7 +1103,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.23.1';
+const BUILD_VERSION = '0.24.0';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';

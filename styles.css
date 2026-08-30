@@ -207,3 +207,8 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 
 /* v0.23 explicit stair graph links */
 .shipnet-stair-status-v023{margin:8px 0 12px;padding:9px 11px;border-radius:10px;background:#f7f9fc;border:1px solid #d7e0ea;font-size:.78rem;color:#45586c}
+
+/* v0.24 stair pairing */
+.shipnet-stair-connect-v024{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0;padding:10px 12px;border:1px solid #d7e0ea;border-radius:12px;background:#f7f9fc}
+.shipnet-node.stairs-unlinked{stroke-dasharray:3 2;stroke-width:3}
+.shipnet-node.stairs-linked{stroke-width:4}
