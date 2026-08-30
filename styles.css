@@ -240,3 +240,9 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 .guided-map-placeholder-v027 strong{font-size:.95rem}
 .guided-map-placeholder-v027 span{max-width:340px;font-size:.8rem;color:#607080;line-height:1.45}
 .prod-confidence-v026.mixed{opacity:.9}
+
+/* v0.27.1 verified renderer cleanup */
+.renderer-warning-v0271{border-style:solid}
+.route-hero .prod-confidence-v026.verified{opacity:1}
+.route-hero .prod-confidence-v026.orientation{opacity:.9}
+.route-hero .prod-confidence-v026.signage{opacity:.85}

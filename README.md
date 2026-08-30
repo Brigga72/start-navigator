@@ -227,3 +227,29 @@ This release recenters Cruise Navigator on its primary goal: provide the cleares
 - The v0.25 user-exported ship network remains the authoritative detailed-routing source embedded in production navigation.
 - Existing editor functionality and local-storage keys are preserved.
 - No remapping or re-export is required for this release.
+
+## v0.27.1 - Verified Renderer Cleanup
+
+This hotfix fixes the renderer issue exposed by the Cabin 7456 to Basecamp test.
+
+### Root cause
+`prodRouteV026()` was correctly building verified walking steps with graph metadata in an `extra` argument, but the shared `routeStep()` helper only accepted four arguments. The graph metadata was silently discarded. As a result, verified steps could not render the real deck-plan overlay and fell back to the older simplified ship schematic.
+
+### Fixes
+- `routeStep()` now preserves production graph metadata such as node IDs, deck, and map panel.
+- Verified walking steps now render through `prodMapPanelV026()` using the actual clean deck plan and the exact nodes from the embedded user-mapped network.
+- Verified steps no longer fall back to the simplified ship schematic. If verified map metadata is unexpectedly missing, Navigator shows a safe warning placeholder instead of implying unsupported geometry.
+- Elevator steps retain the dedicated deck-change card.
+- The dark step hero now shows **VERIFIED**, **ORIENTATION**, or **SIGNAGE** for the current step only.
+- The trip-level accuracy banner at the top remains separate and may show **VERIFIED + ORIENTATION** for a mixed route.
+- The hero's deck number now comes from the current route step instead of an index-based guess.
+- Accuracy-help text now documents the v0.27 rule: show exactly what is mapped and never draw an exact line through unverified geometry.
+
+### Expected Basecamp test
+1. Deck 7 verified step: real Deck 7 plan with the mapped Cabin 7456 to Forward elevators path.
+2. Deck 7 to Deck 16: verified elevator transition card.
+3. Deck 16 verified step: real Deck 16 Forward plan with the mapped path toward Crown's Edge.
+4. Crown's Edge onward: Orientation, no exact route line.
+5. Final approach: Signage, no exact route line.
+
+No walking-network remapping or new export is required.

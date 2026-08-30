@@ -59,7 +59,7 @@ const navigationFoundation={
 };
 
 function routeAccuracyMeta(level){return NAV_ACCURACY[level]||NAV_ACCURACY.signage}
-function routeStep(kind,text,accuracy='orientation',deck=null){return {kind,text,accuracy,deck}}
+function routeStep(kind,text,accuracy='orientation',deck=null,extra=null){return Object.assign({kind,text,accuracy,deck},extra||{})}
 function destinationOrientation(to){
   if(/Forward/i.test(to.area))return 'FORWARD / BOW';
   if(/Aft/i.test(to.area))return 'AFT / STERN';
@@ -646,16 +646,22 @@ function routeFor(fromId,toId){
 function routeAreaLabel(fromId,to){const from=locationById(fromId);return `${from.name} → ${to.name}`;}
 function guidedMapFor(d,idx){
   const from=locationById(currentLocationId);
-  if(d.route&&d.route[idx]){const v27=guidedMapForStepV027(d.route[idx]);if(v27)return v27;}
-  const prodMap=prodMapPanelV026(d.route&&d.route[idx]);if(prodMap)return prodMap;
   const step=d.route[idx]||d.route[0];
-  if(step.kind==='walk') return `<div class="guided-map-label">DECK ${esc(from.mapDeck)} · ${esc(from.name)}</div>${shipMapSVG(from.mapDeck,from.mapNode,'route')}`;
-  if(step.kind==='elevator'){
-    const fromDeck=String(from.mapDeck), toDeck=String(d.mapDeck);
-    const direction=Number(toDeck.match(/\d+/)?.[0]||0)>=Number(fromDeck.match(/\d+/)?.[0]||0)?'↑':'↓';
-    return `<div class="deck-change-card"><div class="deck-change-icon">🛗</div><div class="deck-from">DECK ${esc(fromDeck)}</div><div class="deck-arrow">${direction}</div><div class="deck-to">DECK ${esc(toDeck)}</div><small>Use ship signage to confirm the deck before exiting.</small></div>`;
+  const confidence=stepConfidenceV027(step);
+
+  if(confidence.level==='verified'){
+    if(step.kind==='elevator'){
+      const fromDeck=idx>0?String(d.route[idx-1].deck||from.mapDeck):String(from.mapDeck);
+      const toDeck=String(step.deck||d.mapDeck);
+      const direction=Number(toDeck.match(/\d+/)?.[0]||0)>=Number(fromDeck.match(/\d+/)?.[0]||0)?'↑':'↓';
+      return `<div class="deck-change-card"><div class="deck-change-icon">🛗</div><div class="deck-from">DECK ${esc(fromDeck)}</div><div class="deck-arrow">${direction}</div><div class="deck-to">DECK ${esc(toDeck)}</div><small>Use ship signage to confirm the deck before exiting.</small></div>`;
+    }
+    const map=prodMapPanelV026(step);
+    if(map)return map;
+    return `<div class="guided-map-placeholder-v027 renderer-warning-v0271"><strong>Verified route data is missing its map segment</strong><span>No schematic fallback is shown because that could imply geometry the verified graph did not provide.</span></div>`;
   }
-  return `<div class="guided-map-label">DECK ${esc(d.mapDeck)} · ${esc(d.name)}</div>${shipMapSVG(d.mapDeck,d.mapNode,'route')}`;
+
+  return guidedMapForStepV027(step);
 }
 function renderGuidedRoute(){
   const d=destinations.find(x=>x.id===guidedState.destId);if(!d)return;
@@ -668,8 +674,8 @@ function renderGuidedRoute(){
   const progressText=`STEP ${idx+1} OF ${d.route.length}`;
   const accuracy=routeAccuracyMeta(s.accuracy);
   let routeSummary=routeAccuracySummary(d.route);routeSummary=tripConfidenceV027(d.route);
-  el('routeContent').innerHTML=`<div class="route-accuracy ${esc(routeSummary.level)}"><div><span>${esc(routeSummary.label)}</span><strong>${esc(routeSummary.text)}</strong></div><button class="accuracy-help" id="accuracyHelp" aria-label="Navigation accuracy information">?</button></div><div class="location-picker"><button class="location-field" id="fromLocationBtn"><span>📍 FROM</span><strong>${esc(from.name)}</strong><small>Deck ${esc(from.mapDeck)} · change</small></button><div class="location-arrow">→</div><button class="location-field" id="toLocationBtn"><span>🎯 TO</span><strong>${esc(d.name)}</strong><small>Deck ${esc(d.mapDeck)}</small></button></div><div class="guided-top"><button class="back-btn" onclick="navigate('home')">‹ Exit</button><div class="guided-progress"><span>${progressText}</span><div><i style="width:${pct}%"></i></div></div></div><div class="route-hero guided-hero"><div class="eyebrow">${esc(routeAreaLabel(currentLocationId,d))}</div><h2>${type}</h2><div class="route-tag">Deck ${idx<2?esc(from.mapDeck):esc(d.mapDeck)} · ${esc(d.area)}</div><div class="prod-confidence-v026 ${esc(routeSummary.level)}">${esc(routeSummary.label)}</div></div><div class="guided-map">${guidedMapFor(d,idx)}</div><div class="instruction-card"><div class="step-num big">${idx+1}</div><div><div class="step-type">${type} <span class="step-accuracy ${esc(s.accuracy)}">${esc(accuracy.label)}</span></div><div class="instruction-text">${esc(s.text)}</div></div></div>${idx===d.route.length-1?nearby:''}<div class="guided-actions">${idx>0?'<button class="secondary-action" id="prevGuide">← Previous</button>':''}<button class="confused-action" id="confusedBtn">? I'm confused</button>${idx<d.route.length-1?'<button class="next-action" id="nextGuide">NEXT →</button>':'<button class="next-action" id="finishGuide">✓ ARRIVED</button>'}</div>`;
-  el('accuracyHelp').onclick=()=>{el('overlayTitle').textContent='Navigation accuracy';el('overlayMap').innerHTML=`<div class="accuracy-sheet"><h3>How Cruise Navigator treats route accuracy</h3><p><b>Verified</b> means the deck, venue, or forward/aft relationship is supported by the current source material.</p><p><b>Orientation</b> means the guidance is useful for choosing a deck or ship direction, but exact corridor turns are not yet traced.</p><p><b>Signage</b> means Navigator intentionally stops short of inventing a turn. Use posted ship signs for that segment.</p><div class="recovery-tip"><strong>v0.11 foundation:</strong> future deck-plan tracing can upgrade individual segments from Signage or Orientation to Verified without changing the rest of the route engine.</div></div>`;el('mapOverlay').classList.add('show');el('mapOverlay').setAttribute('aria-hidden','false');};
+  el('routeContent').innerHTML=`<div class="route-accuracy ${esc(routeSummary.level)}"><div><span>${esc(routeSummary.label)}</span><strong>${esc(routeSummary.text)}</strong></div><button class="accuracy-help" id="accuracyHelp" aria-label="Navigation accuracy information">?</button></div><div class="location-picker"><button class="location-field" id="fromLocationBtn"><span>📍 FROM</span><strong>${esc(from.name)}</strong><small>Deck ${esc(from.mapDeck)} · change</small></button><div class="location-arrow">→</div><button class="location-field" id="toLocationBtn"><span>🎯 TO</span><strong>${esc(d.name)}</strong><small>Deck ${esc(d.mapDeck)}</small></button></div><div class="guided-top"><button class="back-btn" onclick="navigate('home')">‹ Exit</button><div class="guided-progress"><span>${progressText}</span><div><i style="width:${pct}%"></i></div></div></div><div class="route-hero guided-hero"><div class="eyebrow">${esc(routeAreaLabel(currentLocationId,d))}</div><h2>${type}</h2><div class="route-tag">Deck ${esc(s.deck||d.mapDeck)} · ${esc(d.area)}</div><div class="prod-confidence-v026 ${esc(stepConfidenceV027(s).level)}">${esc(stepConfidenceV027(s).label)}</div></div><div class="guided-map">${guidedMapFor(d,idx)}</div><div class="instruction-card"><div class="step-num big">${idx+1}</div><div><div class="step-type">${type} <span class="step-accuracy ${esc(stepConfidenceV027(s).level)}">${esc(stepConfidenceV027(s).label)}</span></div><div class="instruction-text">${esc(s.text)}</div></div></div>${idx===d.route.length-1?nearby:''}<div class="guided-actions">${idx>0?'<button class="secondary-action" id="prevGuide">← Previous</button>':''}<button class="confused-action" id="confusedBtn">? I'm confused</button>${idx<d.route.length-1?'<button class="next-action" id="nextGuide">NEXT →</button>':'<button class="next-action" id="finishGuide">✓ ARRIVED</button>'}</div>`;
+  el('accuracyHelp').onclick=()=>{el('overlayTitle').textContent='Navigation accuracy';el('overlayMap').innerHTML=`<div class="accuracy-sheet"><h3>How Cruise Navigator treats route accuracy</h3><p><b>Verified</b> means this step is backed by the mapped walking graph or a verified deck transition. Exact route lines are shown only when graph geometry exists.</p><p><b>Orientation</b> means the app can guide you to the correct deck or area, but it does not have continuous verified walking geometry for that segment.</p><p><b>Signage</b> means Navigator intentionally stops short of inventing a turn. Use posted ship signs for that segment.</p><div class="recovery-tip"><strong>Navigation rule:</strong> show exactly what is mapped. Never draw an exact route through geometry that has not been verified.</div></div>`;el('mapOverlay').classList.add('show');el('mapOverlay').setAttribute('aria-hidden','false');};
   el('fromLocationBtn').onclick=()=>openLocationPicker('from');
   el('toLocationBtn').onclick=()=>openLocationPicker('to');
   if(el('nextGuide'))el('nextGuide').onclick=()=>{guidedState.step++;renderGuidedRoute()};
@@ -1356,7 +1362,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.27.0';
+const BUILD_VERSION = '0.27.1';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
