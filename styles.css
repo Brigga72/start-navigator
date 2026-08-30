@@ -212,3 +212,11 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 .shipnet-stair-connect-v024{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0;padding:10px 12px;border:1px solid #d7e0ea;border-radius:12px;background:#f7f9fc}
 .shipnet-node.stairs-unlinked{stroke-dasharray:3 2;stroke-width:3}
 .shipnet-node.stairs-linked{stroke-width:4}
+
+/* v0.25 destination entrance mapping */
+.shipnet-destination-v025{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin:10px 0;padding:11px 12px;border:1px solid #d7e0ea;border-radius:12px;background:#f7f9fc}
+.shipnet-destination-v025 label{min-width:150px;flex:1}
+.shipnet-destination-v025 .shipnet-destination-name{flex:2 1 240px}
+.shipnet-destination-status{width:100%;font-size:.76rem;color:#5f6e7d}
+.shipnet-edge.destination-spur{stroke-dasharray:5 4;stroke-width:2.5}
+.shipnet-node.type-venue,.shipnet-node.type-landmark,.shipnet-node.type-cabin{stroke-width:3}

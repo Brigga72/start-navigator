@@ -161,3 +161,15 @@ The existing GitHub Pages update architecture is preserved. v0.12.0 only advance
 - Adds a cancel action while a first stair is selected.
 - Keeps elevator bank behavior unchanged.
 - Existing v0.23 stair links remain in the graph and show as already linked.
+
+## v0.25.0
+- Adds a dedicated Place Destination mode to the ship walking-network editor.
+- Enter a destination name, choose Venue, Landmark/Neighborhood, or Cabin, then tap the actual passenger entrance.
+- Destination placement attaches to the nearest verified walking path automatically.
+- When the attachment lands between two walking nodes, the editor inserts a junction and splits the original walking edge.
+- The destination entrance remains at the exact point the mapper tapped and connects to the walking network with a separate `destination` spur.
+- Destination spurs render differently from the verified walking network so the base path geometry remains visually distinct.
+- Placement is rejected when no verified walking path is close enough, preventing accidental long connections through non-walkable space.
+- Route Test can immediately use newly mapped destinations because destination spurs are part of the same graph.
+- Existing walking paths, elevator/stair nodes, stair links, and local-storage key are preserved.
+- Deck export schema is version 4 while remaining compatible with prior node/edge data.
