@@ -97,3 +97,16 @@ The existing GitHub Pages update architecture is preserved. v0.12.0 only advance
 - Automatically saves the editor network in local storage.
 - Exports/imports the complete network as JSON for direct integration into Cruise Navigator.
 - Seeds the editor with the currently verified Cabin 7456 to forward-elevator segment.
+
+## v0.20.0
+- Converts the Deck 7 editor into a ship-wide walking-network development tool.
+- Supports Decks 5, 6, 7, 8, 15, and 16.
+- Supports multiple map panels for long decks and overlapping source screenshots.
+- Keeps coordinates native to each map panel so overlays remain aligned on any screen.
+- Preserves the verified Cabin 7456 to Forward Elevators Deck 7 network as the seed.
+- Adds shared elevator-bank IDs for automatic vertical graph links between decks.
+- Connect mode can bridge nodes across different panels so separate screenshots form one logical deck network.
+- Adds ship-wide route testing across walking connections and shared elevator banks.
+- Adds Current Deck and Entire Ship Network JSON export.
+- Adds deck-level or whole-network JSON import.
+- This remains a development tool. Verified network data can later drive end-user navigation.

@@ -566,224 +566,130 @@ function renderLesson(){const l=lessons[lessonIndex];el('lessonCard').innerHTML=
 function showMustDo(){const extra=unavailableRecommendations.map(x=>`<div class="unavailable"><strong>${x.icon} ${x.name} · CHECK</strong><span>${esc(x.text)}</span></div>`).join('');renderSearch(destinations.filter(d=>d.mustdo),extra)}
 
 
-// v0.19 Deck 7 Walking Network Editor
-const WALKNET_KEY_V019='cruise-nav-walknet-deck7-v019';
-const WALKNET_MAP_V019={id:'deck7-forward',deck:'7',src:'./assets/deck7-forward.png',w:475,h:1193,name:'Deck 7 Forward'};
-const WALKNET_TYPES_V019={
-  junction:{label:'Junction',icon:'●'},
-  corridor:{label:'Corridor point',icon:'·'},
-  elevator:{label:'Elevator',icon:'🛗'},
-  stairs:{label:'Stairs',icon:'↕'},
-  cabin:{label:'Cabin',icon:'🚪'},
-  venue:{label:'Venue',icon:'📍'},
-  landmark:{label:'Landmark',icon:'◆'}
+// v0.20 Ship Walking Network Editor
+const SHIPNET_KEY_V020='cruise-nav-ship-walknet-v020';
+const SHIPNET_DECKS_V020={
+  '5':{name:'Deck 5',panels:[{id:'forward',name:'Forward / Royal Theater',src:'./assets/deck5-forward.png',w:475,h:1193},{id:'aft',name:'Aft / Dining & Absolute Zero',src:'./assets/deck5-aft.png',w:475,h:1193}]},
+  '6':{name:'Deck 6',panels:[{id:'forward',name:'Forward / Royal Promenade',src:'./assets/deck6-forward.png',w:475,h:1193},{id:'aft',name:'Aft / Promenade & Surfside access',src:'./assets/deck6-aft.png',w:475,h:1193}]},
+  '7':{name:'Deck 7',panels:[{id:'main',name:'Deck 7',src:'./assets/deck7-forward.png',w:475,h:1193}]},
+  '8':{name:'Deck 8',panels:[{id:'forward',name:'Forward / Central Park',src:'./assets/deck8-forward.png',w:475,h:1193},{id:'aft',name:'Aft / Central Park',src:'./assets/deck8-aft.png',w:475,h:1193}]},
+  '15':{name:'Deck 15',panels:[{id:'forward',name:'Forward / AquaDome & pools',src:'./assets/deck15-forward.png',w:397,h:1228},{id:'aft',name:'Aft / Windjammer & Hideaway',src:'./assets/deck15-aft.png',w:397,h:858}]},
+  '16':{name:'Deck 16',panels:[{id:'forward',name:'Forward / Swim & Tonic',src:'./assets/deck16-forward.png',w:518,h:1178},{id:'thrill',name:'Thrill Island / Basecamp',src:'./assets/deck16-thrill.png',w:441,h:821}]}
 };
-const WALKNET_SEED_V019={
-  version:1,
-  map:WALKNET_MAP_V019,
-  nodes:[
-    {id:'n_cabin7456',x:214,y:397,type:'cabin',label:'Cabin 7456'},
-    {id:'n_cross_port',x:119,y:408,type:'junction',label:'Cross corridor'},
-    {id:'n_port_corridor',x:119,y:691,type:'junction',label:'Port corridor'},
-    {id:'n_forward_lobby',x:229,y:697,type:'elevator',label:'Forward elevators'}
-  ],
-  edges:[
-    {a:'n_cabin7456',b:'n_cross_port'},
-    {a:'n_cross_port',b:'n_port_corridor'},
-    {a:'n_port_corridor',b:'n_forward_lobby'}
-  ]
-};
-let walknetStateV019=null;
-let walknetModeV019='select';
-let walknetSelectedV019=null;
-let walknetPathLastV019=null;
-let walknetConnectFirstV019=null;
-let walknetTestPathV019=[];
+const SHIPNET_TYPES_V020={corridor:{label:'Corridor point'},junction:{label:'Junction'},elevator:{label:'Elevator'},stairs:{label:'Stairs'},cabin:{label:'Cabin'},venue:{label:'Venue'},landmark:{label:'Landmark'},panel_link:{label:'Panel link'}};
+const SHIPNET_VERTICAL_V020={forward:'Forward elevator bank',mid:'Midship elevator bank',aft:'Aft elevator bank',other:'Other vertical link'};
+const SHIPNET_SEED_V020={"version":2,"nodes":[{"id":"n_cabin7456","x":214,"y":397,"type":"cabin","label":"Cabin 7456","deck":"7","panel":"main"},{"id":"n_cross_port","x":119,"y":408,"type":"junction","label":"Cross corridor","deck":"7","panel":"main"},{"id":"n_port_corridor","x":119,"y":691,"type":"junction","label":"Port corridor","deck":"7","panel":"main"},{"id":"n_forward_lobby","x":229,"y":697,"type":"elevator","label":"Forward elevators","deck":"7","panel":"main","verticalGroup":"forward"}],"edges":[{"a":"n_cabin7456","b":"n_cross_port"},{"a":"n_cross_port","b":"n_port_corridor"},{"a":"n_port_corridor","b":"n_forward_lobby"}]};
+let shipnetStateV020=null,shipnetDeckV020='7',shipnetPanelV020='main',shipnetModeV020='select';
+let shipnetSelectedV020=null,shipnetPathLastV020=null,shipnetConnectFirstV020=null,shipnetTestPathV020=[];
 
-function cloneV019(v){return JSON.parse(JSON.stringify(v))}
-function loadWalknetV019(){
-  if(walknetStateV019)return walknetStateV019;
+function cloneV020(v){return JSON.parse(JSON.stringify(v))}
+function loadShipnetV020(){
+  if(shipnetStateV020)return shipnetStateV020;
   try{
-    const raw=localStorage.getItem(WALKNET_KEY_V019);
-    const parsed=raw?JSON.parse(raw):null;
-    walknetStateV019=parsed&&Array.isArray(parsed.nodes)&&Array.isArray(parsed.edges)?parsed:cloneV019(WALKNET_SEED_V019);
-  }catch(e){walknetStateV019=cloneV019(WALKNET_SEED_V019)}
-  return walknetStateV019;
+    const raw=localStorage.getItem(SHIPNET_KEY_V020);
+    shipnetStateV020=raw?JSON.parse(raw):cloneV020(SHIPNET_SEED_V020);
+    if(!shipnetStateV020.nodes||!shipnetStateV020.edges)throw new Error();
+  }catch(e){shipnetStateV020=cloneV020(SHIPNET_SEED_V020)}
+  return shipnetStateV020;
 }
-function saveWalknetV019(){
-  localStorage.setItem(WALKNET_KEY_V019,JSON.stringify(walknetStateV019));
+function saveShipnetV020(){localStorage.setItem(SHIPNET_KEY_V020,JSON.stringify(shipnetStateV020))}
+function currentPanelV020(){return SHIPNET_DECKS_V020[shipnetDeckV020].panels.find(p=>p.id===shipnetPanelV020)}
+function panelNodesV020(){return loadShipnetV020().nodes.filter(n=>n.deck===shipnetDeckV020&&n.panel===shipnetPanelV020)}
+function nodeV020(id){return loadShipnetV020().nodes.find(n=>n.id===id)}
+function edgeExistsV020(a,b){return loadShipnetV020().edges.some(e=>(e.a===a&&e.b===b)||(e.a===b&&e.b===a))}
+function addEdgeV020(a,b,kind='walk'){if(!a||!b||a===b||edgeExistsV020(a,b))return;loadShipnetV020().edges.push({a,b,kind});saveShipnetV020()}
+function addNodeV020(x,y,type='corridor'){
+  const n={id:'n_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6),deck:shipnetDeckV020,panel:shipnetPanelV020,x:Math.round(x),y:Math.round(y),type,label:''};
+  loadShipnetV020().nodes.push(n);saveShipnetV020();return n;
 }
-function walknetNodeV019(id){return loadWalknetV019().nodes.find(n=>n.id===id)}
-function walknetEdgeExistsV019(a,b){return loadWalknetV019().edges.some(e=>(e.a===a&&e.b===b)||(e.a===b&&e.b===a))}
-function walknetAddEdgeV019(a,b){
-  if(!a||!b||a===b||walknetEdgeExistsV019(a,b))return;
-  loadWalknetV019().edges.push({a,b});saveWalknetV019();
-}
-function walknetAddNodeV019(x,y,type='corridor',label=''){
-  const n={id:'n_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6),x:Math.round(x),y:Math.round(y),type,label};
-  loadWalknetV019().nodes.push(n);saveWalknetV019();return n;
-}
-function walknetDeleteNodeV019(id){
-  const s=loadWalknetV019();s.nodes=s.nodes.filter(n=>n.id!==id);s.edges=s.edges.filter(e=>e.a!==id&&e.b!==id);
-  if(walknetSelectedV019===id)walknetSelectedV019=null;
-  walknetTestPathV019=walknetTestPathV019.filter(x=>x!==id);
-  saveWalknetV019();
-}
-function walknetAdjV019(){
-  const s=loadWalknetV019(),a={};s.nodes.forEach(n=>a[n.id]=[]);
+function deleteNodeV020(id){const s=loadShipnetV020();s.nodes=s.nodes.filter(n=>n.id!==id);s.edges=s.edges.filter(e=>e.a!==id&&e.b!==id);shipnetSelectedV020=null;shipnetTestPathV020=[];saveShipnetV020()}
+function adjV020(){
+  const s=loadShipnetV020(),a={};s.nodes.forEach(n=>a[n.id]=[]);
   s.edges.forEach(e=>{if(a[e.a]&&a[e.b]){a[e.a].push(e.b);a[e.b].push(e.a)}});
+  const groups={};
+  s.nodes.filter(n=>n.type==='elevator'&&n.verticalGroup).forEach(n=>(groups[n.verticalGroup]??=[]).push(n));
+  Object.values(groups).forEach(g=>g.forEach((n,i)=>g.slice(i+1).forEach(m=>{if(n.deck!==m.deck){a[n.id].push(m.id);a[m.id].push(n.id)}})));
   return a;
 }
-function walknetFindPathV019(start,end){
-  if(!start||!end)return [];
-  const a=walknetAdjV019(),q=[start],prev={[start]:null};
+function findPathV020(start,end){
+  if(!start||!end)return[];const a=adjV020(),q=[start],prev={[start]:null};
   while(q.length){const u=q.shift();if(u===end)break;(a[u]||[]).forEach(v=>{if(!(v in prev)){prev[v]=u;q.push(v)}})}
-  if(!(end in prev))return [];
-  const p=[];let cur=end;while(cur){p.push(cur);cur=prev[cur]}return p.reverse();
+  if(!(end in prev))return[];const p=[];for(let c=end;c;c=prev[c])p.push(c);return p.reverse();
 }
-function walknetSvgV019(){
-  const s=loadWalknetV019(),nodeMap=Object.fromEntries(s.nodes.map(n=>[n.id,n]));
-  const testEdges=new Set();
-  for(let i=0;i<walknetTestPathV019.length-1;i++){
-    const a=walknetTestPathV019[i],b=walknetTestPathV019[i+1];
-    testEdges.add([a,b].sort().join('|'));
-  }
-  const edges=s.edges.map(e=>{
-    const a=nodeMap[e.a],b=nodeMap[e.b];if(!a||!b)return '';
-    const active=testEdges.has([e.a,e.b].sort().join('|'));
-    return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" class="walknet-edge ${active?'test':''}"/>`;
-  }).join('');
-  const nodes=s.nodes.map(n=>{
-    const selected=n.id===walknetSelectedV019,active=walknetTestPathV019.includes(n.id),type=n.type||'corridor';
-    const label=(selected||type==='cabin'||type==='elevator'||type==='venue')&&n.label
-      ? `<g class="walknet-label"><rect x="${Math.min(n.x+10,330)}" y="${Math.max(6,n.y-22)}" width="138" height="28" rx="7"/><text x="${Math.min(n.x+17,337)}" y="${Math.max(25,n.y-3)}">${esc(n.label)}</text></g>`:'';
-    return `<g data-walknet-node="${n.id}" class="walknet-node-group"><circle cx="${n.x}" cy="${n.y}" r="${selected?10:active?9:7}" class="walknet-node type-${type} ${selected?'selected':''} ${active?'test':''}"/>${label}</g>`;
-  }).join('');
-  return `<svg id="walknetSvgV019" class="walknet-svg-v019" viewBox="0 0 ${WALKNET_MAP_V019.w} ${WALKNET_MAP_V019.h}" preserveAspectRatio="none" aria-label="Walking network overlay">${edges}${nodes}</svg>`;
+function visibleEdgeV020(e){const a=nodeV020(e.a),b=nodeV020(e.b);return a&&b&&a.deck===shipnetDeckV020&&b.deck===shipnetDeckV020&&a.panel===shipnetPanelV020&&b.panel===shipnetPanelV020}
+function svgV020(){
+  const p=currentPanelV020(),s=loadShipnetV020(),nodes=panelNodesV020(),map=Object.fromEntries(s.nodes.map(n=>[n.id,n]));
+  const testPairs=new Set();for(let i=0;i<shipnetTestPathV020.length-1;i++)testPairs.add([shipnetTestPathV020[i],shipnetTestPathV020[i+1]].sort().join('|'));
+  const edges=s.edges.filter(visibleEdgeV020).map(e=>{const a=map[e.a],b=map[e.b],test=testPairs.has([e.a,e.b].sort().join('|'));return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" class="shipnet-edge ${test?'test':''}"/>`}).join('');
+  const circles=nodes.map(n=>{const sel=n.id===shipnetSelectedV020,test=shipnetTestPathV020.includes(n.id);return `<g><circle cx="${n.x}" cy="${n.y}" r="${sel?10:test?9:7}" class="shipnet-node type-${n.type||'corridor'} ${sel?'selected':''} ${test?'test':''}"/>${(sel||['cabin','elevator','venue'].includes(n.type))&&n.label?`<g class="shipnet-label"><rect x="${Math.min(n.x+9,p.w-148)}" y="${Math.max(5,n.y-23)}" width="140" height="28" rx="7"/><text x="${Math.min(n.x+16,p.w-141)}" y="${Math.max(24,n.y-4)}">${esc(n.label)}</text></g>`:''}</g>`}).join('');
+  return `<svg class="shipnet-svg-v020" viewBox="0 0 ${p.w} ${p.h}" preserveAspectRatio="none">${edges}${circles}</svg>`;
 }
-function walknetStatsV019(){
-  const s=loadWalknetV019();
-  return `${s.nodes.length} nodes · ${s.edges.length} connections`;
-}
-function renderNetworkEditorV019(){
-  const host=el('networkContent');if(!host)return;
-  loadWalknetV019();
-  const selected=walknetNodeV019(walknetSelectedV019);
-  const opts=loadWalknetV019().nodes.map(n=>`<option value="${n.id}">${esc(n.label||n.id)} (${WALKNET_TYPES_V019[n.type]?.label||n.type})</option>`).join('');
+function statsV020(){const s=loadShipnetV020(),deck=s.nodes.filter(n=>n.deck===shipnetDeckV020);return `${deck.length} deck nodes · ${s.nodes.length} ship nodes · ${s.edges.length} explicit connections`}
+function nodeOptionV020(n){return `<option value="${n.id}">D${n.deck} · ${esc(n.label||n.id)}</option>`}
+function renderNetworkEditorV019(){renderShipNetworkV020()}
+function renderShipNetworkV020(){
+  const host=el('networkContent');if(!host)return;loadShipnetV020();
+  const deck=SHIPNET_DECKS_V020[shipnetDeckV020],panel=currentPanelV020(),selected=nodeV020(shipnetSelectedV020),all=loadShipnetV020().nodes;
   host.innerHTML=`
-    <div class="walknet-toolbar">
-      <div class="walknet-status"><strong>Deck 7 Walking Network</strong><span>${walknetStatsV019()}</span></div>
-      <div class="walknet-mode-grid">
-        <button type="button" class="${walknetModeV019==='select'?'active':''}" data-walknet-mode="select">Select</button>
-        <button type="button" class="${walknetModeV019==='path'?'active':''}" data-walknet-mode="path">Draw Path</button>
-        <button type="button" class="${walknetModeV019==='connect'?'active':''}" data-walknet-mode="connect">Connect</button>
-        <button type="button" class="${walknetModeV019==='move'?'active':''}" data-walknet-mode="move" ${selected?'':'disabled'}>Move</button>
-      </div>
-      <p class="walknet-help">${walknetModeV019==='path'?'Tap along the center of the walking area. Each tap creates a node and connects it to the previous point. Tap End Path when the segment is finished.':walknetModeV019==='connect'?'Tap one existing node, then another, to connect separate path segments.':walknetModeV019==='move'?'Tap the new location for the selected node.':'Tap a node to edit it. Tap empty map space to inspect native coordinates.'}</p>
-      ${walknetModeV019==='path'?'<button type="button" id="walknetEndPath" class="secondary-action">End Path</button>':''}
+  <div class="shipnet-toolbar">
+    <div class="shipnet-row">
+      <label>Deck<select id="shipnetDeck">${Object.keys(SHIPNET_DECKS_V020).map(d=>`<option value="${d}" ${d===shipnetDeckV020?'selected':''}>Deck ${d}</option>`).join('')}</select></label>
+      <label>Map panel<select id="shipnetPanel">${deck.panels.map(p=>`<option value="${p.id}" ${p.id===shipnetPanelV020?'selected':''}>${p.name}</option>`).join('')}</select></label>
     </div>
-
-    <div class="walknet-map-card">
-      <div class="walknet-map-head"><span>FORWARD ↑</span><b>Tap directly on the clean deck plan</b><span>AFT ↓</span></div>
-      <div id="walknetMapV019" class="walknet-map-v019">
-        <img src="./assets/deck7-forward.png" alt="Clean Deck 7 forward deck plan">
-        ${walknetSvgV019()}
-      </div>
-      <div id="walknetCoordV019" class="walknet-coord">Native map coordinates: x 0–475, y 0–1193</div>
-    </div>
-
-    <div class="walknet-editor-grid">
-      <section class="walknet-panel">
-        <h3>Selected Point</h3>
-        ${selected?`
-          <label>Label<input id="walknetLabelV019" type="text" value="${esc(selected.label||'')}" placeholder="e.g. Corridor junction"></label>
-          <label>Type<select id="walknetTypeV019">${Object.entries(WALKNET_TYPES_V019).map(([k,v])=>`<option value="${k}" ${selected.type===k?'selected':''}>${v.label}</option>`).join('')}</select></label>
-          <div class="walknet-selected-meta">x ${selected.x} · y ${selected.y} · ${esc(selected.id)}</div>
-          <div class="walknet-actions"><button type="button" id="walknetSaveNode" class="primary-action">Save point</button><button type="button" id="walknetDeleteNode" class="danger-action">Delete point</button></div>
-        `:'<p>Tap an existing point in Select mode to edit its label or type.</p>'}
-      </section>
-
-      <section class="walknet-panel">
-        <h3>Test Routing</h3>
-        <label>From<select id="walknetTestFrom"><option value="">Choose start…</option>${opts}</select></label>
-        <label>To<select id="walknetTestTo"><option value="">Choose destination…</option>${opts}</select></label>
-        <button type="button" id="walknetTestRoute" class="primary-action">Highlight shortest path</button>
-        <div id="walknetTestResult" class="walknet-test-result">${walknetTestPathV019.length?`${walknetTestPathV019.length} nodes in highlighted route.`:'No test route selected.'}</div>
-      </section>
-    </div>
-
-    <section class="walknet-panel">
-      <h3>Network Data</h3>
-      <p>This editor saves automatically on this device. Export the JSON when you want me to integrate the completed network into Cruise Navigator.</p>
-      <div class="walknet-actions wrap">
-        <button type="button" id="walknetExport" class="primary-action">Export Navigation Data</button>
-        <label class="file-action">Import JSON<input id="walknetImport" type="file" accept="application/json,.json"></label>
-        <button type="button" id="walknetReset" class="secondary-action">Reset to verified seed</button>
-      </div>
+    <div class="shipnet-summary"><strong>${deck.name} · ${panel.name}</strong><span>${statsV020()}</span></div>
+    <div class="shipnet-modes">${[['select','Select'],['path','Draw Path'],['connect','Connect'],['move','Move']].map(([k,v])=>`<button type="button" data-shipmode="${k}" class="${shipnetModeV020===k?'active':''}" ${k==='move'&&!selected?'disabled':''}>${v}</button>`).join('')}</div>
+    <p class="shipnet-help">${shipnetModeV020==='path'?'Tap along the center of every legal passenger walking area. Each tap connects to the previous point. End the path before starting another disconnected walkway.':shipnetModeV020==='connect'?'Tap one existing point, switch panel/deck if needed, then tap the second point. This joins overlapping panels into one logical network.':shipnetModeV020==='move'?'Tap the corrected location of the selected point.':'Select a point to classify it. Elevator nodes can share a bank ID across decks.'}</p>
+    ${shipnetModeV020==='path'?'<button id="shipnetEndPath" class="secondary-action">End Path</button>':''}
+  </div>
+  <div class="shipnet-map-card">
+    <div class="shipnet-map-head"><span>FORWARD / BOW</span><b>${deck.name}</b><span>AFT / STERN</span></div>
+    <div id="shipnetMap" class="shipnet-map" style="aspect-ratio:${panel.w}/${panel.h}"><img src="${panel.src}" alt="${deck.name} ${panel.name} deck plan">${svgV020()}</div>
+    <div id="shipnetCoord" class="shipnet-coord">Native panel coordinates: x 0-${panel.w}, y 0-${panel.h}</div>
+  </div>
+  <div class="shipnet-grid">
+    <section class="shipnet-panel"><h3>Selected Point</h3>
+      ${selected?`<label>Label<input id="shipnetLabel" value="${esc(selected.label||'')}" placeholder="e.g. Forward elevators"></label>
+      <label>Type<select id="shipnetType">${Object.entries(SHIPNET_TYPES_V020).map(([k,v])=>`<option value="${k}" ${selected.type===k?'selected':''}>${v.label}</option>`).join('')}</select></label>
+      <label>Elevator / vertical bank<select id="shipnetVertical"><option value="">None</option>${Object.entries(SHIPNET_VERTICAL_V020).map(([k,v])=>`<option value="${k}" ${selected.verticalGroup===k?'selected':''}>${v}</option>`).join('')}</select></label>
+      <div class="shipnet-meta">Deck ${selected.deck} · ${selected.panel} · x ${selected.x} · y ${selected.y}</div>
+      <div class="shipnet-actions"><button id="shipnetSaveNode" class="primary-action">Save point</button><button id="shipnetDeleteNode" class="danger-action">Delete</button></div>`:'<p>Select an existing network point to label or classify it.</p>'}
     </section>
-  `;
-  bindNetworkEditorV019();
+    <section class="shipnet-panel"><h3>Ship-wide Route Test</h3>
+      <label>From<select id="shipnetFrom"><option value="">Choose start…</option>${all.map(nodeOptionV020).join('')}</select></label>
+      <label>To<select id="shipnetTo"><option value="">Choose destination…</option>${all.map(nodeOptionV020).join('')}</select></label>
+      <button id="shipnetTest" class="primary-action">Calculate network path</button>
+      <div class="shipnet-test">${shipnetTestPathV020.length?`${shipnetTestPathV020.length} nodes in route. Open each involved deck/panel to inspect the highlighted segment.`:'No route test selected.'}</div>
+    </section>
+  </div>
+  <section class="shipnet-panel"><h3>Ship Network Data</h3><p>All decks save into one local ship-network database. Export a single deck for review or export the entire ship network for integration.</p>
+    <div class="shipnet-actions wrap"><button id="shipnetExportDeck" class="primary-action">Export Current Deck</button><button id="shipnetExportShip" class="primary-action">Export Entire Ship Network</button><label class="file-action">Import Network JSON<input id="shipnetImport" type="file" accept=".json,application/json"></label><button id="shipnetReset" class="secondary-action">Reset editor data</button></div>
+  </section>`;
+  bindShipnetV020();
 }
-function walknetMapPointV019(evt){
-  const map=el('walknetMapV019'),r=map.getBoundingClientRect();
-  const x=Math.max(0,Math.min(WALKNET_MAP_V019.w,(evt.clientX-r.left)/r.width*WALKNET_MAP_V019.w));
-  const y=Math.max(0,Math.min(WALKNET_MAP_V019.h,(evt.clientY-r.top)/r.height*WALKNET_MAP_V019.h));
-  return {x,y};
-}
-function walknetNearestNodeV019(x,y,max=18){
-  let best=null,dist=max;
-  loadWalknetV019().nodes.forEach(n=>{const d=Math.hypot(n.x-x,n.y-y);if(d<dist){best=n;dist=d}});
-  return best;
-}
-function bindNetworkEditorV019(){
-  document.querySelectorAll('[data-walknet-mode]').forEach(b=>b.onclick=()=>{
-    walknetModeV019=b.dataset.walknetMode;
-    if(walknetModeV019!=='path')walknetPathLastV019=null;
-    if(walknetModeV019!=='connect')walknetConnectFirstV019=null;
-    renderNetworkEditorV019();
-  });
-  const end=el('walknetEndPath');if(end)end.onclick=()=>{walknetPathLastV019=null;walknetModeV019='select';renderNetworkEditorV019()};
-  const map=el('walknetMapV019');
-  map.addEventListener('pointermove',e=>{const p=walknetMapPointV019(e);const c=el('walknetCoordV019');if(c)c.textContent=`Native map coordinates: x ${Math.round(p.x)}, y ${Math.round(p.y)}`});
+function mapPointV020(e){const map=el('shipnetMap'),p=currentPanelV020(),r=map.getBoundingClientRect();return{x:Math.max(0,Math.min(p.w,(e.clientX-r.left)/r.width*p.w)),y:Math.max(0,Math.min(p.h,(e.clientY-r.top)/r.height*p.h))}}
+function nearestV020(x,y,max=18){let best=null,d=max;panelNodesV020().forEach(n=>{const q=Math.hypot(n.x-x,n.y-y);if(q<d){d=q;best=n}});return best}
+function exportJsonV020(data,name){const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+function bindShipnetV020(){
+  el('shipnetDeck').onchange=e=>{shipnetDeckV020=e.target.value;shipnetPanelV020=SHIPNET_DECKS_V020[shipnetDeckV020].panels[0].id;shipnetPathLastV020=null;shipnetSelectedV020=null;renderShipNetworkV020()};
+  el('shipnetPanel').onchange=e=>{shipnetPanelV020=e.target.value;shipnetPathLastV020=null;shipnetSelectedV020=null;renderShipNetworkV020()};
+  document.querySelectorAll('[data-shipmode]').forEach(b=>b.onclick=()=>{shipnetModeV020=b.dataset.shipmode;if(shipnetModeV020!=='path')shipnetPathLastV020=null;if(shipnetModeV020!=='connect')shipnetConnectFirstV020=null;renderShipNetworkV020()});
+  if(el('shipnetEndPath'))el('shipnetEndPath').onclick=()=>{shipnetPathLastV020=null;shipnetModeV020='select';renderShipNetworkV020()};
+  const map=el('shipnetMap');
+  map.addEventListener('pointermove',e=>{const p=mapPointV020(e),panel=currentPanelV020();el('shipnetCoord').textContent=`Native panel coordinates: x ${Math.round(p.x)}, y ${Math.round(p.y)} · ${panel.name}`});
   map.addEventListener('click',e=>{
-    const p=walknetMapPointV019(e),near=walknetNearestNodeV019(p.x,p.y,16);
-    if(walknetModeV019==='path'){
-      const n=walknetAddNodeV019(p.x,p.y,'corridor','');
-      if(walknetPathLastV019)walknetAddEdgeV019(walknetPathLastV019,n.id);
-      walknetPathLastV019=n.id;walknetSelectedV019=n.id;renderNetworkEditorV019();return;
-    }
-    if(walknetModeV019==='move'&&walknetSelectedV019){
-      const n=walknetNodeV019(walknetSelectedV019);if(n){n.x=Math.round(p.x);n.y=Math.round(p.y);saveWalknetV019();}
-      walknetModeV019='select';renderNetworkEditorV019();return;
-    }
-    if(walknetModeV019==='connect'){
-      if(!near)return;
-      if(!walknetConnectFirstV019){walknetConnectFirstV019=near.id;walknetSelectedV019=near.id;renderNetworkEditorV019();}
-      else{walknetAddEdgeV019(walknetConnectFirstV019,near.id);walknetConnectFirstV019=null;walknetSelectedV019=near.id;walknetModeV019='select';renderNetworkEditorV019();}
-      return;
-    }
-    if(near){walknetSelectedV019=near.id;renderNetworkEditorV019();}
+    const p=mapPointV020(e),near=nearestV020(p.x,p.y);
+    if(shipnetModeV020==='path'){const n=addNodeV020(p.x,p.y);if(shipnetPathLastV020)addEdgeV020(shipnetPathLastV020,n.id);shipnetPathLastV020=n.id;shipnetSelectedV020=n.id;renderShipNetworkV020();return}
+    if(shipnetModeV020==='move'&&shipnetSelectedV020){const n=nodeV020(shipnetSelectedV020);if(n){n.x=Math.round(p.x);n.y=Math.round(p.y);saveShipnetV020()}shipnetModeV020='select';renderShipNetworkV020();return}
+    if(shipnetModeV020==='connect'){if(!near)return;if(!shipnetConnectFirstV020){shipnetConnectFirstV020=near.id;shipnetSelectedV020=near.id;renderShipNetworkV020()}else{addEdgeV020(shipnetConnectFirstV020,near.id,'bridge');shipnetConnectFirstV020=null;shipnetSelectedV020=near.id;shipnetModeV020='select';renderShipNetworkV020()}return}
+    if(near){shipnetSelectedV020=near.id;renderShipNetworkV020()}
   });
-  const save=el('walknetSaveNode');if(save)save.onclick=()=>{
-    const n=walknetNodeV019(walknetSelectedV019);if(!n)return;
-    n.label=el('walknetLabelV019').value.trim();n.type=el('walknetTypeV019').value;saveWalknetV019();renderNetworkEditorV019();
-  };
-  const del=el('walknetDeleteNode');if(del)del.onclick=()=>{if(confirm('Delete this point and its connections?')){walknetDeleteNodeV019(walknetSelectedV019);renderNetworkEditorV019()}};
-  const test=el('walknetTestRoute');if(test)test.onclick=()=>{
-    const a=el('walknetTestFrom').value,b=el('walknetTestTo').value;walknetTestPathV019=walknetFindPathV019(a,b);
-    renderNetworkEditorV019();
-    const r=el('walknetTestResult');if(r&&!walknetTestPathV019.length)r.textContent='No connected path exists between those points yet.';
-  };
-  const exp=el('walknetExport');if(exp)exp.onclick=()=>{
-    const payload=JSON.stringify(loadWalknetV019(),null,2),blob=new Blob([payload],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
-    a.href=url;a.download='cruise-navigator-deck7-walking-network.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
-  };
-  const imp=el('walknetImport');if(imp)imp.onchange=()=>{
-    const f=imp.files&&imp.files[0];if(!f)return;const reader=new FileReader();
-    reader.onload=()=>{try{const d=JSON.parse(reader.result);if(!Array.isArray(d.nodes)||!Array.isArray(d.edges))throw new Error('Invalid network file');walknetStateV019=d;saveWalknetV019();walknetSelectedV019=null;walknetTestPathV019=[];renderNetworkEditorV019()}catch(err){alert('Could not import this network file.')}};
-    reader.readAsText(f);
-  };
-  const reset=el('walknetReset');if(reset)reset.onclick=()=>{if(confirm('Reset Deck 7 to the small verified seed network?')){walknetStateV019=cloneV019(WALKNET_SEED_V019);saveWalknetV019();walknetSelectedV019=null;walknetTestPathV019=[];renderNetworkEditorV019()}};
+  if(el('shipnetSaveNode'))el('shipnetSaveNode').onclick=()=>{const n=nodeV020(shipnetSelectedV020);n.label=el('shipnetLabel').value.trim();n.type=el('shipnetType').value;n.verticalGroup=el('shipnetVertical').value||undefined;saveShipnetV020();renderShipNetworkV020()};
+  if(el('shipnetDeleteNode'))el('shipnetDeleteNode').onclick=()=>{if(confirm('Delete this network point and its connections?')){deleteNodeV020(shipnetSelectedV020);renderShipNetworkV020()}};
+  el('shipnetTest').onclick=()=>{shipnetTestPathV020=findPathV020(el('shipnetFrom').value,el('shipnetTo').value);renderShipNetworkV020()};
+  el('shipnetExportDeck').onclick=()=>{const s=loadShipnetV020(),ids=new Set(s.nodes.filter(n=>n.deck===shipnetDeckV020).map(n=>n.id));exportJsonV020({version:2,deck:shipnetDeckV020,nodes:s.nodes.filter(n=>ids.has(n.id)),edges:s.edges.filter(e=>ids.has(e.a)&&ids.has(e.b))},`cruise-navigator-deck${shipnetDeckV020}-walking-network.json`)};
+  el('shipnetExportShip').onclick=()=>exportJsonV020(loadShipnetV020(),'cruise-navigator-ship-walking-network.json');
+  el('shipnetImport').onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.nodes)||!Array.isArray(d.edges))throw Error();if(d.deck){const s=loadShipnetV020(),ids=new Set(s.nodes.filter(n=>n.deck===d.deck).map(n=>n.id));s.nodes=s.nodes.filter(n=>!ids.has(n.id)).concat(d.nodes);s.edges=s.edges.filter(e=>!ids.has(e.a)&&!ids.has(e.b)).concat(d.edges);shipnetStateV020=s}else shipnetStateV020=d;saveShipnetV020();renderShipNetworkV020()}catch(_){alert('Could not import that network JSON.')}};r.readAsText(f)};
+  el('shipnetReset').onclick=()=>{if(confirm('Reset all ship-network editor data to the verified Deck 7 seed?')){shipnetStateV020=cloneV020(SHIPNET_SEED_V020);saveShipnetV020();shipnetSelectedV020=null;shipnetTestPathV020=[];renderShipNetworkV020()}};
 }
 
 renderCategories();renderSearch([]);renderDecks();renderLesson();
@@ -993,7 +899,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.19.0';
+const BUILD_VERSION = '0.20.0';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
