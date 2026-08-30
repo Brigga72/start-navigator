@@ -65,3 +65,11 @@ The existing GitHub Pages update architecture is preserved. v0.12.0 only advance
 - Shows a highlighted walking path, elevator transition, You Are Here, and destination marker.
 - Preserves conservative routing for destinations that have not yet been traced.
 - Adds deck-plan assets to the offline service-worker cache.
+
+## v0.17.0
+- Corrects the Cabin 7456 route geometry.
+- Uses the user's explicitly annotated Deck 7 and Deck 16 routes as the authoritative first verified route.
+- Deck 7 now routes from Cabin 7456 through the interior cabin corridor to the port-side corridor and forward elevator lobby.
+- Deck 16 now follows the confirmed walkway past Swim & Tonic, The Lime and Coconut, Dry Slide, Crown's Edge, the second elevator bank, Adrenaline Peak, and Basecamp.
+- Removes the inaccurate generated red-line overlays from the v0.16 route overview for this route.
+- Preserves all existing app data and local-storage keys.

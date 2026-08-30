@@ -137,3 +137,14 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 .trace-key{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:4px;vertical-align:-2px}
 .trace-key.route{width:22px;height:4px;border-radius:4px;background:#ef3340;vertical-align:2px}.trace-key.start{background:#16a34a}.trace-key.elevator{background:#0b5bd3}.trace-key.destination{background:#ef3340}
 @media(max-width:380px){.route-deck-head{align-items:flex-start;flex-direction:column}.trace-label{font-size:.6rem}}
+
+/* v0.17 verified route refinement */
+.route-overview-v017{display:grid;gap:14px}
+.verified-source-note{display:grid;gap:3px;padding:11px 12px;border-left:4px solid #16a34a;background:#f1fbf5;border-radius:8px;font-size:.78rem}
+.verified-source-note strong{color:#08743c}.verified-source-note span{color:#465969}
+.verified-route-map{background:#dfe4ec;overflow:hidden}
+.verified-route-map img{display:block;width:100%;height:auto}
+.route-caption{padding:9px 12px;font-size:.73rem;line-height:1.35;color:#526170;background:#fafbfd;border-top:1px solid #e3e8ee}
+.verified-route-footer{display:grid;grid-template-columns:auto 1fr;column-gap:7px;align-items:center;padding:11px 12px;border:1px solid #bfe6cf;border-radius:12px;background:#f4fbf7;font-size:.76rem}
+.verified-route-footer small{grid-column:2;color:#5b6b77;margin-top:2px}
+.verified-dot{width:10px;height:10px;border-radius:50%;background:#16a34a}

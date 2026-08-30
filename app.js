@@ -351,10 +351,11 @@ function routeFor(fromId,toId){
   // v0.16 first traced route, derived from the user-supplied Deck 7 and Deck 16 plans.
   if(from.id==='cabin7456' && to.id==='basecamp'){
     return [
-      routeStep('walk','Leave Cabin 7456 and follow the starboard cabin corridor aft to the forward elevator bank on Deck 7.','verified','7'),
+      routeStep('walk','Leave Cabin 7456 and follow the interior cabin corridor across to the port-side corridor. Continue aft along the port-side corridor to the forward elevator lobby on Deck 7.','verified','7'),
       routeStep('elevator','Take the forward elevator from Deck 7 to Deck 16. Confirm Deck 16 before exiting.','verified','16'),
-      routeStep('orient','On Deck 16, continue aft along the public walkway past the Swim & Tonic / Lime and Coconut area and the Dry Slide toward Crown’s Edge.','verified','16'),
-      routeStep('walk','Continue aft through the Crown’s Edge area to the next elevator lobby. Basecamp is just beyond this lobby on the port side of Thrill Island.','verified','16'),
+      routeStep('orient','Exit toward the port side of the Deck 16 lobby, then follow the public walkway around the Whirlpool and Swim & Tonic area.','verified','16'),
+      routeStep('walk','Continue aft past The Lime and Coconut Frozen Bar and the Dry Slide, following the Chill Island walkway toward Crown’s Edge.','verified','16'),
+      routeStep('walk','Continue through Crown’s Edge, pass the next elevator lobby and Adrenaline Peak, then follow the walkway to Basecamp.','verified','16'),
       routeStep('arrive','Arrive at Basecamp on Deck 16.','verified','16')
     ];
   }
@@ -446,51 +447,30 @@ function showRoute(id){
 }
 
 function tracedBasecampOverview(){
-  return `<div class="route-overview-v016">
+  return `<div class="route-overview-v017">
     <div class="route-overview-tabs"><button class="active" type="button">ROUTE OVERVIEW</button><button type="button" id="overviewNextStep">NEXT STEP</button></div>
     <div class="route-summary-strip"><span>🏠 Cabin 7456</span><b>→</b><span>🛗 Deck 7 → 16</span><b>→</b><span>📍 Basecamp</span></div>
-    <div class="traced-note"><strong>TRACED FROM YOUR DECK PLANS</strong><span>This route uses the Deck 7 and Deck 16 plans you supplied. No walking-time or distance estimate is invented.</span></div>
+    <div class="verified-source-note"><strong>✓ VERIFIED ROUTE</strong><span>The red paths below are the route you traced directly on the Deck 7 and Deck 16 plans.</span></div>
 
     <section class="route-deck-card">
       <div class="route-deck-head"><b>DECK 7</b><span>Cabin 7456 → Forward Elevators</span></div>
-      <div class="source-map-wrap deck7-trace">
-        <img src="./assets/deck7-forward.png" alt="Deck 7 plan showing Cabin 7456 and the forward elevator bank">
-        <svg viewBox="0 0 475 1189" preserveAspectRatio="none" aria-hidden="true">
-          <polyline points="356,435 356,635 338,684 230,684" class="trace-line"/>
-          <circle cx="356" cy="435" r="13" class="trace-start"/><circle cx="230" cy="684" r="13" class="trace-lift"/>
-        </svg>
-        <span class="trace-label start-label">YOU ARE HERE<br>7456</span>
-        <span class="trace-label lift-label">FORWARD<br>ELEVATORS</span>
+      <div class="verified-route-map">
+        <img src="./assets/verified-route-deck7-7456-elevators.png" alt="Verified Deck 7 route from Cabin 7456 to the forward elevators">
       </div>
+      <div class="route-caption">Cabin 7456 → interior cabin corridor → port-side corridor → forward elevator lobby</div>
     </section>
 
     <div class="deck-transition-v016"><span>🛗</span><strong>TAKE FORWARD ELEVATOR TO DECK 16</strong><small>Confirm Deck 16 before exiting</small></div>
 
     <section class="route-deck-card">
-      <div class="route-deck-head"><b>DECK 16</b><span>Forward Elevators → Crown's Edge</span></div>
-      <div class="source-map-wrap deck16-forward-trace">
-        <img src="./assets/deck16-forward.png" alt="Forward section of Deck 16">
-        <svg viewBox="0 0 455 1188" preserveAspectRatio="none" aria-hidden="true">
-          <polyline points="224,490 224,560 190,620 176,720 158,812 122,930 105,1085" class="trace-line"/>
-          <circle cx="224" cy="490" r="13" class="trace-lift"/>
-        </svg>
+      <div class="route-deck-head"><b>DECK 16</b><span>Forward Elevators → Basecamp</span></div>
+      <div class="verified-route-map">
+        <img src="./assets/verified-route-deck16-elevators-basecamp.png" alt="Verified Deck 16 route from the forward elevators to Basecamp">
       </div>
+      <div class="route-caption">Forward elevators → Swim & Tonic → Lime and Coconut → Dry Slide → Crown's Edge → Adrenaline Peak → Basecamp</div>
     </section>
 
-    <div class="route-continuation-v016">↓ CONTINUE AFT THROUGH CROWN'S EDGE ↓</div>
-
-    <section class="route-deck-card">
-      <div class="route-deck-head"><b>DECK 16 · THRILL ISLAND</b><span>Crown's Edge → Basecamp</span></div>
-      <div class="source-map-wrap deck16-thrill-trace">
-        <img src="./assets/deck16-thrill.png" alt="Thrill Island section of Deck 16 showing Basecamp">
-        <svg viewBox="0 0 410 843" preserveAspectRatio="none" aria-hidden="true">
-          <polyline points="105,35 125,95 180,180 185,245 155,315 115,390" class="trace-line"/>
-          <circle cx="115" cy="390" r="14" class="trace-dest"/>
-        </svg>
-        <span class="trace-label dest-label">DESTINATION<br>BASECAMP</span>
-      </div>
-    </section>
-    <div class="trace-legend-v016"><span><i class="trace-key route"></i>Route</span><span><i class="trace-key start"></i>You</span><span><i class="trace-key elevator"></i>Elevator</span><span><i class="trace-key destination"></i>Destination</span></div>
+    <div class="verified-route-footer"><span class="verified-dot"></span><b>First end-to-end verified route</b><small>No estimated walking time or distance has been added.</small></div>
   </div>`;
 }
 
@@ -720,7 +700,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.16.0';
+const BUILD_VERSION = '0.17.0';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
