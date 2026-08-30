@@ -272,3 +272,16 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
   font-weight:900;
   pointer-events:none;
 }
+
+/* v0.27.4 Deck 16 panel-registration diagnostics */
+.verified-endpoint-v0274 circle{fill:none;stroke:#111;stroke-width:3}
+.verified-endpoint-v0274 line{stroke:#111;stroke-width:2}
+.verified-endpoint-v0274 rect{fill:#111;opacity:.92}
+.verified-endpoint-v0274 text{fill:#fff;font-size:7px;font-weight:900;letter-spacing:.02em}
+.registration-note-v0274{display:flex;flex-direction:column;gap:4px;padding:10px 12px;margin:0 0 10px;border-radius:12px;background:#fff4ce;border:1px solid #ead58c}
+.registration-note-v0274 strong{font-size:.85rem}
+.registration-note-v0274 span,.registration-caption-v0274{font-size:.75rem;line-height:1.4;color:#526675}
+.registration-map-v0274{position:relative}
+.registration-anchor-v0274 circle{fill:#fff;stroke:#111;stroke-width:3}
+.registration-anchor-v0274 text{fill:#111;font-size:9px;font-weight:950}
+.registration-caption-v0274{padding:10px 3px 2px}

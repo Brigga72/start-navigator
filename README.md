@@ -317,3 +317,26 @@ For the current Deck 7 route:
 3. Port corridor: (119,691)
 4. Stairs: (147,693)
 5. Forward elevators: (229,697)
+
+
+## v0.27.4 - Deck 16 Panel Registration
+
+This diagnostics build keeps the v0.27.3 coordinate-registration fix and adds
+explicit visual registration support for the two Deck 16 production panels.
+
+### Step 3
+The final verified Deck 16 Forward node (`n_mtg8nx9v_6rp3`, 203,1166) now gets
+an explicit **VERIFIED PATH ENDS HERE** callout. This does not change the route.
+
+### Step 4
+Instead of a blank orientation placeholder, the real Deck 16 Thrill Island
+panel is rendered. A temporary **Anchor A** is shown near Crown's Edge at
+(104,72). This is deliberately marked as a candidate registration anchor, not
+as a verified walking route.
+
+The purpose is to visually align the Forward panel endpoint with the Thrill
+panel overlap. Once the correspondence is confirmed, the app can replace the
+current maximum-Y Basecamp fallback with an explicit panel-link pair and then
+trace verified walking geometry to Basecamp.
+
+No unverified line is drawn through Thrill Island in this release.

@@ -571,7 +571,9 @@ function prodMapPanelV026(step){
   const poly=pts.map(n=>`${n.x},${n.y}`).join(' ');
   const start=pts[0],end=pts[pts.length-1];
   const markers=pts.map((n,i)=>`<g class="prod-debug-node-v0273"><circle cx="${n.x}" cy="${n.y}" r="7"/><text x="${n.x}" y="${n.y+2.5}" text-anchor="middle">${i+1}</text></g>`).join('');
-  return `<div class="guided-map-label">DECK ${esc(deck)} · VERIFIED NETWORK</div><div class="nav-real-map-v018 prod-map-v026" style="aspect-ratio:${pcfg.w}/${pcfg.h}"><img src="${pcfg.src}" alt="Deck ${esc(deck)} map"><svg viewBox="0 0 ${pcfg.w} ${pcfg.h}" preserveAspectRatio="none"><polyline points="${poly}" class="prod-route-line-v026"/>${markers}<circle cx="${start.x}" cy="${start.y}" r="8" class="prod-start-v026"/><circle cx="${end.x}" cy="${end.y}" r="8" class="prod-end-v026"/></svg></div>`;
+  const endpointCallout=(deck==='16'&&panel==='forward'&&end.id===DECK16_REGISTRATION_V0274.forward.nodeId)
+    ? `<g class="verified-endpoint-v0274"><circle cx="${end.x}" cy="${end.y}" r="13"/><line x1="${end.x}" y1="${end.y-13}" x2="${Math.min(pcfg.w-82,end.x+42)}" y2="${Math.max(24,end.y-42)}"/><rect x="${Math.min(pcfg.w-170,end.x+38)}" y="${Math.max(8,end.y-64)}" width="155" height="38" rx="7"/><text x="${Math.min(pcfg.w-162,end.x+46)}" y="${Math.max(31,end.y-40)}">VERIFIED PATH ENDS HERE</text></g>`:'';
+  return `<div class="guided-map-label">DECK ${esc(deck)} · VERIFIED NETWORK</div><div class="nav-real-map-v018 prod-map-v026" style="aspect-ratio:${pcfg.w}/${pcfg.h}"><img src="${pcfg.src}" alt="Deck ${esc(deck)} map"><svg viewBox="0 0 ${pcfg.w} ${pcfg.h}" preserveAspectRatio="none"><polyline points="${poly}" class="prod-route-line-v026"/>${markers}<circle cx="${start.x}" cy="${start.y}" r="8" class="prod-start-v026"/><circle cx="${end.x}" cy="${end.y}" r="8" class="prod-end-v026"/>${endpointCallout}</svg></div>`;
 }
 
 function expandedMapForV026(d,idx){return guidedMapForStepV027(d&&d.route&&d.route[idx]);}
@@ -588,6 +590,29 @@ function tripConfidenceV027(route){
   if(levels.includes('orientation')||levels.includes('signage'))return {level:'mixed',label:'VERIFIED + ORIENTATION',text:'Mapped portions use verified geometry. Unmapped portions switch to orientation or ship signage without drawing unsupported route lines.'};
   return {level:'location',label:'LOCATION GUIDANCE',text:'Detailed walking geometry is not available for this route.'};
 }
+
+const DECK16_REGISTRATION_V0274={
+  forward:{deck:'16',panel:'forward',nodeId:'n_mtg8nx9v_6rp3',label:'Verified path endpoint'},
+  thrill:{deck:'16',panel:'thrill',x:104,y:72,label:"Candidate continuation anchor near Crown's Edge"}
+};
+function deck16RegistrationPanelV0274(){
+  const cfg=SHIPNET_DECKS_V020['16'];
+  const pcfg=cfg&&cfg.panels.find(p=>p.id==='thrill');
+  if(!pcfg)return '';
+  const a=DECK16_REGISTRATION_V0274.thrill;
+  debugPushV0272('panel_registration_candidate',{deck:'16',panel:'thrill',x:a.x,y:a.y,label:a.label,status:'candidate_not_verified'});
+  return `<div class="deck16-registration-v0274">
+    <div class="guided-map-label">DECK 16 · THRILL ISLAND · PANEL REGISTRATION</div>
+    <div class="registration-note-v0274"><strong>Candidate continuation point</strong><span>This marker is for aligning the Forward and Thrill Island screenshots. It is not yet a verified walking route.</span></div>
+    <div class="nav-real-map-v018 prod-map-v026 registration-map-v0274" style="aspect-ratio:${pcfg.w}/${pcfg.h}">
+      <img src="${pcfg.src}" alt="Deck 16 Thrill Island map">
+      <svg viewBox="0 0 ${pcfg.w} ${pcfg.h}" preserveAspectRatio="none">
+        <g class="registration-anchor-v0274"><circle cx="${a.x}" cy="${a.y}" r="10"/><text x="${a.x}" y="${a.y+3}" text-anchor="middle">A</text></g>
+      </svg>
+    </div>
+    <div class="registration-caption-v0274">Anchor A is positioned near Crown's Edge so we can visually register this panel against the exact verified endpoint on the Forward panel.</div>
+  </div>`;
+}
 function guidedMapForStepV027(step){
   if(!step)return '';
   if(stepConfidenceV027(step).level==='verified'){
@@ -595,6 +620,9 @@ function guidedMapForStepV027(step){
   }
   if(stepConfidenceV027(step).level==='signage'){
     return `<div class="guided-map-placeholder-v027"><strong>Follow ship signage</strong><span>This section is not mapped precisely enough to draw a trustworthy route line.</span></div>`;
+  }
+  if(String(step.deck)==='16'&&/Crown's Edge|Thrill Island|Basecamp/i.test(step.text||'')){
+    return deck16RegistrationPanelV0274();
   }
   return `<div class="guided-map-placeholder-v027"><strong>Orientation guidance</strong><span>Verified map coverage ends before this section. No unsupported route line is drawn.</span></div>`;
 }
@@ -1453,7 +1481,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.27.3';
+const BUILD_VERSION = '0.27.4';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
