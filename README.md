@@ -145,3 +145,9 @@ The existing GitHub Pages update architecture is preserved. v0.12.0 only advance
 - Deck exports are now version 3 and include `verticalEdges` for stair links touching that deck.
 - Deck import accepts `verticalEdges` and restores them when both endpoints exist.
 - Existing v0.20 ship-network local storage remains authoritative and is migrated in place.
+
+## v0.23.1
+- Hotfix for v0.23.0 startup failure that left the home screen visible but prevented all clicks.
+- Restores the missing `STAIR_LINKS_V023` definition used by the stair-link migration.
+- Adds a startup safety guard so a future stair-link migration error cannot stop the rest of the app from initializing.
+- Preserves all existing walking-network local storage and v0.23 stair-link behavior.

@@ -579,6 +579,16 @@ const SHIPNET_DECKS_V020={
 };
 const SHIPNET_TYPES_V020={corridor:{label:'Corridor point'},junction:{label:'Junction'},elevator:{label:'Elevator'},stairs:{label:'Stairs'},cabin:{label:'Cabin'},venue:{label:'Venue'},landmark:{label:'Landmark'},panel_link:{label:'Panel link'}};
 const SHIPNET_VERTICAL_V020={forward:'Forward elevator bank',mid:'Midship elevator bank',aft:'Aft elevator bank',other:'Other vertical link'};
+const STAIR_LINKS_V023=[
+  ['n_mtg8wi0z_i4qf','n_mtg8xs1h_mnhb','Forward port stairs, Deck 5 to Deck 6'],
+  ['n_mtg8xs1h_mnhb','n_mtg8v6kk_uwf9','Forward port stairs, Deck 6 to Deck 7'],
+  ['n_mtg8v6kk_uwf9','n_mtg8zapp_9pt7','Forward port stairs, Deck 7 to Deck 8'],
+  ['n_mtg90jan_9hta','n_mtg8n3fo_660f','Forward port stairs, Deck 15 to Deck 16'],
+  ['n_mtg8wtei_b5wq','n_mtg8xzsw_a5ni','Forward starboard stairs, Deck 5 to Deck 6'],
+  ['n_mtg9109c_pe92','n_mtg8n4y7_zxd8','Forward starboard stairs, Deck 15 to Deck 16'],
+  ['n_mtg8xd17_enr5','n_mtg8dx01_apwb','Royal Promenade stairs, Deck 5 to Deck 6'],
+  ['n_mtg8efa0_xawl','n_mtg8iv4r_12js','Royal Promenade to Central Park stairs, Deck 6 to Deck 8']
+];
 const SHIPNET_SEED_V020={"version":2,"nodes":[{"id":"n_cabin7456","x":214,"y":397,"type":"cabin","label":"Cabin 7456","deck":"7","panel":"main"},{"id":"n_cross_port","x":119,"y":408,"type":"junction","label":"Cross corridor","deck":"7","panel":"main"},{"id":"n_port_corridor","x":119,"y":691,"type":"junction","label":"Port corridor","deck":"7","panel":"main"},{"id":"n_forward_lobby","x":229,"y":697,"type":"elevator","label":"Forward elevators","deck":"7","panel":"main","verticalGroup":"forward"}],"edges":[{"a":"n_cabin7456","b":"n_cross_port"},{"a":"n_cross_port","b":"n_port_corridor"},{"a":"n_port_corridor","b":"n_forward_lobby"}]};
 let shipnetStateV020=null,shipnetDeckV020='7',shipnetPanelV020='main',shipnetModeV020='select';
 let shipnetSelectedV020=null,shipnetPathLastV020=null,shipnetConnectFirstV020=null,shipnetTestPathV020=[];
@@ -830,7 +840,7 @@ function bindShipnetV020(){
   el('shipnetReset').onclick=()=>{if(confirm('Reset the entire ship-network editor to the verified Deck 7 seed? This affects all mapped decks.')){pushUndoV021();shipnetStateV020=cloneV020(SHIPNET_SEED_V020);saveShipnetV020();shipnetSelectedV020=null;shipnetTestPathV020=[];renderShipNetworkV020()}};
 }
 
-applyStairLinksV023();
+try{applyStairLinksV023()}catch(err){console.error('Stair-link migration skipped:',err)}
 renderCategories();renderSearch([]);renderDecks();renderLesson();
 document.addEventListener('click',e=>{
   const cat=e.target.closest('[data-cat]');if(cat){if(cat.dataset.cat==='mustdo')showMustDo();else renderSearch(destinations.filter(d=>d.category===cat.dataset.cat));el('searchInput').value='';return}
@@ -1038,7 +1048,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.23.0';
+const BUILD_VERSION = '0.23.1';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
