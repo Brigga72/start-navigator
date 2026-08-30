@@ -299,7 +299,7 @@ loadSchedule();
 function renderCategories(){el('categoryGrid').innerHTML=categories.map(c=>`<button class="cat" data-cat="${c.id}"><strong>${c.icon} ${c.title}</strong><span>${c.note}</span></button>`).join('')}
 function row(d){return `<button class="dest-row" data-dest="${d.id}"><span class="dest-icon">${d.icon}</span><span class="dest-main"><span class="dest-name">${d.name}${d.mustdo?' <b class="must-pill">MUST-DO</b>':''}</span><span class="dest-meta">Deck ${d.deck} · ${d.area}</span></span><span class="dest-arrow">›</span></button>`}
 function renderSearch(list, extra=''){el('destinationList').innerHTML=list.map(row).join('')+extra; el('destinationList').classList.toggle('hidden',list.length===0&&!extra)}
-function navigate(view){currentView=view;document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));el(view+'View').classList.add('active');document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===view));window.scrollTo({top:0,behavior:'smooth'})}
+function navigate(view){currentView=view;document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));el(view+'View').classList.add('active');document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===view));if(view==='network')renderNetworkEditorV019();window.scrollTo({top:0,behavior:'smooth'})}
 
 function esc(s){return String(s).replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\\':'&#92;','"':'&quot;'}[m]))}
 
@@ -565,6 +565,227 @@ function renderDecks(){el('deckCards').innerHTML=deckInfo.map(x=>`<button class=
 function renderLesson(){const l=lessons[lessonIndex];el('lessonCard').innerHTML=`<div class="confidence">CHALLENGE ${lessonIndex+1} OF ${lessons.length}</div><div class="lesson-q">${l.q}</div><div class="answers">${l.a.map((x,i)=>`<button class="answer" data-answer="${i}">${x}</button>`).join('')}</div><div id="lessonFeedback" class="lesson-feedback"></div>`;el('lessonCard').querySelectorAll('.answer').forEach(b=>b.addEventListener('click',()=>{const chosen=Number(b.dataset.answer),all=el('lessonCard').querySelectorAll('.answer');all.forEach(a=>a.disabled=true);b.classList.add(chosen===l.correct?'correct':'wrong');if(chosen!==l.correct)all[l.correct].classList.add('correct');el('lessonFeedback').innerHTML=(chosen===l.correct?'✅ Correct. ':'Not quite. ')+l.why+(lessonIndex<lessons.length-1?' <button id="nextLesson" class="answer next">Next challenge →</button>':' <button id="finishLesson" class="answer next">Back to navigator</button>');if(el('nextLesson'))el('nextLesson').onclick=()=>{lessonIndex++;renderLesson()};if(el('finishLesson'))el('finishLesson').onclick=()=>navigate('home')}))}
 function showMustDo(){const extra=unavailableRecommendations.map(x=>`<div class="unavailable"><strong>${x.icon} ${x.name} · CHECK</strong><span>${esc(x.text)}</span></div>`).join('');renderSearch(destinations.filter(d=>d.mustdo),extra)}
 
+
+// v0.19 Deck 7 Walking Network Editor
+const WALKNET_KEY_V019='cruise-nav-walknet-deck7-v019';
+const WALKNET_MAP_V019={id:'deck7-forward',deck:'7',src:'./assets/deck7-forward.png',w:475,h:1193,name:'Deck 7 Forward'};
+const WALKNET_TYPES_V019={
+  junction:{label:'Junction',icon:'●'},
+  corridor:{label:'Corridor point',icon:'·'},
+  elevator:{label:'Elevator',icon:'🛗'},
+  stairs:{label:'Stairs',icon:'↕'},
+  cabin:{label:'Cabin',icon:'🚪'},
+  venue:{label:'Venue',icon:'📍'},
+  landmark:{label:'Landmark',icon:'◆'}
+};
+const WALKNET_SEED_V019={
+  version:1,
+  map:WALKNET_MAP_V019,
+  nodes:[
+    {id:'n_cabin7456',x:214,y:397,type:'cabin',label:'Cabin 7456'},
+    {id:'n_cross_port',x:119,y:408,type:'junction',label:'Cross corridor'},
+    {id:'n_port_corridor',x:119,y:691,type:'junction',label:'Port corridor'},
+    {id:'n_forward_lobby',x:229,y:697,type:'elevator',label:'Forward elevators'}
+  ],
+  edges:[
+    {a:'n_cabin7456',b:'n_cross_port'},
+    {a:'n_cross_port',b:'n_port_corridor'},
+    {a:'n_port_corridor',b:'n_forward_lobby'}
+  ]
+};
+let walknetStateV019=null;
+let walknetModeV019='select';
+let walknetSelectedV019=null;
+let walknetPathLastV019=null;
+let walknetConnectFirstV019=null;
+let walknetTestPathV019=[];
+
+function cloneV019(v){return JSON.parse(JSON.stringify(v))}
+function loadWalknetV019(){
+  if(walknetStateV019)return walknetStateV019;
+  try{
+    const raw=localStorage.getItem(WALKNET_KEY_V019);
+    const parsed=raw?JSON.parse(raw):null;
+    walknetStateV019=parsed&&Array.isArray(parsed.nodes)&&Array.isArray(parsed.edges)?parsed:cloneV019(WALKNET_SEED_V019);
+  }catch(e){walknetStateV019=cloneV019(WALKNET_SEED_V019)}
+  return walknetStateV019;
+}
+function saveWalknetV019(){
+  localStorage.setItem(WALKNET_KEY_V019,JSON.stringify(walknetStateV019));
+}
+function walknetNodeV019(id){return loadWalknetV019().nodes.find(n=>n.id===id)}
+function walknetEdgeExistsV019(a,b){return loadWalknetV019().edges.some(e=>(e.a===a&&e.b===b)||(e.a===b&&e.b===a))}
+function walknetAddEdgeV019(a,b){
+  if(!a||!b||a===b||walknetEdgeExistsV019(a,b))return;
+  loadWalknetV019().edges.push({a,b});saveWalknetV019();
+}
+function walknetAddNodeV019(x,y,type='corridor',label=''){
+  const n={id:'n_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6),x:Math.round(x),y:Math.round(y),type,label};
+  loadWalknetV019().nodes.push(n);saveWalknetV019();return n;
+}
+function walknetDeleteNodeV019(id){
+  const s=loadWalknetV019();s.nodes=s.nodes.filter(n=>n.id!==id);s.edges=s.edges.filter(e=>e.a!==id&&e.b!==id);
+  if(walknetSelectedV019===id)walknetSelectedV019=null;
+  walknetTestPathV019=walknetTestPathV019.filter(x=>x!==id);
+  saveWalknetV019();
+}
+function walknetAdjV019(){
+  const s=loadWalknetV019(),a={};s.nodes.forEach(n=>a[n.id]=[]);
+  s.edges.forEach(e=>{if(a[e.a]&&a[e.b]){a[e.a].push(e.b);a[e.b].push(e.a)}});
+  return a;
+}
+function walknetFindPathV019(start,end){
+  if(!start||!end)return [];
+  const a=walknetAdjV019(),q=[start],prev={[start]:null};
+  while(q.length){const u=q.shift();if(u===end)break;(a[u]||[]).forEach(v=>{if(!(v in prev)){prev[v]=u;q.push(v)}})}
+  if(!(end in prev))return [];
+  const p=[];let cur=end;while(cur){p.push(cur);cur=prev[cur]}return p.reverse();
+}
+function walknetSvgV019(){
+  const s=loadWalknetV019(),nodeMap=Object.fromEntries(s.nodes.map(n=>[n.id,n]));
+  const testEdges=new Set();
+  for(let i=0;i<walknetTestPathV019.length-1;i++){
+    const a=walknetTestPathV019[i],b=walknetTestPathV019[i+1];
+    testEdges.add([a,b].sort().join('|'));
+  }
+  const edges=s.edges.map(e=>{
+    const a=nodeMap[e.a],b=nodeMap[e.b];if(!a||!b)return '';
+    const active=testEdges.has([e.a,e.b].sort().join('|'));
+    return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" class="walknet-edge ${active?'test':''}"/>`;
+  }).join('');
+  const nodes=s.nodes.map(n=>{
+    const selected=n.id===walknetSelectedV019,active=walknetTestPathV019.includes(n.id),type=n.type||'corridor';
+    const label=(selected||type==='cabin'||type==='elevator'||type==='venue')&&n.label
+      ? `<g class="walknet-label"><rect x="${Math.min(n.x+10,330)}" y="${Math.max(6,n.y-22)}" width="138" height="28" rx="7"/><text x="${Math.min(n.x+17,337)}" y="${Math.max(25,n.y-3)}">${esc(n.label)}</text></g>`:'';
+    return `<g data-walknet-node="${n.id}" class="walknet-node-group"><circle cx="${n.x}" cy="${n.y}" r="${selected?10:active?9:7}" class="walknet-node type-${type} ${selected?'selected':''} ${active?'test':''}"/>${label}</g>`;
+  }).join('');
+  return `<svg id="walknetSvgV019" class="walknet-svg-v019" viewBox="0 0 ${WALKNET_MAP_V019.w} ${WALKNET_MAP_V019.h}" preserveAspectRatio="none" aria-label="Walking network overlay">${edges}${nodes}</svg>`;
+}
+function walknetStatsV019(){
+  const s=loadWalknetV019();
+  return `${s.nodes.length} nodes · ${s.edges.length} connections`;
+}
+function renderNetworkEditorV019(){
+  const host=el('networkContent');if(!host)return;
+  loadWalknetV019();
+  const selected=walknetNodeV019(walknetSelectedV019);
+  const opts=loadWalknetV019().nodes.map(n=>`<option value="${n.id}">${esc(n.label||n.id)} (${WALKNET_TYPES_V019[n.type]?.label||n.type})</option>`).join('');
+  host.innerHTML=`
+    <div class="walknet-toolbar">
+      <div class="walknet-status"><strong>Deck 7 Walking Network</strong><span>${walknetStatsV019()}</span></div>
+      <div class="walknet-mode-grid">
+        <button type="button" class="${walknetModeV019==='select'?'active':''}" data-walknet-mode="select">Select</button>
+        <button type="button" class="${walknetModeV019==='path'?'active':''}" data-walknet-mode="path">Draw Path</button>
+        <button type="button" class="${walknetModeV019==='connect'?'active':''}" data-walknet-mode="connect">Connect</button>
+        <button type="button" class="${walknetModeV019==='move'?'active':''}" data-walknet-mode="move" ${selected?'':'disabled'}>Move</button>
+      </div>
+      <p class="walknet-help">${walknetModeV019==='path'?'Tap along the center of the walking area. Each tap creates a node and connects it to the previous point. Tap End Path when the segment is finished.':walknetModeV019==='connect'?'Tap one existing node, then another, to connect separate path segments.':walknetModeV019==='move'?'Tap the new location for the selected node.':'Tap a node to edit it. Tap empty map space to inspect native coordinates.'}</p>
+      ${walknetModeV019==='path'?'<button type="button" id="walknetEndPath" class="secondary-action">End Path</button>':''}
+    </div>
+
+    <div class="walknet-map-card">
+      <div class="walknet-map-head"><span>FORWARD ↑</span><b>Tap directly on the clean deck plan</b><span>AFT ↓</span></div>
+      <div id="walknetMapV019" class="walknet-map-v019">
+        <img src="./assets/deck7-forward.png" alt="Clean Deck 7 forward deck plan">
+        ${walknetSvgV019()}
+      </div>
+      <div id="walknetCoordV019" class="walknet-coord">Native map coordinates: x 0–475, y 0–1193</div>
+    </div>
+
+    <div class="walknet-editor-grid">
+      <section class="walknet-panel">
+        <h3>Selected Point</h3>
+        ${selected?`
+          <label>Label<input id="walknetLabelV019" type="text" value="${esc(selected.label||'')}" placeholder="e.g. Corridor junction"></label>
+          <label>Type<select id="walknetTypeV019">${Object.entries(WALKNET_TYPES_V019).map(([k,v])=>`<option value="${k}" ${selected.type===k?'selected':''}>${v.label}</option>`).join('')}</select></label>
+          <div class="walknet-selected-meta">x ${selected.x} · y ${selected.y} · ${esc(selected.id)}</div>
+          <div class="walknet-actions"><button type="button" id="walknetSaveNode" class="primary-action">Save point</button><button type="button" id="walknetDeleteNode" class="danger-action">Delete point</button></div>
+        `:'<p>Tap an existing point in Select mode to edit its label or type.</p>'}
+      </section>
+
+      <section class="walknet-panel">
+        <h3>Test Routing</h3>
+        <label>From<select id="walknetTestFrom"><option value="">Choose start…</option>${opts}</select></label>
+        <label>To<select id="walknetTestTo"><option value="">Choose destination…</option>${opts}</select></label>
+        <button type="button" id="walknetTestRoute" class="primary-action">Highlight shortest path</button>
+        <div id="walknetTestResult" class="walknet-test-result">${walknetTestPathV019.length?`${walknetTestPathV019.length} nodes in highlighted route.`:'No test route selected.'}</div>
+      </section>
+    </div>
+
+    <section class="walknet-panel">
+      <h3>Network Data</h3>
+      <p>This editor saves automatically on this device. Export the JSON when you want me to integrate the completed network into Cruise Navigator.</p>
+      <div class="walknet-actions wrap">
+        <button type="button" id="walknetExport" class="primary-action">Export Navigation Data</button>
+        <label class="file-action">Import JSON<input id="walknetImport" type="file" accept="application/json,.json"></label>
+        <button type="button" id="walknetReset" class="secondary-action">Reset to verified seed</button>
+      </div>
+    </section>
+  `;
+  bindNetworkEditorV019();
+}
+function walknetMapPointV019(evt){
+  const map=el('walknetMapV019'),r=map.getBoundingClientRect();
+  const x=Math.max(0,Math.min(WALKNET_MAP_V019.w,(evt.clientX-r.left)/r.width*WALKNET_MAP_V019.w));
+  const y=Math.max(0,Math.min(WALKNET_MAP_V019.h,(evt.clientY-r.top)/r.height*WALKNET_MAP_V019.h));
+  return {x,y};
+}
+function walknetNearestNodeV019(x,y,max=18){
+  let best=null,dist=max;
+  loadWalknetV019().nodes.forEach(n=>{const d=Math.hypot(n.x-x,n.y-y);if(d<dist){best=n;dist=d}});
+  return best;
+}
+function bindNetworkEditorV019(){
+  document.querySelectorAll('[data-walknet-mode]').forEach(b=>b.onclick=()=>{
+    walknetModeV019=b.dataset.walknetMode;
+    if(walknetModeV019!=='path')walknetPathLastV019=null;
+    if(walknetModeV019!=='connect')walknetConnectFirstV019=null;
+    renderNetworkEditorV019();
+  });
+  const end=el('walknetEndPath');if(end)end.onclick=()=>{walknetPathLastV019=null;walknetModeV019='select';renderNetworkEditorV019()};
+  const map=el('walknetMapV019');
+  map.addEventListener('pointermove',e=>{const p=walknetMapPointV019(e);const c=el('walknetCoordV019');if(c)c.textContent=`Native map coordinates: x ${Math.round(p.x)}, y ${Math.round(p.y)}`});
+  map.addEventListener('click',e=>{
+    const p=walknetMapPointV019(e),near=walknetNearestNodeV019(p.x,p.y,16);
+    if(walknetModeV019==='path'){
+      const n=walknetAddNodeV019(p.x,p.y,'corridor','');
+      if(walknetPathLastV019)walknetAddEdgeV019(walknetPathLastV019,n.id);
+      walknetPathLastV019=n.id;walknetSelectedV019=n.id;renderNetworkEditorV019();return;
+    }
+    if(walknetModeV019==='move'&&walknetSelectedV019){
+      const n=walknetNodeV019(walknetSelectedV019);if(n){n.x=Math.round(p.x);n.y=Math.round(p.y);saveWalknetV019();}
+      walknetModeV019='select';renderNetworkEditorV019();return;
+    }
+    if(walknetModeV019==='connect'){
+      if(!near)return;
+      if(!walknetConnectFirstV019){walknetConnectFirstV019=near.id;walknetSelectedV019=near.id;renderNetworkEditorV019();}
+      else{walknetAddEdgeV019(walknetConnectFirstV019,near.id);walknetConnectFirstV019=null;walknetSelectedV019=near.id;walknetModeV019='select';renderNetworkEditorV019();}
+      return;
+    }
+    if(near){walknetSelectedV019=near.id;renderNetworkEditorV019();}
+  });
+  const save=el('walknetSaveNode');if(save)save.onclick=()=>{
+    const n=walknetNodeV019(walknetSelectedV019);if(!n)return;
+    n.label=el('walknetLabelV019').value.trim();n.type=el('walknetTypeV019').value;saveWalknetV019();renderNetworkEditorV019();
+  };
+  const del=el('walknetDeleteNode');if(del)del.onclick=()=>{if(confirm('Delete this point and its connections?')){walknetDeleteNodeV019(walknetSelectedV019);renderNetworkEditorV019()}};
+  const test=el('walknetTestRoute');if(test)test.onclick=()=>{
+    const a=el('walknetTestFrom').value,b=el('walknetTestTo').value;walknetTestPathV019=walknetFindPathV019(a,b);
+    renderNetworkEditorV019();
+    const r=el('walknetTestResult');if(r&&!walknetTestPathV019.length)r.textContent='No connected path exists between those points yet.';
+  };
+  const exp=el('walknetExport');if(exp)exp.onclick=()=>{
+    const payload=JSON.stringify(loadWalknetV019(),null,2),blob=new Blob([payload],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download='cruise-navigator-deck7-walking-network.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  };
+  const imp=el('walknetImport');if(imp)imp.onchange=()=>{
+    const f=imp.files&&imp.files[0];if(!f)return;const reader=new FileReader();
+    reader.onload=()=>{try{const d=JSON.parse(reader.result);if(!Array.isArray(d.nodes)||!Array.isArray(d.edges))throw new Error('Invalid network file');walknetStateV019=d;saveWalknetV019();walknetSelectedV019=null;walknetTestPathV019=[];renderNetworkEditorV019()}catch(err){alert('Could not import this network file.')}};
+    reader.readAsText(f);
+  };
+  const reset=el('walknetReset');if(reset)reset.onclick=()=>{if(confirm('Reset Deck 7 to the small verified seed network?')){walknetStateV019=cloneV019(WALKNET_SEED_V019);saveWalknetV019();walknetSelectedV019=null;walknetTestPathV019=[];renderNetworkEditorV019()}};
+}
+
 renderCategories();renderSearch([]);renderDecks();renderLesson();
 document.addEventListener('click',e=>{
   const cat=e.target.closest('[data-cat]');if(cat){if(cat.dataset.cat==='mustdo')showMustDo();else renderSearch(destinations.filter(d=>d.category===cat.dataset.cat));el('searchInput').value='';return}
@@ -772,7 +993,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.18.0';
+const BUILD_VERSION = '0.19.0';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';

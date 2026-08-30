@@ -160,3 +160,22 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 .graph-continuation-v018{text-align:center;font-size:.76rem;font-weight:900;color:#234b78;padding:10px;background:#edf4ff;border-radius:10px}
 .guided-map .nav-real-map-v018{max-height:560px;border-radius:16px}
 .guided-map .nav-real-map-v018 img,.guided-map .nav-real-map-v018 svg{width:100%;height:auto}
+
+/* v0.19 Walking Network Editor */
+.network-feature{border-style:dashed}
+.walknet-toolbar,.walknet-panel,.walknet-map-card{background:#fff;border:1px solid #d9e2eb;border-radius:16px;margin-bottom:14px}
+.walknet-toolbar{padding:14px}.walknet-status{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}.walknet-status span{font-size:.76rem;color:#627181}
+.walknet-mode-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.walknet-mode-grid button{min-height:44px;border:1px solid #cbd7e3;background:#f5f8fb;border-radius:10px;font-weight:800;color:#25405c}.walknet-mode-grid button.active{background:#0b5bd3;color:#fff;border-color:#0b5bd3}.walknet-mode-grid button:disabled{opacity:.45}
+.walknet-help{font-size:.78rem;line-height:1.4;color:#526170;margin:10px 0 0}
+.walknet-map-card{overflow:hidden}.walknet-map-head{display:flex;justify-content:space-between;gap:8px;padding:9px 11px;background:#f4f7fa;font-size:.68rem;font-weight:800;color:#3e5367}.walknet-map-head b{color:#172b3d}
+.walknet-map-v019{position:relative;background:#dfe4ec;touch-action:pan-y;overflow:hidden}.walknet-map-v019 img{display:block;width:100%;height:auto}.walknet-svg-v019{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.walknet-edge{stroke:#235b9b;stroke-width:4;stroke-linecap:round;opacity:.72}.walknet-edge.test{stroke:#ef3340;stroke-width:8;opacity:1}
+.walknet-node{stroke:#fff;stroke-width:3;fill:#235b9b}.walknet-node.type-corridor{fill:#235b9b}.walknet-node.type-junction{fill:#7c3aed}.walknet-node.type-elevator{fill:#0b5bd3}.walknet-node.type-stairs{fill:#d97706}.walknet-node.type-cabin{fill:#16a34a}.walknet-node.type-venue{fill:#ef3340}.walknet-node.type-landmark{fill:#0891b2}.walknet-node.selected{stroke:#111827;stroke-width:5}.walknet-node.test{stroke:#ef3340;stroke-width:5}
+.walknet-label rect{fill:#102f5f;opacity:.94}.walknet-label text{fill:white;font-size:14px;font-weight:800}
+.walknet-coord{padding:8px 11px;background:#f7f9fb;border-top:1px solid #e2e8ef;font-size:.7rem;color:#5d6b78;font-variant-numeric:tabular-nums}
+.walknet-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.walknet-panel{padding:14px}.walknet-panel h3{margin:0 0 10px}.walknet-panel p{font-size:.8rem;color:#526170;line-height:1.45}
+.walknet-panel label{display:grid;gap:5px;font-size:.72rem;font-weight:800;color:#425466;margin-bottom:10px}.walknet-panel input[type="text"],.walknet-panel select{width:100%;min-height:44px;border:1px solid #cbd7e3;border-radius:10px;padding:9px 10px;background:#fff;font:inherit;color:#172b3d}
+.walknet-selected-meta,.walknet-test-result{font-size:.72rem;color:#667583;background:#f5f7fa;border-radius:8px;padding:8px 9px;margin-bottom:10px;word-break:break-word}
+.walknet-actions{display:flex;gap:8px}.walknet-actions.wrap{flex-wrap:wrap}.walknet-actions button,.file-action{min-height:44px;border-radius:10px;padding:10px 12px;font-weight:800;font-size:.8rem;display:inline-flex;align-items:center;justify-content:center}
+.primary-action{border:0;background:#0b5bd3;color:#fff}.danger-action{border:1px solid #fecaca;background:#fff5f5;color:#b91c1c}.file-action{border:1px solid #cbd7e3;background:#f5f8fb;color:#25405c;cursor:pointer}.file-action input{display:none}
+@media(max-width:560px){.walknet-editor-grid{grid-template-columns:1fr}.walknet-mode-grid{grid-template-columns:1fr 1fr}.walknet-status{align-items:flex-start;flex-direction:column}}

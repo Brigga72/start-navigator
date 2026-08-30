@@ -83,3 +83,17 @@ The existing GitHub Pages update architecture is preserved. v0.12.0 only advance
 - Adds generic graph pathfinding and map-segment grouping so future destinations can reuse existing walkway segments.
 - Guided steps now use the same graph-backed real deck maps for the verified route.
 - User-marked screenshots are retained only as source verification, not as the displayed navigation route.
+
+## v0.19.0
+- Adds an in-app Deck 7 Walking Network Editor.
+- Uses the clean Deck 7 deck plan as the map background.
+- Stores every point in the map's native 475 x 1193 coordinate system, independent of phone/desktop display size.
+- Draw Path mode adds successive corridor-center points and automatically connects them.
+- Select mode edits node labels/types.
+- Move mode relocates a selected node with one map tap.
+- Connect mode joins existing path segments.
+- Supports Junction, Corridor, Elevator, Stairs, Cabin, Venue, and Landmark node types.
+- Includes shortest-path testing across the currently mapped network.
+- Automatically saves the editor network in local storage.
+- Exports/imports the complete network as JSON for direct integration into Cruise Navigator.
+- Seeds the editor with the currently verified Cabin 7456 to forward-elevator segment.
