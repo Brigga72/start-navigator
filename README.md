@@ -73,3 +73,13 @@ The existing GitHub Pages update architecture is preserved. v0.12.0 only advance
 - Deck 16 now follows the confirmed walkway past Swim & Tonic, The Lime and Coconut, Dry Slide, Crown's Edge, the second elevator bank, Adrenaline Peak, and Basecamp.
 - Removes the inaccurate generated red-line overlays from the v0.16 route overview for this route.
 - Preserves all existing app data and local-storage keys.
+
+## v0.18.0
+- Replaces screenshot-as-route rendering with a reusable navigation graph.
+- Clean Deck 7 and Deck 16 plans are now the map backgrounds.
+- Route lines, start markers, elevator markers, and destination markers are generated dynamically with SVG.
+- Cabin 7456 to Basecamp is the first graph-backed route.
+- Encodes reusable nodes for the Deck 7 cabin corridor, forward elevators, Swim & Tonic, Lime and Coconut, Dry Slide, Chill Island, Crown's Edge, the Deck 16 midship elevators, Adrenaline Peak, and Basecamp.
+- Adds generic graph pathfinding and map-segment grouping so future destinations can reuse existing walkway segments.
+- Guided steps now use the same graph-backed real deck maps for the verified route.
+- User-marked screenshots are retained only as source verification, not as the displayed navigation route.

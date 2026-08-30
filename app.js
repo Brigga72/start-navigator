@@ -345,6 +345,100 @@ const locations=[
   ...destinations.map(d=>({id:d.id,name:d.name,deck:String(d.mapDeck),area:d.area,icon:d.icon,mapDeck:String(d.mapDeck),mapNode:d.mapNode,keywords:d.keywords}))
 ];
 function locationById(id){return locations.find(x=>x.id===id)||locations[0]}
+
+// v0.18 scalable navigation graph.
+// Maps are clean deck-plan images. Route geometry is stored as reusable nodes/edges,
+// so the same walkway segments can support many future destinations.
+const NAV_MAPS_V018={
+  d7f:{deck:'7',name:'Deck 7 · Forward',src:'./assets/deck7-forward.png',w:475,h:1193},
+  d16f:{deck:'16',name:'Deck 16 · Forward / Chill Island',src:'./assets/deck16-forward.png',w:518,h:1178},
+  d16t:{deck:'16',name:'Deck 16 · Thrill Island',src:'./assets/deck16-thrill.png',w:441,h:821}
+};
+const NAV_NODES_V018={
+  cabin7456:{map:'d7f',x:214,y:433,label:'Cabin 7456',kind:'start'},
+  d7_cross_port:{map:'d7f',x:126,y:439,label:'Interior cross-corridor'},
+  d7_port_corridor:{map:'d7f',x:126,y:685,label:'Port-side corridor'},
+  d7_elevator_entry:{map:'d7f',x:172,y:699,label:'Forward elevator lobby'},
+  d7_forward_elevator:{map:'d7f',x:228,y:684,label:'Forward elevators',kind:'elevator'},
+
+  d16_forward_elevator:{map:'d16f',x:223,y:487,label:'Forward elevators',kind:'elevator'},
+  d16_port_exit:{map:'d16f',x:188,y:537,label:'Port-side lobby exit'},
+  d16_swimtonic:{map:'d16f',x:116,y:625,label:'Swim & Tonic'},
+  d16_limecoconut:{map:'d16f',x:103,y:714,label:'Lime & Coconut'},
+  d16_dryslide:{map:'d16f',x:112,y:805,label:'Dry Slide'},
+  d16_chill_mid:{map:'d16f',x:98,y:929,label:'Chill Island walkway'},
+  d16_crown_forward:{map:'d16f',x:91,y:1130,label:"Crown's Edge"},
+
+  d16_crown_thrill:{map:'d16t',x:104,y:72,label:"Crown's Edge"},
+  d16_mid_elevator:{map:'d16t',x:211,y:215,label:'Midship elevator lobby',kind:'elevator'},
+  d16_adrenaline:{map:'d16t',x:83,y:319,label:'Adrenaline Peak'},
+  basecamp:{map:'d16t',x:113,y:397,label:'Basecamp',kind:'destination'}
+};
+const NAV_EDGES_V018=[
+  ['cabin7456','d7_cross_port'],['d7_cross_port','d7_port_corridor'],['d7_port_corridor','d7_elevator_entry'],['d7_elevator_entry','d7_forward_elevator'],
+  ['d7_forward_elevator','d16_forward_elevator','elevator'],
+  ['d16_forward_elevator','d16_port_exit'],['d16_port_exit','d16_swimtonic'],['d16_swimtonic','d16_limecoconut'],['d16_limecoconut','d16_dryslide'],['d16_dryslide','d16_chill_mid'],['d16_chill_mid','d16_crown_forward'],
+  ['d16_crown_forward','d16_crown_thrill','continuation'],
+  ['d16_crown_thrill','d16_mid_elevator'],['d16_mid_elevator','d16_adrenaline'],['d16_adrenaline','basecamp']
+];
+function navAdjV018(){
+  const a={}; Object.keys(NAV_NODES_V018).forEach(k=>a[k]=[]);
+  NAV_EDGES_V018.forEach(([u,v,type='walk'])=>{a[u].push({to:v,type});a[v].push({to:u,type})});
+  return a;
+}
+function navFindPathV018(start,end){
+  const a=navAdjV018(),q=[start],prev={[start]:null},edgeType={};
+  while(q.length){const u=q.shift();if(u===end)break;(a[u]||[]).forEach(e=>{if(!(e.to in prev)){prev[e.to]=u;edgeType[e.to]=e.type;q.push(e.to)}})}
+  if(!(end in prev))return [];
+  const out=[];let cur=end;while(cur){out.push(cur);cur=prev[cur]}out.reverse();return out;
+}
+function navPathGroupsV018(path){
+  const groups=[];let g=null;
+  path.forEach(id=>{const n=NAV_NODES_V018[id];if(!n)return;if(!g||g.map!==n.map){g={map:n.map,nodes:[]};groups.push(g)}g.nodes.push(id)});
+  return groups;
+}
+function navSvgOverlayV018(mapKey,nodeIds,{focusId=null}={}){
+  const m=NAV_MAPS_V018[mapKey]; const pts=nodeIds.map(id=>NAV_NODES_V018[id]).filter(Boolean);
+  const poly=pts.map(p=>`${p.x},${p.y}`).join(' ');
+  const marks=pts.map((p,i)=>{
+    const id=nodeIds[i]; const cls=p.kind==='start'?'nav-start':p.kind==='destination'?'nav-dest':p.kind==='elevator'?'nav-elevator':'nav-node';
+    const label=(p.kind==='start'||p.kind==='destination'||id===focusId)?`<g class="nav-pin-label"><rect x="${Math.min(p.x+12,m.w-145)}" y="${Math.max(8,p.y-25)}" width="132" height="36" rx="8"/><text x="${Math.min(p.x+20,m.w-137)}" y="${Math.max(31,p.y-2)}">${esc(p.label)}</text></g>`:'';
+    return `<circle cx="${p.x}" cy="${p.y}" r="${p.kind?9:5}" class="${cls}"/>${label}`;
+  }).join('');
+  return `<svg class="nav-overlay-v018" viewBox="0 0 ${m.w} ${m.h}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${poly}" class="nav-route-line-v018"/>${marks}</svg>`;
+}
+function navMapPanelV018(mapKey,nodeIds,opts={}){
+  const m=NAV_MAPS_V018[mapKey];
+  return `<div class="nav-real-map-v018"><img src="${m.src}" alt="${esc(m.name)} clean deck plan">${navSvgOverlayV018(mapKey,nodeIds,opts)}</div>`;
+}
+function navOverviewV018(start='cabin7456',end='basecamp'){
+  const path=navFindPathV018(start,end),groups=navPathGroupsV018(path);
+  return `<div class="route-overview-v018">
+    <div class="route-overview-tabs"><button class="active" type="button">ROUTE OVERVIEW</button><button type="button" id="overviewNextStep">NEXT STEP</button></div>
+    <div class="route-summary-strip"><span>🏠 Cabin 7456</span><b>→</b><span>🛗 Deck 7 → 16</span><b>→</b><span>📍 Basecamp</span></div>
+    <div class="verified-source-note"><strong>✓ GRAPH-BASED VERIFIED ROUTE</strong><span>The route is now generated from reusable nodes and connections over clean deck plans. Your marked screenshots were used only to verify the geometry.</span></div>
+    ${groups.map((g,i)=>{
+      const m=NAV_MAPS_V018[g.map];
+      const continuation=i<groups.length-1 ? `<div class="graph-continuation-v018">${m.deck==='7'?'🛗 TAKE FORWARD ELEVATOR TO DECK 16':'↓ CONTINUE ON DECK 16 ↓'}</div>`:'';
+      return `<section class="route-deck-card"><div class="route-deck-head"><b>DECK ${m.deck}</b><span>${esc(NAV_NODES_V018[g.nodes[0]].label)} → ${esc(NAV_NODES_V018[g.nodes[g.nodes.length-1]].label)}</span></div>${navMapPanelV018(g.map,g.nodes)}<div class="route-caption">Dynamic route overlay · clean map · reusable graph segment</div></section>${continuation}`;
+    }).join('')}
+    <div class="verified-route-footer"><span class="verified-dot"></span><b>Scalable route engine active</b><small>Future destinations can reuse any encoded segment instead of requiring a new screenshot route.</small></div>
+  </div>`;
+}
+function guidedGraphMapV018(idx){
+  const path=navFindPathV018('cabin7456','basecamp');
+  const byStep=[
+    {map:'d7f',nodes:['cabin7456','d7_cross_port','d7_port_corridor','d7_elevator_entry','d7_forward_elevator'],focus:'cabin7456',label:'DECK 7 · CABIN TO ELEVATORS'},
+    null,
+    {map:'d16f',nodes:['d16_forward_elevator','d16_port_exit','d16_swimtonic'],focus:'d16_forward_elevator',label:'DECK 16 · EXIT ELEVATOR LOBBY'},
+    {map:'d16f',nodes:['d16_swimtonic','d16_limecoconut','d16_dryslide','d16_chill_mid','d16_crown_forward'],focus:'d16_limecoconut',label:'DECK 16 · CHILL ISLAND'},
+    {map:'d16t',nodes:['d16_crown_thrill','d16_mid_elevator','d16_adrenaline','basecamp'],focus:'d16_adrenaline',label:'DECK 16 · THRILL ISLAND'},
+    {map:'d16t',nodes:['d16_adrenaline','basecamp'],focus:'basecamp',label:'DECK 16 · BASECAMP'}
+  ];
+  const s=byStep[idx];
+  if(!s)return null;
+  return `<div class="guided-map-label">${s.label}</div>${navMapPanelV018(s.map,s.nodes,{focusId:s.focus})}`;
+}
 function routeFor(fromId,toId){
   const from=locationById(fromId); const to=destinations.find(x=>x.id===toId); if(!to)return [];
 
@@ -385,8 +479,12 @@ function routeFor(fromId,toId){
 }
 function routeAreaLabel(fromId,to){const from=locationById(fromId);return `${from.name} → ${to.name}`;}
 function guidedMapFor(d,idx){
-  const step=d.route[idx]||d.route[0];
   const from=locationById(currentLocationId);
+  if(from.id==='cabin7456' && d.id==='basecamp'){
+    const gm=guidedGraphMapV018(idx);
+    if(gm)return gm;
+  }
+  const step=d.route[idx]||d.route[0];
   if(step.kind==='walk') return `<div class="guided-map-label">DECK ${esc(from.mapDeck)} · ${esc(from.name)}</div>${shipMapSVG(from.mapDeck,from.mapNode,'route')}`;
   if(step.kind==='elevator'){
     const fromDeck=String(from.mapDeck), toDeck=String(d.mapDeck);
@@ -446,33 +544,7 @@ function showRoute(id){
   navigate('route'); renderGuidedRoute();
 }
 
-function tracedBasecampOverview(){
-  return `<div class="route-overview-v017">
-    <div class="route-overview-tabs"><button class="active" type="button">ROUTE OVERVIEW</button><button type="button" id="overviewNextStep">NEXT STEP</button></div>
-    <div class="route-summary-strip"><span>🏠 Cabin 7456</span><b>→</b><span>🛗 Deck 7 → 16</span><b>→</b><span>📍 Basecamp</span></div>
-    <div class="verified-source-note"><strong>✓ VERIFIED ROUTE</strong><span>The red paths below are the route you traced directly on the Deck 7 and Deck 16 plans.</span></div>
-
-    <section class="route-deck-card">
-      <div class="route-deck-head"><b>DECK 7</b><span>Cabin 7456 → Forward Elevators</span></div>
-      <div class="verified-route-map">
-        <img src="./assets/verified-route-deck7-7456-elevators.png" alt="Verified Deck 7 route from Cabin 7456 to the forward elevators">
-      </div>
-      <div class="route-caption">Cabin 7456 → interior cabin corridor → port-side corridor → forward elevator lobby</div>
-    </section>
-
-    <div class="deck-transition-v016"><span>🛗</span><strong>TAKE FORWARD ELEVATOR TO DECK 16</strong><small>Confirm Deck 16 before exiting</small></div>
-
-    <section class="route-deck-card">
-      <div class="route-deck-head"><b>DECK 16</b><span>Forward Elevators → Basecamp</span></div>
-      <div class="verified-route-map">
-        <img src="./assets/verified-route-deck16-elevators-basecamp.png" alt="Verified Deck 16 route from the forward elevators to Basecamp">
-      </div>
-      <div class="route-caption">Forward elevators → Swim & Tonic → Lime and Coconut → Dry Slide → Crown's Edge → Adrenaline Peak → Basecamp</div>
-    </section>
-
-    <div class="verified-route-footer"><span class="verified-dot"></span><b>First end-to-end verified route</b><small>No estimated walking time or distance has been added.</small></div>
-  </div>`;
-}
+function tracedBasecampOverview(){ return navOverviewV018('cabin7456','basecamp'); }
 
 function openMapFor(id){
   const d=destinations.find(x=>x.id===id);if(!d)return;
@@ -700,7 +772,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.17.0';
+const BUILD_VERSION = '0.18.0';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';

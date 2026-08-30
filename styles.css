@@ -148,3 +148,15 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 .verified-route-footer{display:grid;grid-template-columns:auto 1fr;column-gap:7px;align-items:center;padding:11px 12px;border:1px solid #bfe6cf;border-radius:12px;background:#f4fbf7;font-size:.76rem}
 .verified-route-footer small{grid-column:2;color:#5b6b77;margin-top:2px}
 .verified-dot{width:10px;height:10px;border-radius:50%;background:#16a34a}
+
+/* v0.18 scalable graph navigation */
+.route-overview-v018{display:grid;gap:14px}
+.nav-real-map-v018{position:relative;overflow:hidden;background:#dfe4ec}
+.nav-real-map-v018 img{display:block;width:100%;height:auto}
+.nav-overlay-v018{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.nav-route-line-v018{fill:none;stroke:#ef3340;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px rgba(255,255,255,.85))}
+.nav-node{fill:#ef3340;stroke:white;stroke-width:2}.nav-start{fill:#16a34a;stroke:white;stroke-width:4}.nav-dest{fill:#ef3340;stroke:white;stroke-width:4}.nav-elevator{fill:#0b5bd3;stroke:white;stroke-width:4}
+.nav-pin-label rect{fill:#102f5f;opacity:.94}.nav-pin-label text{fill:white;font-size:15px;font-weight:800}
+.graph-continuation-v018{text-align:center;font-size:.76rem;font-weight:900;color:#234b78;padding:10px;background:#edf4ff;border-radius:10px}
+.guided-map .nav-real-map-v018{max-height:560px;border-radius:16px}
+.guided-map .nav-real-map-v018 img,.guided-map .nav-real-map-v018 svg{width:100%;height:auto}
