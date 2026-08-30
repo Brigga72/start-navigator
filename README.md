@@ -291,3 +291,29 @@ The diagnostics are intended to determine whether incorrect route lines come fro
 5. SVG rendering input.
 
 No walking-network remapping or export is required to use the debug tools.
+
+## v0.27.3 - Deck Plan Coordinate Registration Fix
+
+Deck 7 diagnostics proved that the saved route coordinates align with the exact
+production asset (`assets/deck7-forward.png`, 475 x 1193).
+
+The visible displacement was caused by CSS, not by the Deck 7 graph:
+
+- `.guided-map svg` imposed `max-height: 310px`.
+- The underlying deck image retained its full 475:1193 aspect ratio.
+- The absolute SVG route overlay was therefore vertically compressed into the
+  top portion of the deck plan.
+
+v0.27.3 overrides that rule specifically for production verified maps:
+
+`.guided-map .prod-map-v026 svg { width:100%; height:100%; max-height:none; }`
+
+Temporary numbered route-node markers are also rendered on verified route maps
+to make coordinate verification obvious during testing.
+
+For the current Deck 7 route:
+1. Cabin 7456 doorway: (214,397)
+2. Cross corridor: (119,408)
+3. Port corridor: (119,691)
+4. Stairs: (147,693)
+5. Forward elevators: (229,697)
