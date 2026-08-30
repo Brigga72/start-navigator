@@ -193,3 +193,10 @@ The existing GitHub Pages update architecture is preserved. v0.12.0 only advance
 - Cabin 7456 to Basecamp therefore follows verified graph geometry through the mapped Deck 16 Forward section, then changes to explicit orientation/signage guidance near Crown's Edge.
 - No exact red line is drawn across the unmapped Crown's Edge to Basecamp section.
 - Existing editor data, local-storage keys, maps, and verified ship network remain unchanged.
+
+## v0.26.2
+- Hotfixes Expand Map so it uses the same current guided-route step data as the normal guided view.
+- Removes the remaining UI path back into the legacy v0.18 Basecamp overview renderer.
+- Expanded orientation-only segments now show the same no-exact-line placeholder as the normal guided view.
+- Prevents the obsolete Crown's Edge -> elevator lobby -> Adrenaline Peak -> Basecamp diagonal from reappearing in expanded view.
+- No walking-network remapping or re-export is required.

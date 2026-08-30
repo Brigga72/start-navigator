@@ -495,6 +495,13 @@ function prodMapPanelV026(step){
   const start=pts[0],end=pts[pts.length-1];
   return `<div class="guided-map-label">DECK ${esc(deck)} · VERIFIED NETWORK</div><div class="nav-real-map-v018 prod-map-v026" style="aspect-ratio:${pcfg.w}/${pcfg.h}"><img src="${pcfg.src}" alt="Deck ${esc(deck)} map"><svg viewBox="0 0 ${pcfg.w} ${pcfg.h}" preserveAspectRatio="none"><polyline points="${poly}" class="prod-route-line-v026"/><circle cx="${start.x}" cy="${start.y}" r="8" class="prod-start-v026"/><circle cx="${end.x}" cy="${end.y}" r="8" class="prod-end-v026"/></svg></div>`;
 }
+
+function expandedMapForV026(d,idx){
+  const step=d&&d.route&&d.route[idx];
+  const map=prodMapPanelV026(step);
+  if(map)return map;
+  return `<div class="guided-map-placeholder-v0261"><strong>Orientation segment</strong><span>No exact route line is drawn where the verified network has no mapped geometry.</span></div>`;
+}
 function prodConfidenceV026(d){
   if(prodNodeByDestinationV026(d))return 'verified';
   if(d.mapDeck&&SHIPNET_DECKS_V020[String(d.mapDeck)])return 'orientation';
@@ -685,14 +692,14 @@ function showRoute(id){
   navigate('route'); renderGuidedRoute();
 }
 
-function tracedBasecampOverview(){ return navOverviewV018('cabin7456','basecamp'); }
+function expandedMapForV026(d,idx){ return navOverviewV018('cabin7456','basecamp'); }
 
 function openMapFor(id){
   const d=destinations.find(x=>x.id===id);if(!d)return;
   const from=locationById(currentLocationId);
   el('overlayTitle').textContent=`${from.name} → ${d.name}`;
   if(from.id==='cabin7456' && d.id==='basecamp'){
-    el('overlayMap').innerHTML=tracedBasecampOverview();
+    el('overlayMap').innerHTML=expandedMapForV026(d,idx);
     const next=el('overviewNextStep');
     if(next)next.onclick=()=>{closeMap();renderGuidedRoute();};
   }else{
@@ -1347,7 +1354,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.26.1';
+const BUILD_VERSION = '0.26.2';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
