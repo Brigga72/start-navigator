@@ -173,3 +173,13 @@ The existing GitHub Pages update architecture is preserved. v0.12.0 only advance
 - Route Test can immediately use newly mapped destinations because destination spurs are part of the same graph.
 - Existing walking paths, elevator/stair nodes, stair links, and local-storage key are preserved.
 - Deck export schema is version 4 while remaining compatible with prior node/edge data.
+
+## v0.26.0
+- Integrates the user's exported 163-node, 167-edge ship walking network into production navigation.
+- Cabin 7456 routes now prefer the verified graph whenever the requested destination has a mapped entrance.
+- Forward elevator banks are treated as vertical graph connections across mapped decks.
+- Guided navigation renders the calculated verified path directly over the clean deck-plan panel.
+- Mapped destinations receive VERIFIED ROUTE status.
+- Known destinations without mapped entrance geometry remain available through the existing conservative fallback and are labeled ORIENTATION ROUTE or LOCATION ONLY.
+- No exact corridor turns are invented for unmapped areas.
+- Existing editor and local-storage network remain intact.

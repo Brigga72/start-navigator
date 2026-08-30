@@ -220,3 +220,12 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 .shipnet-destination-status{width:100%;font-size:.76rem;color:#5f6e7d}
 .shipnet-edge.destination-spur{stroke-dasharray:5 4;stroke-width:2.5}
 .shipnet-node.type-venue,.shipnet-node.type-landmark,.shipnet-node.type-cabin{stroke-width:3}
+
+/* v0.26 production verified routing */
+.prod-map-v026{position:relative;overflow:hidden;border-radius:16px}
+.prod-map-v026 img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.prod-map-v026 svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.prod-route-line-v026{fill:none;stroke:currentColor;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+.prod-start-v026,.prod-end-v026{fill:currentColor;stroke:white;stroke-width:3}
+.prod-confidence-v026{display:inline-block;margin-top:8px;padding:5px 9px;border-radius:999px;font-size:.7rem;font-weight:800;letter-spacing:.04em;border:1px solid currentColor}
+.prod-confidence-v026.orientation{opacity:.8}.prod-confidence-v026.location{opacity:.65}
