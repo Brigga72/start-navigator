@@ -110,3 +110,14 @@ The existing GitHub Pages update architecture is preserved. v0.12.0 only advance
 - Adds Current Deck and Entire Ship Network JSON export.
 - Adds deck-level or whole-network JSON import.
 - This remains a development tool. Verified network data can later drive end-user navigation.
+
+## v0.21.0
+- Refines the ship network editor around a walking-path-first workflow.
+- Adds Clear Current Deck, removing all nodes and edges on only the selected deck.
+- Keeps Reset Entire Editor as the full-network reset.
+- Adds Undo for recent editor changes.
+- Draw Path now snaps to nearby existing nodes instead of creating duplicates.
+- Increases node hit/snap radius for easier iPhone editing.
+- Fixes verticalGroup data so only elevator nodes can retain an elevator-bank ID.
+- Hides elevator-bank selection unless the selected point type is Elevator.
+- Adds a recommended mapping order banner: walking paths, intersections, elevators/stairs, destinations last.

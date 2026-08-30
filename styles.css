@@ -192,3 +192,9 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 .shipnet-label rect{fill:#102f5f;opacity:.94}.shipnet-label text{fill:white;font-size:14px;font-weight:800}.shipnet-coord{padding:8px 11px;background:#f7f9fb;border-top:1px solid #e2e8ef;font-size:.7rem;color:#5d6b78;font-variant-numeric:tabular-nums}
 .shipnet-panel h3{margin:0 0 10px}.shipnet-panel p{font-size:.8rem;color:#526170;line-height:1.45}.shipnet-meta,.shipnet-test{font-size:.72rem;color:#667583;background:#f5f7fa;border-radius:8px;padding:8px 9px;margin:10px 0}.shipnet-actions{display:flex;gap:8px}.shipnet-actions.wrap{flex-wrap:wrap}
 @media(max-width:560px){.shipnet-row,.shipnet-grid{grid-template-columns:1fr}.shipnet-modes{grid-template-columns:1fr 1fr}.shipnet-summary{align-items:flex-start;flex-direction:column}}
+
+/* v0.21 Walking-path-first workflow */
+.shipnet-workflow-v021{display:grid;gap:4px;padding:12px 14px;margin-bottom:14px;border:1px solid #cdd8e5;border-radius:14px;background:#f7f9fc}
+.shipnet-workflow-v021 strong{font-size:.82rem;color:#22364d}
+.shipnet-workflow-v021 span{font-size:.74rem;line-height:1.45;color:#5f6e7d}
+.shipnet-actions button:disabled{opacity:.45;cursor:not-allowed}

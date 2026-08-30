@@ -581,8 +581,23 @@ const SHIPNET_VERTICAL_V020={forward:'Forward elevator bank',mid:'Midship elevat
 const SHIPNET_SEED_V020={"version":2,"nodes":[{"id":"n_cabin7456","x":214,"y":397,"type":"cabin","label":"Cabin 7456","deck":"7","panel":"main"},{"id":"n_cross_port","x":119,"y":408,"type":"junction","label":"Cross corridor","deck":"7","panel":"main"},{"id":"n_port_corridor","x":119,"y":691,"type":"junction","label":"Port corridor","deck":"7","panel":"main"},{"id":"n_forward_lobby","x":229,"y":697,"type":"elevator","label":"Forward elevators","deck":"7","panel":"main","verticalGroup":"forward"}],"edges":[{"a":"n_cabin7456","b":"n_cross_port"},{"a":"n_cross_port","b":"n_port_corridor"},{"a":"n_port_corridor","b":"n_forward_lobby"}]};
 let shipnetStateV020=null,shipnetDeckV020='7',shipnetPanelV020='main',shipnetModeV020='select';
 let shipnetSelectedV020=null,shipnetPathLastV020=null,shipnetConnectFirstV020=null,shipnetTestPathV020=[];
+let shipnetUndoV021=[];
 
 function cloneV020(v){return JSON.parse(JSON.stringify(v))}
+function pushUndoV021(){
+  shipnetUndoV021.push(cloneV020(loadShipnetV020()));
+  if(shipnetUndoV021.length>30)shipnetUndoV021.shift();
+}
+function undoShipnetV021(){
+  if(!shipnetUndoV021.length)return;
+  shipnetStateV020=shipnetUndoV021.pop();
+  saveShipnetV020();
+  shipnetSelectedV020=null;
+  shipnetPathLastV020=null;
+  shipnetConnectFirstV020=null;
+  shipnetTestPathV020=[];
+  renderShipNetworkV020();
+}
 function loadShipnetV020(){
   if(shipnetStateV020)return shipnetStateV020;
   try{
@@ -597,12 +612,24 @@ function currentPanelV020(){return SHIPNET_DECKS_V020[shipnetDeckV020].panels.fi
 function panelNodesV020(){return loadShipnetV020().nodes.filter(n=>n.deck===shipnetDeckV020&&n.panel===shipnetPanelV020)}
 function nodeV020(id){return loadShipnetV020().nodes.find(n=>n.id===id)}
 function edgeExistsV020(a,b){return loadShipnetV020().edges.some(e=>(e.a===a&&e.b===b)||(e.a===b&&e.b===a))}
-function addEdgeV020(a,b,kind='walk'){if(!a||!b||a===b||edgeExistsV020(a,b))return;loadShipnetV020().edges.push({a,b,kind});saveShipnetV020()}
+function addEdgeV020(a,b,kind='walk'){if(!a||!b||a===b||edgeExistsV020(a,b))return;pushUndoV021();loadShipnetV020().edges.push({a,b,kind});saveShipnetV020()}
 function addNodeV020(x,y,type='corridor'){
   const n={id:'n_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6),deck:shipnetDeckV020,panel:shipnetPanelV020,x:Math.round(x),y:Math.round(y),type,label:''};
-  loadShipnetV020().nodes.push(n);saveShipnetV020();return n;
+  pushUndoV021();loadShipnetV020().nodes.push(n);saveShipnetV020();return n;
 }
-function deleteNodeV020(id){const s=loadShipnetV020();s.nodes=s.nodes.filter(n=>n.id!==id);s.edges=s.edges.filter(e=>e.a!==id&&e.b!==id);shipnetSelectedV020=null;shipnetTestPathV020=[];saveShipnetV020()}
+function deleteNodeV020(id){pushUndoV021();const s=loadShipnetV020();s.nodes=s.nodes.filter(n=>n.id!==id);s.edges=s.edges.filter(e=>e.a!==id&&e.b!==id);shipnetSelectedV020=null;shipnetTestPathV020=[];saveShipnetV020()}
+function clearCurrentDeckV021(){
+  const s=loadShipnetV020(),deck=shipnetDeckV020;
+  pushUndoV021();
+  const ids=new Set(s.nodes.filter(n=>n.deck===deck).map(n=>n.id));
+  s.nodes=s.nodes.filter(n=>n.deck!==deck);
+  s.edges=s.edges.filter(e=>!ids.has(e.a)&&!ids.has(e.b));
+  shipnetSelectedV020=null;
+  shipnetPathLastV020=null;
+  shipnetConnectFirstV020=null;
+  shipnetTestPathV020=[];
+  saveShipnetV020();
+}
 function adjV020(){
   const s=loadShipnetV020(),a={};s.nodes.forEach(n=>a[n.id]=[]);
   s.edges.forEach(e=>{if(a[e.a]&&a[e.b]){a[e.a].push(e.b);a[e.b].push(e.a)}});
@@ -631,6 +658,10 @@ function renderShipNetworkV020(){
   const host=el('networkContent');if(!host)return;loadShipnetV020();
   const deck=SHIPNET_DECKS_V020[shipnetDeckV020],panel=currentPanelV020(),selected=nodeV020(shipnetSelectedV020),all=loadShipnetV020().nodes;
   host.innerHTML=`
+  <div class="shipnet-workflow-v021">
+    <strong>Recommended mapping order</strong>
+    <span>1. Trace walking paths first &nbsp; 2. Verify intersections &nbsp; 3. Add elevators/stairs &nbsp; 4. Add destinations last</span>
+  </div>
   <div class="shipnet-toolbar">
     <div class="shipnet-row">
       <label>Deck<select id="shipnetDeck">${Object.keys(SHIPNET_DECKS_V020).map(d=>`<option value="${d}" ${d===shipnetDeckV020?'selected':''}>Deck ${d}</option>`).join('')}</select></label>
@@ -638,8 +669,8 @@ function renderShipNetworkV020(){
     </div>
     <div class="shipnet-summary"><strong>${deck.name} · ${panel.name}</strong><span>${statsV020()}</span></div>
     <div class="shipnet-modes">${[['select','Select'],['path','Draw Path'],['connect','Connect'],['move','Move']].map(([k,v])=>`<button type="button" data-shipmode="${k}" class="${shipnetModeV020===k?'active':''}" ${k==='move'&&!selected?'disabled':''}>${v}</button>`).join('')}</div>
-    <p class="shipnet-help">${shipnetModeV020==='path'?'Tap along the center of every legal passenger walking area. Each tap connects to the previous point. End the path before starting another disconnected walkway.':shipnetModeV020==='connect'?'Tap one existing point, switch panel/deck if needed, then tap the second point. This joins overlapping panels into one logical network.':shipnetModeV020==='move'?'Tap the corrected location of the selected point.':'Select a point to classify it. Elevator nodes can share a bank ID across decks.'}</p>
-    ${shipnetModeV020==='path'?'<button id="shipnetEndPath" class="secondary-action">End Path</button>':''}
+    <p class="shipnet-help">${shipnetModeV020==='path'?'Tap along the center of every legal passenger walking area. Tap near an existing point to snap/connect instead of creating a duplicate. End the path before starting another disconnected walkway.':shipnetModeV020==='connect'?'Tap one existing point, switch panel/deck if needed, then tap the second point. This joins overlapping panels into one logical network.':shipnetModeV020==='move'?'Tap the corrected location of the selected point.':'Select a point to classify it. Elevator nodes can share a bank ID across decks.'}</p>
+    <div class="shipnet-actions wrap">${shipnetModeV020==='path'?'<button id="shipnetEndPath" class="secondary-action">End Path</button>':''}<button id="shipnetUndo" class="secondary-action" ${shipnetUndoV021.length?'':'disabled'}>Undo</button></div>
   </div>
   <div class="shipnet-map-card">
     <div class="shipnet-map-head"><span>FORWARD / BOW</span><b>${deck.name}</b><span>AFT / STERN</span></div>
@@ -648,9 +679,9 @@ function renderShipNetworkV020(){
   </div>
   <div class="shipnet-grid">
     <section class="shipnet-panel"><h3>Selected Point</h3>
-      ${selected?`<label>Label<input id="shipnetLabel" value="${esc(selected.label||'')}" placeholder="e.g. Forward elevators"></label>
+      ${selected?`<label>Label<input id="shipnetLabel" value="${esc(selected.label||'')}" placeholder="Optional while tracing paths"></label>
       <label>Type<select id="shipnetType">${Object.entries(SHIPNET_TYPES_V020).map(([k,v])=>`<option value="${k}" ${selected.type===k?'selected':''}>${v.label}</option>`).join('')}</select></label>
-      <label>Elevator / vertical bank<select id="shipnetVertical"><option value="">None</option>${Object.entries(SHIPNET_VERTICAL_V020).map(([k,v])=>`<option value="${k}" ${selected.verticalGroup===k?'selected':''}>${v}</option>`).join('')}</select></label>
+      <label id="shipnetVerticalWrap" style="${selected.type==='elevator'?'':'display:none'}">Elevator / vertical bank<select id="shipnetVertical"><option value="">None</option>${Object.entries(SHIPNET_VERTICAL_V020).map(([k,v])=>`<option value="${k}" ${selected.verticalGroup===k?'selected':''}>${v}</option>`).join('')}</select></label>
       <div class="shipnet-meta">Deck ${selected.deck} · ${selected.panel} · x ${selected.x} · y ${selected.y}</div>
       <div class="shipnet-actions"><button id="shipnetSaveNode" class="primary-action">Save point</button><button id="shipnetDeleteNode" class="danger-action">Delete</button></div>`:'<p>Select an existing network point to label or classify it.</p>'}
     </section>
@@ -662,34 +693,60 @@ function renderShipNetworkV020(){
     </section>
   </div>
   <section class="shipnet-panel"><h3>Ship Network Data</h3><p>All decks save into one local ship-network database. Export a single deck for review or export the entire ship network for integration.</p>
-    <div class="shipnet-actions wrap"><button id="shipnetExportDeck" class="primary-action">Export Current Deck</button><button id="shipnetExportShip" class="primary-action">Export Entire Ship Network</button><label class="file-action">Import Network JSON<input id="shipnetImport" type="file" accept=".json,application/json"></label><button id="shipnetReset" class="secondary-action">Reset editor data</button></div>
+    <div class="shipnet-actions wrap"><button id="shipnetExportDeck" class="primary-action">Export Current Deck</button><button id="shipnetExportShip" class="primary-action">Export Entire Ship Network</button><label class="file-action">Import Network JSON<input id="shipnetImport" type="file" accept=".json,application/json"></label><button id="shipnetClearDeck" class="danger-action">Clear Current Deck</button><button id="shipnetReset" class="secondary-action">Reset Entire Editor</button></div>
   </section>`;
   bindShipnetV020();
 }
 function mapPointV020(e){const map=el('shipnetMap'),p=currentPanelV020(),r=map.getBoundingClientRect();return{x:Math.max(0,Math.min(p.w,(e.clientX-r.left)/r.width*p.w)),y:Math.max(0,Math.min(p.h,(e.clientY-r.top)/r.height*p.h))}}
-function nearestV020(x,y,max=18){let best=null,d=max;panelNodesV020().forEach(n=>{const q=Math.hypot(n.x-x,n.y-y);if(q<d){d=q;best=n}});return best}
+function nearestV020(x,y,max=24){let best=null,d=max;panelNodesV020().forEach(n=>{const q=Math.hypot(n.x-x,n.y-y);if(q<d){d=q;best=n}});return best}
 function exportJsonV020(data,name){const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)}
 function bindShipnetV020(){
   el('shipnetDeck').onchange=e=>{shipnetDeckV020=e.target.value;shipnetPanelV020=SHIPNET_DECKS_V020[shipnetDeckV020].panels[0].id;shipnetPathLastV020=null;shipnetSelectedV020=null;renderShipNetworkV020()};
   el('shipnetPanel').onchange=e=>{shipnetPanelV020=e.target.value;shipnetPathLastV020=null;shipnetSelectedV020=null;renderShipNetworkV020()};
   document.querySelectorAll('[data-shipmode]').forEach(b=>b.onclick=()=>{shipnetModeV020=b.dataset.shipmode;if(shipnetModeV020!=='path')shipnetPathLastV020=null;if(shipnetModeV020!=='connect')shipnetConnectFirstV020=null;renderShipNetworkV020()});
   if(el('shipnetEndPath'))el('shipnetEndPath').onclick=()=>{shipnetPathLastV020=null;shipnetModeV020='select';renderShipNetworkV020()};
+  if(el('shipnetUndo'))el('shipnetUndo').onclick=undoShipnetV021;
   const map=el('shipnetMap');
   map.addEventListener('pointermove',e=>{const p=mapPointV020(e),panel=currentPanelV020();el('shipnetCoord').textContent=`Native panel coordinates: x ${Math.round(p.x)}, y ${Math.round(p.y)} · ${panel.name}`});
   map.addEventListener('click',e=>{
     const p=mapPointV020(e),near=nearestV020(p.x,p.y);
-    if(shipnetModeV020==='path'){const n=addNodeV020(p.x,p.y);if(shipnetPathLastV020)addEdgeV020(shipnetPathLastV020,n.id);shipnetPathLastV020=n.id;shipnetSelectedV020=n.id;renderShipNetworkV020();return}
-    if(shipnetModeV020==='move'&&shipnetSelectedV020){const n=nodeV020(shipnetSelectedV020);if(n){n.x=Math.round(p.x);n.y=Math.round(p.y);saveShipnetV020()}shipnetModeV020='select';renderShipNetworkV020();return}
+    if(shipnetModeV020==='path'){
+      if(near){
+        if(shipnetPathLastV020&&shipnetPathLastV020!==near.id)addEdgeV020(shipnetPathLastV020,near.id);
+        shipnetPathLastV020=near.id;
+        shipnetSelectedV020=near.id;
+      }else{
+        const n=addNodeV020(p.x,p.y);
+        if(shipnetPathLastV020)addEdgeV020(shipnetPathLastV020,n.id);
+        shipnetPathLastV020=n.id;
+        shipnetSelectedV020=n.id;
+      }
+      renderShipNetworkV020();return
+    }
+    if(shipnetModeV020==='move'&&shipnetSelectedV020){const n=nodeV020(shipnetSelectedV020);if(n){pushUndoV021();n.x=Math.round(p.x);n.y=Math.round(p.y);saveShipnetV020()}shipnetModeV020='select';renderShipNetworkV020();return}
     if(shipnetModeV020==='connect'){if(!near)return;if(!shipnetConnectFirstV020){shipnetConnectFirstV020=near.id;shipnetSelectedV020=near.id;renderShipNetworkV020()}else{addEdgeV020(shipnetConnectFirstV020,near.id,'bridge');shipnetConnectFirstV020=null;shipnetSelectedV020=near.id;shipnetModeV020='select';renderShipNetworkV020()}return}
     if(near){shipnetSelectedV020=near.id;renderShipNetworkV020()}
   });
-  if(el('shipnetSaveNode'))el('shipnetSaveNode').onclick=()=>{const n=nodeV020(shipnetSelectedV020);n.label=el('shipnetLabel').value.trim();n.type=el('shipnetType').value;n.verticalGroup=el('shipnetVertical').value||undefined;saveShipnetV020();renderShipNetworkV020()};
+  if(el('shipnetType'))el('shipnetType').onchange=()=>{const w=el('shipnetVerticalWrap');if(w)w.style.display=el('shipnetType').value==='elevator'?'':'none'};
+  if(el('shipnetSaveNode'))el('shipnetSaveNode').onclick=()=>{
+    const n=nodeV020(shipnetSelectedV020);if(!n)return;
+    pushUndoV021();
+    n.label=el('shipnetLabel').value.trim();
+    n.type=el('shipnetType').value;
+    if(n.type==='elevator'){
+      const v=el('shipnetVertical');n.verticalGroup=v&&v.value?v.value:undefined;
+    }else{
+      delete n.verticalGroup;
+    }
+    saveShipnetV020();renderShipNetworkV020()
+  };
   if(el('shipnetDeleteNode'))el('shipnetDeleteNode').onclick=()=>{if(confirm('Delete this network point and its connections?')){deleteNodeV020(shipnetSelectedV020);renderShipNetworkV020()}};
   el('shipnetTest').onclick=()=>{shipnetTestPathV020=findPathV020(el('shipnetFrom').value,el('shipnetTo').value);renderShipNetworkV020()};
   el('shipnetExportDeck').onclick=()=>{const s=loadShipnetV020(),ids=new Set(s.nodes.filter(n=>n.deck===shipnetDeckV020).map(n=>n.id));exportJsonV020({version:2,deck:shipnetDeckV020,nodes:s.nodes.filter(n=>ids.has(n.id)),edges:s.edges.filter(e=>ids.has(e.a)&&ids.has(e.b))},`cruise-navigator-deck${shipnetDeckV020}-walking-network.json`)};
   el('shipnetExportShip').onclick=()=>exportJsonV020(loadShipnetV020(),'cruise-navigator-ship-walking-network.json');
   el('shipnetImport').onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.nodes)||!Array.isArray(d.edges))throw Error();if(d.deck){const s=loadShipnetV020(),ids=new Set(s.nodes.filter(n=>n.deck===d.deck).map(n=>n.id));s.nodes=s.nodes.filter(n=>!ids.has(n.id)).concat(d.nodes);s.edges=s.edges.filter(e=>!ids.has(e.a)&&!ids.has(e.b)).concat(d.edges);shipnetStateV020=s}else shipnetStateV020=d;saveShipnetV020();renderShipNetworkV020()}catch(_){alert('Could not import that network JSON.')}};r.readAsText(f)};
-  el('shipnetReset').onclick=()=>{if(confirm('Reset all ship-network editor data to the verified Deck 7 seed?')){shipnetStateV020=cloneV020(SHIPNET_SEED_V020);saveShipnetV020();shipnetSelectedV020=null;shipnetTestPathV020=[];renderShipNetworkV020()}};
+  el('shipnetClearDeck').onclick=()=>{if(confirm(`Clear every mapped point and path from Deck ${shipnetDeckV020}? Other decks will not be changed.`)){clearCurrentDeckV021();renderShipNetworkV020()}};
+  el('shipnetReset').onclick=()=>{if(confirm('Reset the entire ship-network editor to the verified Deck 7 seed? This affects all mapped decks.')){pushUndoV021();shipnetStateV020=cloneV020(SHIPNET_SEED_V020);saveShipnetV020();shipnetSelectedV020=null;shipnetTestPathV020=[];renderShipNetworkV020()}};
 }
 
 renderCategories();renderSearch([]);renderDecks();renderLesson();
@@ -899,7 +956,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.20.0';
+const BUILD_VERSION = '0.21.0';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
