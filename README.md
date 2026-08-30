@@ -253,3 +253,41 @@ This hotfix fixes the renderer issue exposed by the Cabin 7456 to Basecamp test.
 5. Final approach: Signage, no exact route line.
 
 No walking-network remapping or new export is required.
+
+## v0.27.2 - Route Diagnostics
+
+This release adds route diagnostics without intentionally changing routing behavior.
+
+### Logged data
+- Requested start and destination.
+- Matched production start/end graph nodes, including deck, panel, coordinates, and labels.
+- BFS start/end IDs.
+- Exact BFS node sequence.
+- Edge kinds used between each returned node.
+- Every generated guided step.
+- Deck and panel assigned to each guided step.
+- Exact node IDs passed to each verified map renderer.
+- Exact coordinates rendered for every verified map segment.
+- Elevator transitions.
+- Panel transitions.
+- Orientation/signage handoff steps.
+- Route completion summary.
+
+### Debug controls
+Guided navigation now includes a collapsible **Route Debug** panel with:
+- **Copy Log**
+- **Export Log JSON**
+- On-screen log preview
+
+The latest route log is also persisted under:
+`cruise-nav-debug-log-v0272`
+
+### Purpose
+The diagnostics are intended to determine whether incorrect route lines come from:
+1. the BFS route itself,
+2. graph edges or transport adjacency,
+3. step segmentation,
+4. map-panel assignment, or
+5. SVG rendering input.
+
+No walking-network remapping or export is required to use the debug tools.
