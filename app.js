@@ -979,24 +979,38 @@ function renderGuidedRoute(){
   if(el('exportRouteDebugV0272'))el('exportRouteDebugV0272').onclick=downloadDebugV0272;
   if(el('confusedBtn'))el('confusedBtn').onclick=()=>showRecovery(d,idx);
 }
-function navigableLocationDirectoryV0287(){
+function navigableLocationDirectoryV02811(){
   const byId=new Map();
-  (Array.isArray(locations)?locations:[]).forEach(x=>byId.set(x.id,x));
-  try{
-    (Array.isArray(exploreVenues)?exploreVenues:[]).forEach(v=>{
-      if(byId.has(v.id)) return;
-      const mapDeck=v.deckLabel==='14'?'15':(v.deckLabel&&v.deckLabel.includes('–')?v.deckLabel.split('–').pop():(v.deck||'').toString().split('–').pop());
-      let mapNode=null;
-      try{mapNode=mapNodeForExplore(v.id)}catch(_){}
-      byId.set(v.id,{id:v.id,name:v.name,deck:String(mapDeck||v.deck||''),area:v.area||v.routeArea||'',icon:v.icon||'📍',mapDeck:String(mapDeck||v.deck||''),mapNode,keywords:v.keywords||''});
+  const put=(x)=>{
+    if(!x||!x.id||!x.name)return;
+    const prev=byId.get(x.id)||{};
+    byId.set(x.id,{
+      ...prev,
+      ...x,
+      deck:String(x.mapDeck||x.deck||prev.mapDeck||prev.deck||''),
+      mapDeck:String(x.mapDeck||x.deck||prev.mapDeck||prev.deck||''),
+      area:x.area||prev.area||'',
+      icon:x.icon||prev.icon||'📍',
+      keywords:x.keywords||prev.keywords||'',
+      mapNode:x.mapNode??prev.mapNode??null
     });
-  }catch(_){}
+  };
+
+  put({id:'cabin7456',name:'Cabin 7456',deck:'7',mapDeck:'7',area:'Forward / center',icon:'🏠',mapNode:null,keywords:'cabin 7456 home'});
+  (Array.isArray(locations)?locations:[]).forEach(put);
+  (Array.isArray(destinations)?destinations:[]).forEach(d=>put({id:d.id,name:d.name,deck:String(d.mapDeck||d.deck||''),mapDeck:String(d.mapDeck||d.deck||''),area:d.area||'',icon:d.icon||'📍',mapNode:d.mapNode||null,keywords:d.keywords||''}));
+  (Array.isArray(exploreVenues)?exploreVenues:[]).forEach(v=>{
+    let mapDeck=v.deckLabel==='14'?'15':(v.deckLabel&&v.deckLabel.includes('–')?v.deckLabel.split('–').pop():(v.deck||'').toString().split('–').pop());
+    let mapNode=null;
+    try{mapNode=mapNodeForExplore(v.id)}catch(_){}
+    put({id:v.id,name:v.name,deck:String(mapDeck||v.deck||''),mapDeck:String(mapDeck||v.deck||''),area:v.area||v.routeArea||'',icon:v.icon||'📍',mapNode,keywords:v.keywords||''});
+  });
   return [...byId.values()];
 }
 function openLocationPicker(mode){
   const current=mode==='from'?currentLocationId:guidedState.destId;
   el('overlayTitle').textContent=mode==='from'?'Where are you starting?':'Where do you want to go?';
-  const list=navigableLocationDirectoryV0287().filter(x=>mode==='from'||x.id!=='cabin7456');
+  const list=navigableLocationDirectoryV02811().filter(x=>mode==='from'||x.id!=='cabin7456');
   el('overlayMap').innerHTML=`<div class="location-picker-sheet"><p>${mode==='from'?'Choose your current location. Route will recalculate immediately.':'Choose a new destination while keeping your current location.'}</p><input id="locationSearch" class="location-search" placeholder="Search locations..." autocomplete="off"><div id="locationChoices">${renderLocationChoices(list,current)}</div><div class="recovery-tip"><strong>Tip:</strong> you can change this again at any time during the route.</div></div>`;
   el('mapOverlay').classList.add('show');el('mapOverlay').setAttribute('aria-hidden','false');
   const search=el('locationSearch');
@@ -1859,7 +1873,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.28.10';
+const BUILD_VERSION = '0.28.11';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
@@ -1961,6 +1975,7 @@ if('serviceWorker' in navigator){
 window.openMapFor=openMapFor;
 window.openLocationPicker=openLocationPicker;
 window.openCurrentLocationPickerV02810=openCurrentLocationPickerV02810;
+window.navigableLocationDirectoryV02811=navigableLocationDirectoryV02811;
 
 /* Star Navigator v0.7 - interactive Explore + venue details */
 

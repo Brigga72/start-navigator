@@ -1,4 +1,4 @@
-const CACHE='cruise-nav-v0287';
+const CACHE='cruise-nav-v02811';
 const CORE=['./','./index.html','./styles.css?v=0287','./app.js?v=0287','./manifest.webmanifest','./icon-192.png','./icon-512.png','./version.json','./migrate.html','./assets/deck7-forward.png',
   './assets/deck15-aft.png',
   './assets/deck15-forward.png',
