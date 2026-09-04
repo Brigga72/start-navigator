@@ -299,6 +299,17 @@ loadSchedule();
 function renderCategories(){el('categoryGrid').innerHTML=categories.map(c=>`<button class="cat" data-cat="${c.id}"><strong>${c.icon} ${c.title}</strong><span>${c.note}</span></button>`).join('')}
 function row(d){return `<button class="dest-row" data-dest="${d.id}"><span class="dest-icon">${d.icon}</span><span class="dest-main"><span class="dest-name">${d.name}${d.mustdo?' <b class="must-pill">MUST-DO</b>':''}</span><span class="dest-meta">Deck ${d.deck} · ${d.area}</span></span><span class="dest-arrow">›</span></button>`}
 function renderSearch(list, extra=''){el('destinationList').innerHTML=list.map(row).join('')+extra; el('destinationList').classList.toggle('hidden',list.length===0&&!extra)}
+
+function renderCurrentLocationHome(){
+  const host=el('currentLocationHome');
+  if(!host)return;
+  const from=locationById(currentLocationId);
+  if(!from)return;
+  const isHome=from.id==='cabin7456';
+  host.innerHTML=`<div class="current-location-card"><div class="current-location-icon">${isHome?'⌂':'📍'}</div><div class="current-location-main"><div class="current-location-kicker">CURRENT LOCATION</div><strong>${esc(from.name)}</strong><small>Deck ${esc(from.mapDeck)} · ${esc(from.area)}${isHome?' · Your Home':''}</small></div><button type="button" class="current-location-change" id="changeCurrentLocationHome">Change</button></div>`;
+  const b=el('changeCurrentLocationHome');
+  if(b)b.onclick=()=>openLocationPicker('from');
+}
 function navigate(view){currentView=view;document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));el(view+'View').classList.add('active');document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===view));if(view==='network')renderNetworkEditorV019();window.scrollTo({top:0,behavior:'smooth'})}
 
 function esc(s){return String(s).replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\\':'&#92;','"':'&quot;'}[m]))}
@@ -965,7 +976,7 @@ function openLocationPicker(mode){
     const b=e.target.closest('[data-location-choice]'); if(!b)return;
     const id=b.dataset.locationChoice;
     closeMap();
-    if(mode==='from'){currentLocationId=id;persistCurrentLocation();guidedState.step=0;} else {guidedState.destId=id;guidedState.step=0;}
+    if(mode==='from'){currentLocationId=id;persistCurrentLocation();guidedState.step=0;renderCurrentLocationHome();} else {guidedState.destId=id;guidedState.step=0;}
     const d=destinations.find(x=>x.id===guidedState.destId);
     if(d){document.body.classList.toggle('route-aft',/Aft/i.test(d.area));renderGuidedRoute();}
   };
@@ -1610,7 +1621,7 @@ function bindShipnetV020(){
 
 try{applyStairLinksV023()}catch(err){console.error('Stair-link migration skipped:',err)}
 debugLoadV0272();
-renderCategories();renderSearch([]);renderDecks();renderLesson();
+renderCategories();renderSearch([]);renderDecks();renderLesson();renderCurrentLocationHome();
 document.addEventListener('click',e=>{
   const cat=e.target.closest('[data-cat]');if(cat){if(cat.dataset.cat==='mustdo')showMustDo();else renderSearch(destinations.filter(d=>d.category===cat.dataset.cat));el('searchInput').value='';return}
   const dest=e.target.closest('[data-dest]');if(dest){showRoute(dest.dataset.dest);return}
@@ -1817,7 +1828,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.28.5';
+const BUILD_VERSION = '0.28.6';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
@@ -1895,6 +1906,7 @@ async function checkForUpdate(){
 
 restoreMustDoState();
 restoreCurrentLocation();
+renderCurrentLocationHome();
 updateHeaderVersion();
 ensureUpdateBanner();
 
