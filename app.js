@@ -1113,11 +1113,20 @@ function svgV020(){
   return `<svg class="shipnet-svg-v020" viewBox="0 0 ${p.w} ${p.h}" preserveAspectRatio="none">${edges}${circles}</svg>`;
 }
 function statsV020(){const s=loadShipnetV020(),deck=s.nodes.filter(n=>n.deck===shipnetDeckV020);return `${deck.length} deck nodes · ${s.nodes.length} ship nodes · ${s.edges.length} explicit connections`}
-function nodeOptionV020(n){return `<option value="${n.id}">D${n.deck} · ${esc(n.label||n.id)}</option>`}
+function routeEndpointNodesV028(){
+  return loadShipnetV020().nodes
+    .filter(n=>isDestinationTypeV025(n.type) && String(n.label||'').trim())
+    .sort((a,b)=>{
+      const da=Number(a.deck),db=Number(b.deck);
+      if(da!==db)return da-db;
+      return String(a.label).localeCompare(String(b.label));
+    });
+}
+function nodeOptionV028(n){return `<option value="${n.id}">D${n.deck} · ${esc(n.label)}</option>`}
 function renderNetworkEditorV019(){renderShipNetworkV020()}
 function renderShipNetworkV020(){
   const host=el('networkContent');if(!host)return;loadShipnetV020();
-  const deck=SHIPNET_DECKS_V020[shipnetDeckV020],panel=currentPanelV020(),selected=nodeV020(shipnetSelectedV020),all=loadShipnetV020().nodes;
+  const deck=SHIPNET_DECKS_V020[shipnetDeckV020],panel=currentPanelV020(),selected=nodeV020(shipnetSelectedV020),all=loadShipnetV020().nodes,routeEndpoints=routeEndpointNodesV028();
   host.innerHTML=`
   <div class="shipnet-workflow-v021">
     <strong>Recommended mapping order</strong>
@@ -1164,8 +1173,8 @@ function renderShipNetworkV020(){
       <div class="shipnet-actions"><button id="shipnetSaveNode" class="primary-action">Save point</button><button id="shipnetDeleteNode" class="danger-action">Delete</button></div>`:'<p>Select an existing network point to label or classify it.</p>'}
     </section>
     <section class="shipnet-panel"><h3>Ship-wide Route Test</h3>
-      <label>From<select id="shipnetFrom"><option value="">Choose start…</option>${all.map(nodeOptionV020).join('')}</select></label>
-      <label>To<select id="shipnetTo"><option value="">Choose destination…</option>${all.map(nodeOptionV020).join('')}</select></label>
+      <label>From<select id="shipnetFrom"><option value="">Choose current place…</option>${routeEndpoints.map(nodeOptionV028).join('')}</select></label>
+      <label>To<select id="shipnetTo"><option value="">Choose destination…</option>${routeEndpoints.map(nodeOptionV028).join('')}</select></label>
       <button id="shipnetTest" class="primary-action">Calculate network path</button>
       <div class="shipnet-test">${shipnetTestPathV020.length?`${shipnetTestPathV020.length} nodes in route. Open each involved deck/panel to inspect the highlighted segment.`:'No route test selected.'}</div>
     </section>
@@ -1481,7 +1490,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.27.4';
+const BUILD_VERSION = '0.28.0';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
