@@ -1162,48 +1162,55 @@ function findPathV020(start,end){
   if(!(end in prev))return[];const p=[];for(let c=end;c;c=prev[c])p.push(c);return p.reverse();
 }
 
-/* v0.28.2 weighted routing prototype
-   Keep this beside the existing BFS router so route behavior can be compared
-   before production navigation is switched over. Walking edges use map geometry;
-   stairs/elevators receive explicit transition penalties. */
-const ROUTE_WEIGHTS_V028={stairsPenalty:140,elevatorPenalty:180,panelPenalty:30,destinationPenalty:2};
-function routeEdgeCostV028(e,a,b){
+/* v0.28.4 routing profiles
+   Weighted routing now supports user-selectable preferences while keeping
+   the production navigator on the existing engine. */
+const ROUTE_PROFILES_V0284={
+  balanced:{label:'Balanced',desc:'Best practical route using normal walking, stairs and elevators.',stairsPenalty:140,elevatorPenalty:180,stairsBlocked:false},
+  elevator:{label:'Elevators Preferred',desc:'Strongly favors elevators when a reasonable elevator route exists.',stairsPenalty:1200,elevatorPenalty:90,stairsBlocked:false},
+  accessible:{label:'No Stairs / Accessible',desc:'Excludes staircase edges; elevators are used for deck changes when available.',stairsPenalty:Infinity,elevatorPenalty:180,stairsBlocked:true}
+};
+let shipnetRouteProfileV0284=localStorage.getItem('cruise-nav-route-profile-v0284')||'balanced';
+if(!ROUTE_PROFILES_V0284[shipnetRouteProfileV0284])shipnetRouteProfileV0284='balanced';
+function routeProfileV0284(){return ROUTE_PROFILES_V0284[shipnetRouteProfileV0284]||ROUTE_PROFILES_V0284.balanced}
+function routeEdgeCostV0284(e,a,b,profile){
   const kind=e.kind||'walk';
-  if(kind==='elevator') return ROUTE_WEIGHTS_V028.elevatorPenalty + Math.abs(Number(a.deck)-Number(b.deck))*8;
-  if(kind==='stairs') return ROUTE_WEIGHTS_V028.stairsPenalty + Math.hypot((a.x||0)-(b.x||0),(a.y||0)-(b.y||0));
-  if(a.deck===b.deck && a.panel===b.panel) return Math.hypot((a.x||0)-(b.x||0),(a.y||0)-(b.y||0));
-  if(kind==='panel_link' || a.panel!==b.panel) return ROUTE_WEIGHTS_V028.panelPenalty;
-  if(kind==='destination') return ROUTE_WEIGHTS_V028.destinationPenalty;
-  return Math.hypot((a.x||0)-(b.x||0),(a.y||0)-(b.y||0));
+  const dx=(a.x||0)-(b.x||0),dy=(a.y||0)-(b.y||0);
+  const distance=Math.hypot(dx,dy);
+  if(kind==='stairs')return profile.stairsBlocked?Infinity:profile.stairsPenalty+distance;
+  if(kind==='elevator')return profile.elevatorPenalty+Math.abs(Number(a.deck)-Number(b.deck))*8;
+  if(kind==='panel_link'||a.panel!==b.panel)return 30;
+  if(kind==='destination')return 2;
+  return distance;
 }
-function weightedGraphV028(state){
+function weightedGraphV0284(state,profile){
   const nodes=state.nodes||[],edges=state.edges||[],by=Object.fromEntries(nodes.map(n=>[n.id,n])),adj={};
   nodes.forEach(n=>adj[n.id]=[]);
   edges.forEach(e=>{
-    const a=by[e.a],b=by[e.b]; if(!a||!b)return;
-    const cost=routeEdgeCostV028(e,a,b);
+    const a=by[e.a],b=by[e.b];if(!a||!b)return;
+    const cost=routeEdgeCostV0284(e,a,b,profile);if(!Number.isFinite(cost))return;
     adj[e.a].push({id:e.b,kind:e.kind||'walk',cost});
     adj[e.b].push({id:e.a,kind:e.kind||'walk',cost});
   });
   const groups={};
   nodes.filter(n=>n.type==='elevator'&&n.verticalGroup).forEach(n=>(groups[n.verticalGroup]??=[]).push(n));
   Object.values(groups).forEach(group=>{
-    for(let i=0;i<group.length;i++) for(let j=i+1;j<group.length;j++){
-      const a=group[i],b=group[j];
-      if(a.deck===b.deck)continue;
-      const cost=ROUTE_WEIGHTS_V028.elevatorPenalty + Math.abs(Number(a.deck)-Number(b.deck))*8;
+    for(let i=0;i<group.length;i++)for(let j=i+1;j<group.length;j++){
+      const a=group[i],b=group[j];if(a.deck===b.deck)continue;
+      const cost=profile.elevatorPenalty+Math.abs(Number(a.deck)-Number(b.deck))*8;
       adj[a.id].push({id:b.id,kind:'elevator',cost});
       adj[b.id].push({id:a.id,kind:'elevator',cost});
     }
   });
   return {adj,by};
 }
-function findWeightedPathV028(start,end,state=loadShipnetV020()){
+function findWeightedPathV0284(start,end,state=loadShipnetV020(),profileKey=shipnetRouteProfileV0284){
   if(!start||!end)return null;
-  const {adj,by}=weightedGraphV028(state);
+  const profile=ROUTE_PROFILES_V0284[profileKey]||ROUTE_PROFILES_V0284.balanced;
+  const {adj,by}=weightedGraphV0284(state,profile);
   const dist={},prev={},edgeKind={},unvisited=new Set(Object.keys(adj));
   Object.keys(adj).forEach(id=>dist[id]=Infinity);
-  dist[start]=0; prev[start]=null;
+  dist[start]=0;prev[start]=null;
   while(unvisited.size){
     let u=null,best=Infinity;
     for(const id of unvisited){if(dist[id]<best){best=dist[id];u=id;}}
@@ -1217,17 +1224,18 @@ function findWeightedPathV028(start,end,state=loadShipnetV020()){
     }
   }
   if(!(end in prev))return null;
-  const ids=[];const kinds=[];
+  const ids=[],kinds=[];
   for(let cur=end;cur!==null;cur=prev[cur]){ids.push(cur);if(cur!==start)kinds.push(edgeKind[cur]||'walk');}
   ids.reverse();kinds.reverse();
   const distance=ids.slice(1).reduce((sum,id)=>{const a=by[prev[id]],b=by[id];return sum+(a&&b?Math.hypot((a.x||0)-(b.x||0),(a.y||0)-(b.y||0)):0)},0);
-  return {ids,kinds,cost:dist[end],distance};
+  return {ids,kinds,cost:dist[end],distance,profile:profileKey};
 }
-function compareRoutesV028(bfsPath,weightedPath){
-  if(!weightedPath)return {status:'no-path',text:'Weighted router could not find a path.'};
-  if(!bfsPath.length)return {status:'weighted-only',text:`Weighted router found ${weightedPath.ids.length} nodes where BFS found no path.`};
-  const same=bfsPath.length===weightedPath.ids.length && bfsPath.every((id,i)=>id===weightedPath.ids[i]);
-  return same ? {status:'same',text:`Both routers selected the same ${weightedPath.ids.length}-node path.`} : {status:'different',text:`Weighted router selected ${weightedPath.ids.length} nodes vs BFS ${bfsPath.length}.`};
+function compareRoutesV0284(bfsPath,weightedPath,profileKey=shipnetRouteProfileV0284){
+  const profile=ROUTE_PROFILES_V0284[profileKey]||ROUTE_PROFILES_V0284.balanced;
+  if(!weightedPath)return {status:'no-path',text:`${profile.label}: no weighted path was found.`};
+  if(!bfsPath.length)return {status:'weighted-only',text:`${profile.label}: weighted router found ${weightedPath.ids.length} nodes where BFS found no path.`};
+  const same=bfsPath.length===weightedPath.ids.length&&bfsPath.every((id,i)=>id===weightedPath.ids[i]);
+  return same?{status:'same',text:`${profile.label}: both routers selected the same ${weightedPath.ids.length}-node path.`}:{status:'different',text:`${profile.label}: weighted router selected ${weightedPath.ids.length} nodes vs BFS ${bfsPath.length}.`};
 }
 function visibleEdgeV020(e){const a=nodeV020(e.a),b=nodeV020(e.b);return a&&b&&a.deck===shipnetDeckV020&&b.deck===shipnetDeckV020&&a.panel===shipnetPanelV020&&b.panel===shipnetPanelV020}
 function svgV020(){
@@ -1340,8 +1348,10 @@ function renderShipNetworkV020(){
     <section class="shipnet-panel"><h3>Ship-wide Route Test</h3>
       <label>From<select id="shipnetFrom"><option value="">Choose current place…</option>${routeEndpoints.map(nodeOptionV028).join('')}</select></label>
       <label>To<select id="shipnetTo"><option value="">Choose destination…</option>${routeEndpoints.map(nodeOptionV028).join('')}</select></label>
+      <label>Routing profile<select id="shipnetRouteProfile">${Object.entries(ROUTE_PROFILES_V0284).map(([k,v])=>`<option value="${k}" ${k===shipnetRouteProfileV0284?'selected':''}>${v.label}</option>`).join('')}</select></label>
+      <div id="shipnetRouteProfileHelp" class="shipnet-profile-help">${esc(routeProfileV0284().desc)}</div>
       <button id="shipnetTest" class="primary-action">Compare BFS vs Weighted</button>
-      <div class="shipnet-test">${shipnetWeightedTestV028?`<strong>${esc(shipnetWeightedTestV028.comparison.text)}</strong><br><span>BFS: ${shipnetWeightedTestV028.bfsLength} nodes · Weighted cost: ${shipnetWeightedTestV028.weightedCost.toFixed(1)} · Weighted: ${shipnetWeightedTestV028.weightedLength} nodes</span><br><small>Weighted path is highlighted on the map. The production navigator still uses the existing engine.</small>`:(shipnetTestPathV020.length?`${shipnetTestPathV020.length} nodes in route.`:'No route test selected.')}</div>
+      <div class="shipnet-test">${shipnetWeightedTestV028?`<strong>${esc(shipnetWeightedTestV028.comparison.text)}</strong><br><span>BFS: ${shipnetWeightedTestV028.bfsLength} nodes · Weighted cost: ${shipnetWeightedTestV028.weightedCost.toFixed(1)} · Weighted: ${shipnetWeightedTestV028.weightedLength} nodes</span><br><small>Weighted path is highlighted on the map. Production navigation still uses the existing engine.</small>`:(shipnetTestPathV020.length?`${shipnetTestPathV020.length} nodes in route.`:'No route test selected.')}</div>
     </section>
   </div>
   <section class="shipnet-panel"><h3>Ship Network Data</h3><p>All decks save into one local ship-network database. Elevators connect automatically by elevator bank. Stair connections are explicit deck-to-deck links so routing cannot skip decks that a staircase does not serve.</p>
@@ -1441,12 +1451,17 @@ function bindShipnetV020(){
     saveShipnetV020();renderShipNetworkV020()
   };
   if(el('shipnetDeleteNode'))el('shipnetDeleteNode').onclick=()=>{if(confirm('Delete this network point and its connections?')){deleteNodeV020(shipnetSelectedV020);renderShipNetworkV020()}};
+  if(el('shipnetRouteProfile')){
+    el('shipnetRouteProfile').onchange=e=>{shipnetRouteProfileV0284=e.target.value;localStorage.setItem('cruise-nav-route-profile-v0284',shipnetRouteProfileV0284);const help=el('shipnetRouteProfileHelp');if(help)help.textContent=routeProfileV0284().desc;shipnetWeightedTestV028=null;shipnetTestPathV020=[];renderShipNetworkV020()};
+  }
   el('shipnetTest').onclick=()=>{
-    const from=el('shipnetFrom').value,to=el('shipnetTo').value,state=loadShipnetV020();
+    const from=el('shipnetFrom').value,to=el('shipnetTo').value,state=loadShipnetV020(),profile=el('shipnetRouteProfile')?el('shipnetRouteProfile').value:shipnetRouteProfileV0284;
+    shipnetRouteProfileV0284=ROUTE_PROFILES_V0284[profile]?profile:'balanced';
+    localStorage.setItem('cruise-nav-route-profile-v0284',shipnetRouteProfileV0284);
     if(!from||!to){shipnetWeightedTestV028=null;shipnetTestPathV020=[];renderShipNetworkV020();return;}
-    const bfs=findPathV020(from,to),weighted=findWeightedPathV028(from,to,state);
+    const bfs=findPathV020(from,to),weighted=findWeightedPathV0284(from,to,state,shipnetRouteProfileV0284);
     shipnetTestPathV020=weighted?weighted.ids:bfs;
-    shipnetWeightedTestV028={bfsLength:bfs.length,weightedLength:weighted?weighted.ids.length:0,weightedCost:weighted?weighted.cost:Infinity,comparison:compareRoutesV028(bfs,weighted)};
+    shipnetWeightedTestV028={bfsLength:bfs.length,weightedLength:weighted?weighted.ids.length:0,weightedCost:weighted?weighted.cost:Infinity,comparison:compareRoutesV0284(bfs,weighted,shipnetRouteProfileV0284)};
     renderShipNetworkV020();
   };
   el('shipnetExportDeck').onclick=()=>{const s=loadShipnetV020(),ids=new Set(s.nodes.filter(n=>n.deck===shipnetDeckV020).map(n=>n.id));exportJsonV020({version:4,deck:shipnetDeckV020,nodes:s.nodes.filter(n=>ids.has(n.id)),edges:s.edges.filter(e=>ids.has(e.a)&&ids.has(e.b)),verticalEdges:s.edges.filter(e=>e.kind==='stairs'&&(ids.has(e.a)||ids.has(e.b)))},`cruise-navigator-deck${shipnetDeckV020}-walking-network.json`)};
@@ -1672,7 +1687,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.28.3';
+const BUILD_VERSION = '0.28.4';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';

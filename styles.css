@@ -291,3 +291,7 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 .shipnet-route-entry-v0283 circle{fill:#ef3340;stroke:#fff;stroke-width:4}
 .shipnet-route-entry-v0283 text{fill:#fff;font-size:11px;font-weight:900;letter-spacing:.02em}
 .shipnet-route-entry-v0283 text{paint-order:stroke;stroke:#102f5f;stroke-width:4px;stroke-linejoin:round}
+
+
+/* v0.28.4 routing profiles */
+.shipnet-profile-help{font-size:.74rem;line-height:1.4;color:#526170;background:#f7f9fc;border:1px solid #d9e2eb;border-radius:9px;padding:8px 9px;margin:6px 0 10px}
