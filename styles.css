@@ -285,3 +285,9 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 .registration-anchor-v0274 circle{fill:#fff;stroke:#111;stroke-width:3}
 .registration-anchor-v0274 text{fill:#111;font-size:9px;font-weight:950}
 .registration-caption-v0274{padding:10px 3px 2px}
+
+/* v0.28.3 ship-network route visibility */
+.shipnet-test-polyline-v0283{fill:none;stroke:#ef3340;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;opacity:1;filter:drop-shadow(0 1px 1px rgba(255,255,255,.9))}
+.shipnet-route-entry-v0283 circle{fill:#ef3340;stroke:#fff;stroke-width:4}
+.shipnet-route-entry-v0283 text{fill:#fff;font-size:11px;font-weight:900;letter-spacing:.02em}
+.shipnet-route-entry-v0283 text{paint-order:stroke;stroke:#102f5f;stroke-width:4px;stroke-linejoin:round}

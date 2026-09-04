@@ -1,5 +1,5 @@
-const CACHE='cruise-nav-v0282';
-const CORE=['./','./index.html','./styles.css?v=0282','./app.js?v=0282','./manifest.webmanifest','./icon-192.png','./icon-512.png','./version.json','./migrate.html','./assets/deck7-forward.png',
+const CACHE='cruise-nav-v0283';
+const CORE=['./','./index.html','./styles.css?v=0283','./app.js?v=0283','./manifest.webmanifest','./icon-192.png','./icon-512.png','./version.json','./migrate.html','./assets/deck7-forward.png',
   './assets/deck15-aft.png',
   './assets/deck15-forward.png',
   './assets/deck8-aft.png',

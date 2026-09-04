@@ -495,17 +495,39 @@ function prodRouteV026(fromId,d){
     const kind=p.kinds[i-1],n=by[p.ids[i]],prev=by[p.ids[i-1]];
     const nextDeck=String(n.deck),nextPanel=n.panel;
 
-    if(kind==='elevator'&&nextDeck!==String(prev.deck)){
+    if((kind==='elevator'||kind==='stairs')&&nextDeck!==String(prev.deck)){
       flush();seg=[];
+      const transitionKind=kind==='stairs'?'stairs':'elevator';
+      const transitionText=transitionKind==='stairs'
+        ? `Take the stairs from Deck ${prev.deck} to Deck ${n.deck}. Confirm Deck ${n.deck} before continuing.`
+        : `Take the Forward elevators from Deck ${prev.deck} to Deck ${n.deck}. Confirm Deck ${n.deck} before exiting.`;
       const step=routeStep(
-        'elevator',
-        `Take the Forward elevators from Deck ${prev.deck} to Deck ${n.deck}. Confirm Deck ${n.deck} before exiting.`,
+        transitionKind,
+        transitionText,
         'verified',
         nextDeck,
-        {v026:{ids:[prev.id,n.id],deck:nextDeck,panel:nextPanel,kind:'elevator'}}
+        {v026:{ids:[prev.id,n.id],deck:nextDeck,panel:nextPanel,kind:transitionKind}}
       );
       steps.push(step);
-      debugPushV0272('step_created',{kind:'elevator',from:prev.id,to:n.id,fromDeck:String(prev.deck),toDeck:nextDeck,panel:nextPanel});
+      debugPushV0272('step_created',{kind:transitionKind,from:prev.id,to:n.id,fromDeck:String(prev.deck),toDeck:nextDeck,panel:nextPanel});
+      deck=nextDeck;panel=nextPanel;seg=[n.id];
+      continue;
+    }
+
+    // Any unexpected cross-deck edge is also treated as a transition so a
+    // walking polyline is never allowed to mix coordinate systems.
+    if(nextDeck!==String(prev.deck)){
+      flush();seg=[];
+      const transitionText=`Continue from Deck ${prev.deck} to Deck ${n.deck} using the mapped ship connection. Confirm Deck ${n.deck} before continuing.`;
+      const step=routeStep(
+        'orient',
+        transitionText,
+        'verified',
+        nextDeck,
+        {v026:{ids:[prev.id,n.id],deck:nextDeck,panel:nextPanel,kind:'deck-transition'}}
+      );
+      steps.push(step);
+      debugPushV0272('step_created',{kind:'deck-transition',from:prev.id,to:n.id,fromDeck:String(prev.deck),toDeck:nextDeck,panel:nextPanel,edgeKind:kind});
       deck=nextDeck;panel=nextPanel;seg=[n.id];
       continue;
     }
@@ -1212,8 +1234,30 @@ function svgV020(){
   const p=currentPanelV020(),s=loadShipnetV020(),nodes=panelNodesV020(),map=Object.fromEntries(s.nodes.map(n=>[n.id,n]));
   const testPairs=new Set();for(let i=0;i<shipnetTestPathV020.length-1;i++)testPairs.add([shipnetTestPathV020[i],shipnetTestPathV020[i+1]].sort().join('|'));
   const edges=s.edges.filter(visibleEdgeV020).map(e=>{const a=map[e.a],b=map[e.b],test=testPairs.has([e.a,e.b].sort().join('|'));return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" class="shipnet-edge ${e.kind==='destination'?'destination-spur':''} ${test?'test':''}"/>`}).join('');
+
+  // v0.28.3: render the calculated test path as panel-local runs. This keeps
+  // cross-deck stair/elevator edges out of the polyline while still making the
+  // first node on the new deck visible as the route entry point.
+  const routeRuns=[]; let run=[];
+  shipnetTestPathV020.forEach(id=>{
+    const n=map[id];
+    if(n&&String(n.deck)===String(shipnetDeckV020)&&n.panel===shipnetPanelV020){
+      run.push(n);
+    } else if(run.length){
+      routeRuns.push(run); run=[];
+    }
+  });
+  if(run.length)routeRuns.push(run);
+  const routeOverlay=routeRuns.filter(r=>r.length>=2).map(r=>`<polyline points="${r.map(n=>`${n.x},${n.y}`).join(' ')}" class="shipnet-test-polyline-v0283"/>`).join('');
+  const routeEntryMarkers=routeRuns.length?routeRuns.filter(r=>r.length).map((r,i)=>{
+    const n=r[0];
+    const label=(shipnetTestPathV020.indexOf(n.id)>0 && ['stairs','elevator'].includes(map[shipnetTestPathV020[shipnetTestPathV020.indexOf(n.id)-1]]?.type) && String(map[shipnetTestPathV020[shipnetTestPathV020.indexOf(n.id)-1]].deck)!==String(n.deck))
+      ? `<g class="shipnet-route-entry-v0283"><circle cx="${n.x}" cy="${n.y}" r="13"/><text x="${Math.min(n.x+18,p.w-160)}" y="${Math.max(18,n.y-14)}">ROUTE ENTERS DECK HERE</text></g>` : '';
+    return label;
+  }).join('') : '';
+
   const circles=nodes.map(n=>{const sel=n.id===shipnetSelectedV020,test=shipnetTestPathV020.includes(n.id);return `<g><circle cx="${n.x}" cy="${n.y}" r="${sel?10:test?9:7}" class="shipnet-node type-${n.type||'corridor'} ${sel?'selected':''} ${test?'test':''}"/>${(sel||['cabin','elevator','venue','landmark'].includes(n.type))&&n.label?`<g class="shipnet-label"><rect x="${Math.min(n.x+9,p.w-148)}" y="${Math.max(5,n.y-23)}" width="140" height="28" rx="7"/><text x="${Math.min(n.x+16,p.w-141)}" y="${Math.max(24,n.y-4)}">${esc(n.label)}</text></g>`:''}</g>`}).join('');
-  return `<svg class="shipnet-svg-v020" viewBox="0 0 ${p.w} ${p.h}" preserveAspectRatio="none">${edges}${circles}</svg>`;
+  return `<svg class="shipnet-svg-v020" viewBox="0 0 ${p.w} ${p.h}" preserveAspectRatio="none">${edges}${routeOverlay}${routeEntryMarkers}${circles}</svg>`;
 }
 function statsV020(){const s=loadShipnetV020(),deck=s.nodes.filter(n=>n.deck===shipnetDeckV020);return `${deck.length} deck nodes · ${s.nodes.length} ship nodes · ${s.edges.length} explicit connections`}
 function routeEndpointNodesV028(){
@@ -1628,7 +1672,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.28.2';
+const BUILD_VERSION = '0.28.3';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
