@@ -312,3 +312,5 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 .current-location-main small{display:block;color:#677381;font-size:9px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .current-location-change{border:1px solid #c7dff4;background:#eef7ff;color:#0071ce;border-radius:10px;padding:8px 9px;font-size:9px;font-weight:900;white-space:nowrap}
 @media(max-width:360px){.current-location-card{grid-template-columns:34px 1fr auto;gap:8px}.current-location-icon{width:34px;height:34px}.current-location-change{padding:7px 8px;font-size:8px}}
+
+.search-diagnostic-v02813{margin:8px 0 14px;padding:10px 12px;border:1px dashed #8fb9dd;background:#f5faff;border-radius:12px;color:#29465e;font-size:10px;line-height:1.45}.search-diagnostic-v02813 strong{display:block;color:#0071ce;letter-spacing:.08em;margin-bottom:4px}.search-diagnostic-v02813 b{font-weight:800}
