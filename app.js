@@ -300,14 +300,13 @@ function renderCategories(){el('categoryGrid').innerHTML=categories.map(c=>`<but
 function row(d){return `<button class="dest-row" data-dest="${d.id}"><span class="dest-icon">${d.icon}</span><span class="dest-main"><span class="dest-name">${d.name}${d.mustdo?' <b class="must-pill">MUST-DO</b>':''}</span><span class="dest-meta">Deck ${d.deck} · ${d.area}</span></span><span class="dest-arrow">›</span></button>`}
 function renderSearch(list, extra=''){el('destinationList').innerHTML=list.map(row).join('')+extra; el('destinationList').classList.toggle('hidden',list.length===0&&!extra)}
 
-function openCurrentLocationPickerV02810(){ openLocationPicker('from'); }
 function renderCurrentLocationHome(){
   const host=el('currentLocationHome');
   if(!host)return;
   const from=locationById(currentLocationId);
   if(!from)return;
   const isHome=from.id==='cabin7456';
-  host.innerHTML=`<div class="current-location-card"><div class="current-location-icon">${isHome?'⌂':'📍'}</div><div class="current-location-main"><div class="current-location-kicker">CURRENT LOCATION</div><strong>${esc(from.name)}</strong><small>Deck ${esc(from.mapDeck)} · ${esc(from.area)}${isHome?' · Your Home':''}</small></div><button type="button" class="current-location-change" id="changeCurrentLocationHome" aria-label="Change current location">Change</button></div>`;
+  host.innerHTML=`<div class="current-location-card"><div class="current-location-icon">${isHome?'⌂':'📍'}</div><div class="current-location-main"><div class="current-location-kicker">CURRENT LOCATION</div><strong>${esc(from.name)}</strong><small>Deck ${esc(from.mapDeck)} · ${esc(from.area)}${isHome?' · Your Home':''}</small></div><button type="button" class="current-location-change" id="changeCurrentLocationHome">Change</button></div>`;
   const b=el('changeCurrentLocationHome');
   if(b)b.onclick=()=>openLocationPicker('from');
 }
@@ -965,14 +964,6 @@ function renderGuidedRoute(){
   if(el('exportRouteDebugV0272'))el('exportRouteDebugV0272').onclick=downloadDebugV0272;
   if(el('confusedBtn'))el('confusedBtn').onclick=()=>showRecovery(d,idx);
 }
-function syncNavigableLocationsV02812(){
-  const seen=new Set(locations.map(x=>x.id));
-  destinations.forEach(d=>{
-    if(seen.has(d.id)) return;
-    seen.add(d.id);
-    locations.push({id:d.id,name:d.name,deck:String(d.mapDeck||d.deck||''),area:d.area||'',icon:d.icon||'📍',mapDeck:String(d.mapDeck||d.deck||''),mapNode:d.mapNode||null,keywords:d.keywords||''});
-  });
-}
 function openLocationPicker(mode){
   const current=mode==='from'?currentLocationId:guidedState.destId;
   el('overlayTitle').textContent=mode==='from'?'Where are you starting?':'Where do you want to go?';
@@ -990,7 +981,6 @@ function openLocationPicker(mode){
     if(d){document.body.classList.toggle('route-aft',/Aft/i.test(d.area));renderGuidedRoute();}
   };
 }
-
 function renderLocationChoices(list,current){return list.map(x=>`<button class="location-choice ${x.id===current?'selected':''}" data-location-choice="${x.id}"><span>${x.icon||'📍'}</span><span><strong>${esc(x.name)}</strong><small>Deck ${esc(x.mapDeck)} · ${esc(x.area)}</small></span>${x.id===current?'<b>✓</b>':''}</button>`).join('')||'<div class="empty-choice">No matching locations.</div>'}
 function showRecovery(d,idx){
   const landmarks=d.mapDeck==='15'?['AquaDome / AquaTheater','Royal Bay Pool','Windjammer Marketplace','Elevator lobby']:d.mapDeck==='16'?['Basecamp','Slide entrances','Lost Dunes / FlowRider','Elevator lobby']:d.mapDeck==='5'?['Royal Theater','The Pearl','Dining Room','Absolute Zero','Elevator lobby']:d.mapDeck==='8'?['Central Park','Park Café','Lou’s','Elevator lobby']:['Cabin-number signs','Elevator / stair lobby','Surfside','Another elevator / stair lobby'];
@@ -1838,7 +1828,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.28.12';
+const BUILD_VERSION = '0.28.13-dev1';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
@@ -1938,9 +1928,6 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', checkForUpdate);
 }
 window.openMapFor=openMapFor;
-window.openLocationPicker=openLocationPicker;
-window.openCurrentLocationPickerV02810=openCurrentLocationPickerV02810;
-window.syncNavigableLocationsV02812=syncNavigableLocationsV02812;
 
 /* Star Navigator v0.7 - interactive Explore + venue details */
 
@@ -2076,8 +2063,21 @@ function addMustDoV07(id){
   closeMap();
 }
 
+function syncLocationsFromDestinationsV02813(){
+  const seen=new Set();
+  const merged=[{id:'cabin7456',name:'Cabin 7456',deck:'7',area:'Forward / center',icon:'🏠',mapDeck:'7',mapNode:null,keywords:'cabin 7456 home'}];
+  locations.forEach(x=>{ if(x.id!=='cabin7456'&&!seen.has(x.id)){ seen.add(x.id); merged.push(x); } });
+  destinations.forEach(d=>{
+    if(seen.has(d.id))return;
+    seen.add(d.id);
+    merged.push({id:d.id,name:d.name,deck:String(d.mapDeck||d.deck||''),area:d.area||'',icon:d.icon||'📍',mapDeck:String(d.mapDeck||d.deck||''),mapNode:d.mapNode||null,keywords:d.keywords||''});
+  });
+  locations.length=0;
+  merged.forEach(x=>locations.push(x));
+}
+
 addExploreDestinations();
-syncNavigableLocationsV02812();
+syncLocationsFromDestinationsV02813();
 renderDeckCardsV07();
 
 document.addEventListener('click',e=>{
