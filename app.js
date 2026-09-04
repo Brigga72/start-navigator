@@ -1684,7 +1684,16 @@ function updateHomeSearchDiagnosticV02813(){
   box.innerHTML=`<strong>DEV DIAGNOSTIC · HOME SEARCH</strong><div>Query: <b>${esc(q)}</b></div><div>destinations: <b>${typeof destinations!=='undefined'?destinations.length:'unavailable'}</b> · exploreVenues: <b>${exCount}</b> · locations: <b>${typeof locations!=='undefined'?locations.length:'unavailable'}</b></div><div>Sorrento's in destinations: <b>${dS?'YES':'NO'}</b> · in locations: <b>${lS?'YES':'NO'}</b></div><div>Park Café in destinations: <b>${dP?'YES':'NO'}</b> · in locations: <b>${lP?'YES':'NO'}</b></div><div>Search matches: <b>${matches.length}</b>${matches.length?` · ${matches.slice(0,8).map(d=>esc(d.name)).join(' | ')}`:''}</div>`;
   box.hidden=false;
 }
-el('searchInput').addEventListener('input',e=>{const q=e.target.value.toLowerCase().trim();if(!q){renderSearch([]);updateHomeSearchDiagnosticV02813();return}renderSearch(destinations.filter(d=>(d.name+' '+d.area+' '+d.keywords).toLowerCase().includes(q)));updateHomeSearchDiagnosticV02813();});
+function runHomeSearchV02818(input){
+  const q=String(input?.value||'').toLowerCase().trim();
+  if(!q){renderSearch([]);updateHomeSearchDiagnosticV02813();return;}
+  renderSearch(destinations.filter(d=>(d.name+' '+d.area+' '+d.keywords).toLowerCase().includes(q)));
+  updateHomeSearchDiagnosticV02813();
+}
+// Bind at the document level so the Home search keeps working even if the input
+// element is ever replaced by another render pass. Capture also handles iPhone/Safari input reliably.
+document.addEventListener('input',e=>{if(e.target&&e.target.id==='searchInput')runHomeSearchV02818(e.target);},true);
+document.addEventListener('search',e=>{if(e.target&&e.target.id==='searchInput')runHomeSearchV02818(e.target);},true);
 function renderHomeRoute(){
   const from=locationById(currentLocationId);
   const r=window.__homeRoute;
