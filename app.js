@@ -866,6 +866,7 @@ const STAIR_LINKS_V023=[
 const SHIPNET_SEED_V020={"version":2,"nodes":[{"id":"n_cabin7456","x":214,"y":397,"type":"cabin","label":"Cabin 7456","deck":"7","panel":"main"},{"id":"n_cross_port","x":119,"y":408,"type":"junction","label":"Cross corridor","deck":"7","panel":"main"},{"id":"n_port_corridor","x":119,"y":691,"type":"junction","label":"Port corridor","deck":"7","panel":"main"},{"id":"n_forward_lobby","x":229,"y":697,"type":"elevator","label":"Forward elevators","deck":"7","panel":"main","verticalGroup":"forward"}],"edges":[{"a":"n_cabin7456","b":"n_cross_port"},{"a":"n_cross_port","b":"n_port_corridor"},{"a":"n_port_corridor","b":"n_forward_lobby"}]};
 let shipnetStateV020=null,shipnetDeckV020='7',shipnetPanelV020='main',shipnetModeV020='select';
 let shipnetSelectedV020=null,shipnetPathLastV020=null,shipnetConnectFirstV020=null,shipnetTestPathV020=[];
+let shipnetWeightedTestV028=null;
 let shipnetUndoV021=[];
 let shipnetTransportTypeV022='elevator';
 let shipnetTransportGroupV022='forward';
@@ -930,6 +931,7 @@ function loadBundledNetworkV0281(){
   shipnetConnectFirstV020=null;
   shipnetStairFirstV024=null;
   shipnetTestPathV020=[];
+  shipnetWeightedTestV028=null;
   saveShipnetV020();
   localStorage.setItem('cruise-nav-ship-walknet-source-v0281','bundled-verified');
   return {bundled:shipNetworkStatsV0281(bundled),previous:shipNetworkStatsV0281(local),backed};
@@ -954,6 +956,7 @@ function clearCurrentDeckV021(){
   shipnetPathLastV020=null;
   shipnetConnectFirstV020=null;
   shipnetTestPathV020=[];
+  shipnetWeightedTestV028=null;
   saveShipnetV020();
 }
 function nearestEdgeV022(x,y,max=22){
@@ -1136,6 +1139,74 @@ function findPathV020(start,end){
   while(q.length){const u=q.shift();if(u===end)break;(a[u]||[]).forEach(v=>{if(!(v in prev)){prev[v]=u;q.push(v)}})}
   if(!(end in prev))return[];const p=[];for(let c=end;c;c=prev[c])p.push(c);return p.reverse();
 }
+
+/* v0.28.2 weighted routing prototype
+   Keep this beside the existing BFS router so route behavior can be compared
+   before production navigation is switched over. Walking edges use map geometry;
+   stairs/elevators receive explicit transition penalties. */
+const ROUTE_WEIGHTS_V028={stairsPenalty:140,elevatorPenalty:180,panelPenalty:30,destinationPenalty:2};
+function routeEdgeCostV028(e,a,b){
+  const kind=e.kind||'walk';
+  if(kind==='elevator') return ROUTE_WEIGHTS_V028.elevatorPenalty + Math.abs(Number(a.deck)-Number(b.deck))*8;
+  if(kind==='stairs') return ROUTE_WEIGHTS_V028.stairsPenalty + Math.hypot((a.x||0)-(b.x||0),(a.y||0)-(b.y||0));
+  if(a.deck===b.deck && a.panel===b.panel) return Math.hypot((a.x||0)-(b.x||0),(a.y||0)-(b.y||0));
+  if(kind==='panel_link' || a.panel!==b.panel) return ROUTE_WEIGHTS_V028.panelPenalty;
+  if(kind==='destination') return ROUTE_WEIGHTS_V028.destinationPenalty;
+  return Math.hypot((a.x||0)-(b.x||0),(a.y||0)-(b.y||0));
+}
+function weightedGraphV028(state){
+  const nodes=state.nodes||[],edges=state.edges||[],by=Object.fromEntries(nodes.map(n=>[n.id,n])),adj={};
+  nodes.forEach(n=>adj[n.id]=[]);
+  edges.forEach(e=>{
+    const a=by[e.a],b=by[e.b]; if(!a||!b)return;
+    const cost=routeEdgeCostV028(e,a,b);
+    adj[e.a].push({id:e.b,kind:e.kind||'walk',cost});
+    adj[e.b].push({id:e.a,kind:e.kind||'walk',cost});
+  });
+  const groups={};
+  nodes.filter(n=>n.type==='elevator'&&n.verticalGroup).forEach(n=>(groups[n.verticalGroup]??=[]).push(n));
+  Object.values(groups).forEach(group=>{
+    for(let i=0;i<group.length;i++) for(let j=i+1;j<group.length;j++){
+      const a=group[i],b=group[j];
+      if(a.deck===b.deck)continue;
+      const cost=ROUTE_WEIGHTS_V028.elevatorPenalty + Math.abs(Number(a.deck)-Number(b.deck))*8;
+      adj[a.id].push({id:b.id,kind:'elevator',cost});
+      adj[b.id].push({id:a.id,kind:'elevator',cost});
+    }
+  });
+  return {adj,by};
+}
+function findWeightedPathV028(start,end,state=loadShipnetV020()){
+  if(!start||!end)return null;
+  const {adj,by}=weightedGraphV028(state);
+  const dist={},prev={},edgeKind={},unvisited=new Set(Object.keys(adj));
+  Object.keys(adj).forEach(id=>dist[id]=Infinity);
+  dist[start]=0; prev[start]=null;
+  while(unvisited.size){
+    let u=null,best=Infinity;
+    for(const id of unvisited){if(dist[id]<best){best=dist[id];u=id;}}
+    if(u===null||best===Infinity)break;
+    unvisited.delete(u);
+    if(u===end)break;
+    for(const e of (adj[u]||[])){
+      if(!unvisited.has(e.id))continue;
+      const nd=dist[u]+e.cost;
+      if(nd<dist[e.id]){dist[e.id]=nd;prev[e.id]=u;edgeKind[e.id]=e.kind;}
+    }
+  }
+  if(!(end in prev))return null;
+  const ids=[];const kinds=[];
+  for(let cur=end;cur!==null;cur=prev[cur]){ids.push(cur);if(cur!==start)kinds.push(edgeKind[cur]||'walk');}
+  ids.reverse();kinds.reverse();
+  const distance=ids.slice(1).reduce((sum,id)=>{const a=by[prev[id]],b=by[id];return sum+(a&&b?Math.hypot((a.x||0)-(b.x||0),(a.y||0)-(b.y||0)):0)},0);
+  return {ids,kinds,cost:dist[end],distance};
+}
+function compareRoutesV028(bfsPath,weightedPath){
+  if(!weightedPath)return {status:'no-path',text:'Weighted router could not find a path.'};
+  if(!bfsPath.length)return {status:'weighted-only',text:`Weighted router found ${weightedPath.ids.length} nodes where BFS found no path.`};
+  const same=bfsPath.length===weightedPath.ids.length && bfsPath.every((id,i)=>id===weightedPath.ids[i]);
+  return same ? {status:'same',text:`Both routers selected the same ${weightedPath.ids.length}-node path.`} : {status:'different',text:`Weighted router selected ${weightedPath.ids.length} nodes vs BFS ${bfsPath.length}.`};
+}
 function visibleEdgeV020(e){const a=nodeV020(e.a),b=nodeV020(e.b);return a&&b&&a.deck===shipnetDeckV020&&b.deck===shipnetDeckV020&&a.panel===shipnetPanelV020&&b.panel===shipnetPanelV020}
 function svgV020(){
   const p=currentPanelV020(),s=loadShipnetV020(),nodes=panelNodesV020(),map=Object.fromEntries(s.nodes.map(n=>[n.id,n]));
@@ -1225,8 +1296,8 @@ function renderShipNetworkV020(){
     <section class="shipnet-panel"><h3>Ship-wide Route Test</h3>
       <label>From<select id="shipnetFrom"><option value="">Choose current place…</option>${routeEndpoints.map(nodeOptionV028).join('')}</select></label>
       <label>To<select id="shipnetTo"><option value="">Choose destination…</option>${routeEndpoints.map(nodeOptionV028).join('')}</select></label>
-      <button id="shipnetTest" class="primary-action">Calculate network path</button>
-      <div class="shipnet-test">${shipnetTestPathV020.length?`${shipnetTestPathV020.length} nodes in route. Open each involved deck/panel to inspect the highlighted segment.`:'No route test selected.'}</div>
+      <button id="shipnetTest" class="primary-action">Compare BFS vs Weighted</button>
+      <div class="shipnet-test">${shipnetWeightedTestV028?`<strong>${esc(shipnetWeightedTestV028.comparison.text)}</strong><br><span>BFS: ${shipnetWeightedTestV028.bfsLength} nodes · Weighted cost: ${shipnetWeightedTestV028.weightedCost.toFixed(1)} · Weighted: ${shipnetWeightedTestV028.weightedLength} nodes</span><br><small>Weighted path is highlighted on the map. The production navigator still uses the existing engine.</small>`:(shipnetTestPathV020.length?`${shipnetTestPathV020.length} nodes in route.`:'No route test selected.')}</div>
     </section>
   </div>
   <section class="shipnet-panel"><h3>Ship Network Data</h3><p>All decks save into one local ship-network database. Elevators connect automatically by elevator bank. Stair connections are explicit deck-to-deck links so routing cannot skip decks that a staircase does not serve.</p>
@@ -1326,7 +1397,14 @@ function bindShipnetV020(){
     saveShipnetV020();renderShipNetworkV020()
   };
   if(el('shipnetDeleteNode'))el('shipnetDeleteNode').onclick=()=>{if(confirm('Delete this network point and its connections?')){deleteNodeV020(shipnetSelectedV020);renderShipNetworkV020()}};
-  el('shipnetTest').onclick=()=>{shipnetTestPathV020=findPathV020(el('shipnetFrom').value,el('shipnetTo').value);renderShipNetworkV020()};
+  el('shipnetTest').onclick=()=>{
+    const from=el('shipnetFrom').value,to=el('shipnetTo').value,state=loadShipnetV020();
+    if(!from||!to){shipnetWeightedTestV028=null;shipnetTestPathV020=[];renderShipNetworkV020();return;}
+    const bfs=findPathV020(from,to),weighted=findWeightedPathV028(from,to,state);
+    shipnetTestPathV020=weighted?weighted.ids:bfs;
+    shipnetWeightedTestV028={bfsLength:bfs.length,weightedLength:weighted?weighted.ids.length:0,weightedCost:weighted?weighted.cost:Infinity,comparison:compareRoutesV028(bfs,weighted)};
+    renderShipNetworkV020();
+  };
   el('shipnetExportDeck').onclick=()=>{const s=loadShipnetV020(),ids=new Set(s.nodes.filter(n=>n.deck===shipnetDeckV020).map(n=>n.id));exportJsonV020({version:4,deck:shipnetDeckV020,nodes:s.nodes.filter(n=>ids.has(n.id)),edges:s.edges.filter(e=>ids.has(e.a)&&ids.has(e.b)),verticalEdges:s.edges.filter(e=>e.kind==='stairs'&&(ids.has(e.a)||ids.has(e.b)))},`cruise-navigator-deck${shipnetDeckV020}-walking-network.json`)};
   el('shipnetExportShip').onclick=()=>exportJsonV020(loadShipnetV020(),'cruise-navigator-ship-walking-network.json');
   el('shipnetImport').onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.nodes)||!Array.isArray(d.edges))throw Error();if(d.deck){
@@ -1338,7 +1416,7 @@ function bindShipnetV020(){
           shipnetStateV020=s
         }else shipnetStateV020=d;saveShipnetV020();applyStairLinksV023();renderShipNetworkV020()}catch(_){alert('Could not import that network JSON.')}};r.readAsText(f)};
   el('shipnetClearDeck').onclick=()=>{if(confirm(`Clear every mapped point and path from Deck ${shipnetDeckV020}? Other decks will not be changed.`)){clearCurrentDeckV021();renderShipNetworkV020()}};
-  el('shipnetReset').onclick=()=>{if(confirm('Reset the entire ship-network editor to the verified Deck 7 seed? This affects all mapped decks.')){pushUndoV021();shipnetStateV020=cloneV020(SHIPNET_SEED_V020);saveShipnetV020();shipnetSelectedV020=null;shipnetTestPathV020=[];renderShipNetworkV020()}};
+  el('shipnetReset').onclick=()=>{if(confirm('Reset the entire ship-network editor to the verified Deck 7 seed? This affects all mapped decks.')){pushUndoV021();shipnetStateV020=cloneV020(SHIPNET_SEED_V020);saveShipnetV020();shipnetSelectedV020=null;shipnetTestPathV020=[];shipnetWeightedTestV028=null;renderShipNetworkV020()}};
 }
 
 try{applyStairLinksV023()}catch(err){console.error('Stair-link migration skipped:',err)}
@@ -1550,7 +1628,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.28.1';
+const BUILD_VERSION = '0.28.2';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
