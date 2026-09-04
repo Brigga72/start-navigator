@@ -293,5 +293,10 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 .shipnet-route-entry-v0283 text{paint-order:stroke;stroke:#102f5f;stroke-width:4px;stroke-linejoin:round}
 
 
+
+/* v0.28.5 production routing preference */
+.route-profile-control{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid #cfe1ef;background:#f7fbff;border-radius:15px;padding:10px 11px;margin:8px 0 12px}.route-profile-control label{display:grid;gap:5px}.route-profile-control label span{font-size:8px;font-weight:950;letter-spacing:.7px;color:var(--blue)}.route-profile-control select{width:100%;border:1px solid #d7e0e7;background:#fff;border-radius:11px;padding:9px 10px;font-size:11px;color:#172b3d}.route-profile-control small{font-size:8.5px;line-height:1.35;color:#526675}
+@media(max-width:360px){.route-profile-control{grid-template-columns:1fr}.route-profile-control small{display:block}}
+
 /* v0.28.4 routing profiles */
 .shipnet-profile-help{font-size:.74rem;line-height:1.4;color:#526170;background:#f7f9fc;border:1px solid #d9e2eb;border-radius:9px;padding:8px 9px;margin:6px 0 10px}

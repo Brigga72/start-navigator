@@ -743,9 +743,132 @@ function guidedGraphMapV018(idx){
   if(!s)return null;
   return `<div class="guided-map-label">${s.label}</div>${navMapPanelV018(s.map,s.nodes,{focusId:s.focus})}`;
 }
+
+/* v0.28.5 production weighted routing
+   The verified ship graph is now the production routing source. The existing
+   v0.28.4 profiles are reused so the same preference selected in the editor
+   can drive real Take Me There navigation. */
+const PROD_ROUTE_ALIASES_V0285={
+  sorrentos:"Sorrento's",
+  parkcafe:'Park Cafe',
+  chops:'Chops Grille',
+  pearl:'The Pearl',
+  royalpromenade:'Royal Promenade',
+  centralpark:'Central Park',
+  aotheater:'AO Theater',
+  basecamp:'Basecamp'
+};
+function productionRouteProfileV0285(){
+  const p=localStorage.getItem('cruise-nav-route-profile-v0284')||shipnetRouteProfileV0284||'balanced';
+  return ROUTE_PROFILES_V0284[p]?p:'balanced';
+}
+function prodNodeByLocationV0285(loc){
+  if(!loc)return null;
+  const alias=PROD_ROUTE_ALIASES_V0285[loc.id];
+  const wanted=alias||PROD_DEST_ALIASES_V026[loc.id]||loc.name||'';
+  const wn=normV026(wanted);
+  let n=VERIFIED_SHIPNET_V026.nodes.find(x=>['venue','landmark','cabin'].includes(x.type)&&normV026(x.label)===wn);
+  if(n)return n;
+  // Useful fallbacks for names such as "Sorrento's Pizza" -> "Sorrento's".
+  n=VERIFIED_SHIPNET_V026.nodes.find(x=>['venue','landmark','cabin'].includes(x.type)&&(
+    normV026(x.label).includes(wn)||wn.includes(normV026(x.label))
+  ));
+  return n||null;
+}
+function prodRouteV0285(fromId,d){
+  const from=locationById(fromId);
+  const profileKey=productionRouteProfileV0285();
+  const start=prodNodeByLocationV0285(from);
+  const end=prodNodeByLocationV0285(d);
+  debugResetV0272({fromId,toId:d&&d.id,toName:d&&d.name,engine:'weighted-production-v0285',profile:profileKey});
+
+  // Basecamp is still only partially mapped, so route to the end of the verified
+  // Deck 16 Forward coverage and then switch to orientation/signage guidance.
+  let weightedEnd=end;
+  let hybridBasecamp=false;
+  if(!weightedEnd&&d&&d.id==='basecamp'){
+    weightedEnd=VERIFIED_SHIPNET_V026.nodes
+      .filter(n=>String(n.deck)==='16'&&n.panel==='forward'&&!isDestinationTypeV025(n.type))
+      .sort((a,b)=>b.y-a.y)[0]||null;
+    hybridBasecamp=!!weightedEnd;
+  }
+
+  debugPushV0272('production_weighted_match',{
+    profile:profileKey,
+    start:start?{id:start.id,label:start.label,deck:start.deck,panel:start.panel}:null,
+    end:weightedEnd?{id:weightedEnd.id,label:weightedEnd.label,deck:weightedEnd.deck,panel:weightedEnd.panel}:null,
+    hybridBasecamp
+  });
+  if(!start||!weightedEnd){debugPushV0272('production_weighted_abort',{reason:'missing graph endpoint'});return null;}
+
+  const p=findWeightedPathV0284(start.id,weightedEnd.id,VERIFIED_SHIPNET_V026,profileKey);
+  if(!p){debugPushV0272('production_weighted_no_path',{profile:profileKey,start:start.id,end:weightedEnd.id});return null;}
+
+  const by=Object.fromEntries(VERIFIED_SHIPNET_V026.nodes.map(n=>[n.id,n]));
+  const steps=[];
+  let seg=[p.ids[0]],deck=String(by[p.ids[0]].deck),panel=by[p.ids[0]].panel;
+  const flush=()=>{
+    if(seg.length<2)return;
+    const first=by[seg[0]],last=by[seg[seg.length-1]];
+    steps.push(routeStep('walk',`Follow the highlighted verified walking path on Deck ${deck}.`,'verified',deck,
+      {v026:{ids:[...seg],deck,panel:panel||first.panel||last.panel},routing:{engine:'weighted',profile:profileKey,cost:p.cost,distance:p.distance}}));
+    debugPushV0272('production_step_created',{kind:'walk',deck,panel,ids:[...seg]});
+  };
+
+  for(let i=1;i<p.ids.length;i++){
+    const kind=p.kinds[i-1],n=by[p.ids[i]],prev=by[p.ids[i-1]];
+    const nextDeck=String(n.deck),nextPanel=n.panel;
+
+    if((kind==='elevator'||kind==='stairs')&&nextDeck!==String(prev.deck)){
+      flush();seg=[];
+      const transitionKind=kind==='stairs'?'stairs':'elevator';
+      const transitionLabel=transitionKind==='stairs'
+        ? `Take the stairs from Deck ${prev.deck} to Deck ${n.deck}.`
+        : `Take ${prev.label||n.label||'the elevator'} from Deck ${prev.deck} to Deck ${n.deck}.`;
+      const transitionText=transitionLabel+` Confirm Deck ${n.deck} before continuing.`;
+      steps.push(routeStep(transitionKind,transitionText,'verified',nextDeck,
+        {v026:{ids:[prev.id,n.id],deck:nextDeck,panel:nextPanel,kind:transitionKind},routing:{engine:'weighted',profile:profileKey,cost:p.cost,distance:p.distance}}));
+      debugPushV0272('production_step_created',{kind:transitionKind,from:prev.id,to:n.id,fromDeck:String(prev.deck),toDeck:nextDeck});
+      deck=nextDeck;panel=nextPanel;seg=[n.id];
+      continue;
+    }
+
+    if(nextDeck!==String(prev.deck)){
+      flush();seg=[];
+      steps.push(routeStep('orient',`Continue from Deck ${prev.deck} to Deck ${n.deck} using the mapped ship connection. Confirm Deck ${n.deck} before continuing.`,'verified',nextDeck,
+        {v026:{ids:[prev.id,n.id],deck:nextDeck,panel:nextPanel,kind:'deck-transition'},routing:{engine:'weighted',profile:profileKey,cost:p.cost,distance:p.distance}}));
+      deck=nextDeck;panel=nextPanel;seg=[n.id];
+      continue;
+    }
+
+    if(nextDeck===deck&&nextPanel!==panel){
+      flush();
+      steps.push(routeStep('orient',`Continue on Deck ${deck} into the next mapped section.`,'verified',deck,
+        {v026:{ids:[prev.id],deck,panel,kind:'panel-transition'},routing:{engine:'weighted',profile:profileKey,cost:p.cost,distance:p.distance}}));
+      panel=nextPanel;seg=[n.id];
+      continue;
+    }
+    if(!seg.length)seg=[p.ids[i-1]];
+    seg.push(n.id);deck=nextDeck;panel=nextPanel;
+  }
+  flush();
+
+  if(hybridBasecamp){
+    steps.push(routeStep('orient',`Verified map coverage ends near Crown's Edge. From here, continue into Thrill Island and follow posted signs toward Adrenaline Peak and Basecamp. The app will not draw an exact line through this unmapped section.`,'orientation','16',
+      {routing:{engine:'weighted',profile:profileKey,cost:p.cost,distance:p.distance}}));
+    steps.push(routeStep('arrive',`Continue following Basecamp signage on Deck 16 until you reach Basecamp. This final approach is signage guidance, not a verified corridor trace.`,'signage','16',
+      {routing:{engine:'weighted',profile:profileKey,cost:p.cost,distance:p.distance}}));
+  }else{
+    steps.push(routeStep('arrive',`Arrive at ${d.name}.`,'verified',weightedEnd.deck,
+      {v026:{ids:[weightedEnd.id],deck:String(weightedEnd.deck),panel:weightedEnd.panel,kind:'arrive'},routing:{engine:'weighted',profile:profileKey,cost:p.cost,distance:p.distance}}));
+  }
+  debugPushV0272('production_weighted_complete',{profile:profileKey,ids:p.ids,kinds:p.kinds,cost:p.cost,distance:p.distance,steps:steps.length});
+  return steps;
+}
+
 function routeFor(fromId,toId){
   const from=locationById(fromId); const to=destinations.find(x=>x.id===toId); if(!to)return [];
-  const prod=prodRouteV026(fromId,to);if(prod)return prod;
+  const prod=prodRouteV0285(fromId,to);if(prod)return prod;
 
   // Legacy v0.18 Cabin 7456 to Basecamp route intentionally retired in v0.26.1.
   const sameDeck=String(from.mapDeck)===String(to.mapDeck);
@@ -778,11 +901,12 @@ function guidedMapFor(d,idx){
   const confidence=stepConfidenceV027(step);
 
   if(confidence.level==='verified'){
-    if(step.kind==='elevator'){
+    if(step.kind==='elevator'||step.kind==='stairs'){
       const fromDeck=idx>0?String(d.route[idx-1].deck||from.mapDeck):String(from.mapDeck);
       const toDeck=String(step.deck||d.mapDeck);
       const direction=Number(toDeck.match(/\d+/)?.[0]||0)>=Number(fromDeck.match(/\d+/)?.[0]||0)?'↑':'↓';
-      return `<div class="deck-change-card"><div class="deck-change-icon">🛗</div><div class="deck-from">DECK ${esc(fromDeck)}</div><div class="deck-arrow">${direction}</div><div class="deck-to">DECK ${esc(toDeck)}</div><small>Use ship signage to confirm the deck before exiting.</small></div>`;
+      const isStairs=step.kind==='stairs';
+      return `<div class="deck-change-card"><div class="deck-change-icon">${isStairs?'🪜':'🛗'}</div><div class="deck-from">DECK ${esc(fromDeck)}</div><div class="deck-arrow">${direction}</div><div class="deck-to">DECK ${esc(toDeck)}</div><small>${isStairs?'Use the stairs and confirm the destination deck before continuing.':'Use the elevator and confirm the destination deck before exiting.'}</small></div>`;
     }
     const map=prodMapPanelV026(step);
     if(map)return map;
@@ -795,14 +919,14 @@ function renderGuidedRoute(){
   const d=destinations.find(x=>x.id===guidedState.destId);if(!d)return;
   d.route=routeFor(currentLocationId,d.id);
   const idx=Math.max(0,Math.min(guidedState.step,d.route.length-1)); const s=d.route[idx];
-  const type=s.kind==='elevator'?'DECK CHANGE':s.kind==='arrive'?'ARRIVE':s.kind==='orient'?'ORIENT':'WALK';
+  const type=s.kind==='elevator'?'ELEVATOR':s.kind==='stairs'?'STAIRS':s.kind==='arrive'?'ARRIVE':s.kind==='orient'?'ORIENT':'WALK';
   const pct=Math.round(((idx+1)/d.route.length)*100);
   const from=locationById(currentLocationId);
   const nearby=d.id==='aquadome'||d.id==='torque'?`<div class="nearby-card"><div class="confidence">WHILE YOU'RE HERE</div><h3>Nearby in AquaDome</h3><div class="nearby-chips"><span>💎 The Overlook</span><span>☕ Rye & Bean</span><span>🍴 AquaDome Market</span></div></div>`:d.id==='basecamp'?`<div class="nearby-card"><div class="confidence">WHILE YOU'RE HERE</div><h3>Nearby in Thrill Island</h3><div class="nearby-chips"><span>🧗 Adrenaline Peak</span><span>⛳ Lost Dunes</span><span>🏄 FlowRider</span></div></div>`:'';
   const progressText=`STEP ${idx+1} OF ${d.route.length}`;
   const accuracy=routeAccuracyMeta(s.accuracy);
   let routeSummary=routeAccuracySummary(d.route);routeSummary=tripConfidenceV027(d.route);
-  el('routeContent').innerHTML=`<div class="route-accuracy ${esc(routeSummary.level)}"><div><span>${esc(routeSummary.label)}</span><strong>${esc(routeSummary.text)}</strong></div><button class="accuracy-help" id="accuracyHelp" aria-label="Navigation accuracy information">?</button></div><div class="location-picker"><button class="location-field" id="fromLocationBtn"><span>📍 FROM</span><strong>${esc(from.name)}</strong><small>Deck ${esc(from.mapDeck)} · change</small></button><div class="location-arrow">→</div><button class="location-field" id="toLocationBtn"><span>🎯 TO</span><strong>${esc(d.name)}</strong><small>Deck ${esc(d.mapDeck)}</small></button></div><div class="guided-top"><button class="back-btn" onclick="navigate('home')">‹ Exit</button><div class="guided-progress"><span>${progressText}</span><div><i style="width:${pct}%"></i></div></div></div><div class="route-hero guided-hero"><div class="eyebrow">${esc(routeAreaLabel(currentLocationId,d))}</div><h2>${type}</h2><div class="route-tag">Deck ${esc(s.deck||d.mapDeck)} · ${esc(d.area)}</div><div class="prod-confidence-v026 ${esc(stepConfidenceV027(s).level)}">${esc(stepConfidenceV027(s).label)}</div></div><div class="guided-map">${guidedMapFor(d,idx)}</div><div class="instruction-card"><div class="step-num big">${idx+1}</div><div><div class="step-type">${type} <span class="step-accuracy ${esc(stepConfidenceV027(s).level)}">${esc(stepConfidenceV027(s).label)}</span></div><div class="instruction-text">${esc(s.text)}</div></div></div>${idx===d.route.length-1?nearby:''}<div class="route-debug-v0272">
+  el('routeContent').innerHTML=`<div class="route-accuracy ${esc(routeSummary.level)}"><div><span>${esc(routeSummary.label)}</span><strong>${esc(routeSummary.text)}</strong></div><button class="accuracy-help" id="accuracyHelp" aria-label="Navigation accuracy information">?</button></div><div class="location-picker"><button class="location-field" id="fromLocationBtn"><span>📍 FROM</span><strong>${esc(from.name)}</strong><small>Deck ${esc(from.mapDeck)} · change</small></button><div class="location-arrow">→</div><button class="location-field" id="toLocationBtn"><span>🎯 TO</span><strong>${esc(d.name)}</strong><small>Deck ${esc(d.mapDeck)}</small></button></div><div class="route-profile-control"><label><span>ROUTING PREFERENCE</span><select id="routeProfileSelect">${Object.entries(ROUTE_PROFILES_V0284).map(([k,v])=>`<option value="${k}" ${k===productionRouteProfileV0285()?'selected':''}>${v.label}</option>`).join('')}</select></label><small>${esc((ROUTE_PROFILES_V0284[productionRouteProfileV0285()]||ROUTE_PROFILES_V0284.balanced).desc)}</small></div><div class="guided-top"><button class="back-btn" onclick="navigate('home')">‹ Exit</button><div class="guided-progress"><span>${progressText}</span><div><i style="width:${pct}%"></i></div></div></div><div class="route-hero guided-hero"><div class="eyebrow">${esc(routeAreaLabel(currentLocationId,d))}</div><h2>${type}</h2><div class="route-tag">Deck ${esc(s.deck||d.mapDeck)} · ${esc(d.area)}</div><div class="prod-confidence-v026 ${esc(stepConfidenceV027(s).level)}">${esc(stepConfidenceV027(s).label)}</div></div><div class="guided-map">${guidedMapFor(d,idx)}</div><div class="instruction-card"><div class="step-num big">${idx+1}</div><div><div class="step-type">${type} <span class="step-accuracy ${esc(stepConfidenceV027(s).level)}">${esc(stepConfidenceV027(s).label)}</span></div><div class="instruction-text">${esc(s.text)}</div></div></div>${idx===d.route.length-1?nearby:''}<div class="route-debug-v0272">
   <details>
     <summary>Route Debug</summary>
     <div class="route-debug-actions-v0272">
@@ -816,6 +940,12 @@ function renderGuidedRoute(){
   el('accuracyHelp').onclick=()=>{el('overlayTitle').textContent='Navigation accuracy';el('overlayMap').innerHTML=`<div class="accuracy-sheet"><h3>How Cruise Navigator treats route accuracy</h3><p><b>Verified</b> means this step is backed by the mapped walking graph or a verified deck transition. Exact route lines are shown only when graph geometry exists.</p><p><b>Orientation</b> means the app can guide you to the correct deck or area, but it does not have continuous verified walking geometry for that segment.</p><p><b>Signage</b> means Navigator intentionally stops short of inventing a turn. Use posted ship signs for that segment.</p><div class="recovery-tip"><strong>Navigation rule:</strong> show exactly what is mapped. Never draw an exact route through geometry that has not been verified.</div></div>`;el('mapOverlay').classList.add('show');el('mapOverlay').setAttribute('aria-hidden','false');};
   el('fromLocationBtn').onclick=()=>openLocationPicker('from');
   el('toLocationBtn').onclick=()=>openLocationPicker('to');
+  if(el('routeProfileSelect'))el('routeProfileSelect').onchange=e=>{
+    shipnetRouteProfileV0284=ROUTE_PROFILES_V0284[e.target.value]?e.target.value:'balanced';
+    localStorage.setItem('cruise-nav-route-profile-v0284',shipnetRouteProfileV0284);
+    guidedState.step=0;
+    renderGuidedRoute();
+  };
   if(el('nextGuide'))el('nextGuide').onclick=()=>{guidedState.step++;renderGuidedRoute()};
   if(el('prevGuide'))el('prevGuide').onclick=()=>{guidedState.step--;renderGuidedRoute()};
   if(el('finishGuide'))el('finishGuide').onclick=()=>navigate('home');
@@ -1687,7 +1817,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.28.4';
+const BUILD_VERSION = '0.28.5';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
