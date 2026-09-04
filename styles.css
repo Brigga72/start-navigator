@@ -310,5 +310,5 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 .current-location-kicker{font-size:8px;font-weight:950;letter-spacing:.7px;color:#0071ce}
 .current-location-main strong{display:block;font-size:13px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .current-location-main small{display:block;color:#677381;font-size:9px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.current-location-change{border:1px solid #c7dff4;background:#eef7ff;color:#0071ce;border-radius:10px;padding:8px 9px;font-size:9px;font-weight:900;white-space:nowrap}
+.current-location-change{position:relative;z-index:2;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;border:1px solid #c7dff4;background:#eef7ff;color:#0071ce;border-radius:10px;padding:8px 9px;font-size:9px;font-weight:900;white-space:nowrap}
 @media(max-width:360px){.current-location-card{grid-template-columns:34px 1fr auto;gap:8px}.current-location-icon{width:34px;height:34px}.current-location-change{padding:7px 8px;font-size:8px}}
