@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Cruise Navigator">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=02816">
+  <link rel="stylesheet" href="styles.css?v=02820">
   <title>Cruise Navigator</title>
 </head>
 <body>
@@ -17,7 +17,7 @@
     <header class="topbar">
       <div>
         <div class="eyebrow">ROYAL CARIBBEAN</div>
-        <h1>Cruise Navigator <span>v0.28.13-dev1</span></h1>
+        <h1>Cruise Navigator <span>v0.28.13-dev10</span></h1>
         <p class="sub">Star of the Seas · Home: Cabin 7456</p>
       </div>
       <button id="infoBtn" class="icon-btn" aria-label="About">i</button>
@@ -46,12 +46,13 @@
         <input id="searchInput" type="search" placeholder="Search dining, shows, pools..." autocomplete="off">
       </div>
 
+      <div id="destinationList" class="destination-list hidden"></div>
+      <div id="searchDiagnosticV02813" class="search-diagnostic-v02813" hidden aria-live="polite"></div>
+
       <div id="schedulePreview" class="schedule-preview"></div>
       <div id="drinkHome" class="drink-home"></div>
       <div id="happeningHome" class="happening-home"></div>
       <div id="categoryGrid" class="category-grid"></div>
-      <div id="destinationList" class="destination-list hidden"></div>
-      <div id="searchDiagnosticV02813" class="search-diagnostic-v02813" hidden aria-live="polite"></div>
 
       <div class="feature-grid">
         <button class="feature-card drink-feature" data-view="drinks">
@@ -162,6 +163,6 @@
       <button class="tab" data-view="learn"><span>🎓</span>Learn</button>
     </nav>
   </main>
-  <script src="app.js?v=02819"></script>
+  <script src="app.js?v=02820"></script>
 </body>
 </html>
