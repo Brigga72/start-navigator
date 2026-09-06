@@ -808,12 +808,33 @@ function prodNodeByLocationV0285(loc){
   ));
   return n||null;
 }
+function prodResolutionDiagnosticV02813(loc,node){
+  if(!loc)return {location:null,node:null,deckMatch:null,reason:'missing_location'};
+  const alias=PROD_ROUTE_ALIASES_V0285[loc.id]||PROD_DEST_ALIASES_V026[loc.id]||null;
+  const locationDeck=String(loc.mapDeck||loc.deck||'');
+  const graphDeck=node?String(node.deck||''):'';
+  const deckMatch=!!node&&locationDeck===graphDeck;
+  return {
+    location:{id:loc.id,name:loc.name,deck:locationDeck,area:loc.area||'',alias:alias||null},
+    node:node?{id:node.id,label:node.label,deck:graphDeck,panel:node.panel,type:node.type}:null,
+    deckMatch,
+    reason:!node?'no_graph_match':deckMatch?'verified_mapped_entrance_same_deck':'verified_mapped_entrance_different_deck'
+  };
+}
 function prodRouteV0285(fromId,d){
   const from=locationById(fromId);
   const profileKey=productionRouteProfileV0285();
   const start=prodNodeByLocationV0285(from);
   const end=prodNodeByLocationV0285(d);
   debugResetV0272({fromId,toId:d&&d.id,toName:d&&d.name,engine:'weighted-production-v0285',profile:profileKey});
+  debugPushV0272('production_endpoint_resolution',{
+    role:'start',
+    ...prodResolutionDiagnosticV02813(from,start)
+  });
+  debugPushV0272('production_endpoint_resolution',{
+    role:'destination',
+    ...prodResolutionDiagnosticV02813(d,end)
+  });
 
   // Basecamp is still only partially mapped, so route to the end of the verified
   // Deck 16 Forward coverage and then switch to orientation/signage guidance.
@@ -1874,7 +1895,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.28.13-dev10';
+const BUILD_VERSION = '0.28.13-dev11';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
@@ -1960,7 +1981,7 @@ el('mapOverlay').addEventListener('click',e=>{if(e.target===el('mapOverlay'))clo
 if('serviceWorker' in navigator){
   window.addEventListener('load', async ()=>{
     try {
-      const reg = await navigator.serviceWorker.register('sw-v02820.js');
+      const reg = await navigator.serviceWorker.register('sw-v02821.js');
       // Ask the browser to check for a fresh worker each page launch.
       reg.update().catch(()=>{});
       checkForUpdate();
