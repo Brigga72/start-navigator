@@ -783,6 +783,7 @@ function guidedGraphMapV018(idx){
    can drive real Take Me There navigation. */
 const PROD_ROUTE_ALIASES_V0285={
   sorrentos:"Sorrento's",
+  swimtonic:'Swim and Tonic',
   parkcafe:'Park Cafe',
   chops:'Chops Grille',
   pearl:'The Pearl',
@@ -1919,7 +1920,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.28.13-dev17';
+const BUILD_VERSION = '0.28.13-dev18';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
@@ -2005,7 +2006,7 @@ el('mapOverlay').addEventListener('click',e=>{if(e.target===el('mapOverlay'))clo
 if('serviceWorker' in navigator){
   window.addEventListener('load', async ()=>{
     try {
-      const reg = await navigator.serviceWorker.register('sw-v02827.js');
+      const reg = await navigator.serviceWorker.register('sw-v02828.js');
       // Ask the browser to check for a fresh worker each page launch.
       reg.update().catch(()=>{});
       checkForUpdate();
@@ -2054,6 +2055,7 @@ const exploreVenues = [
   {id:'centralpark', name:'Central Park', icon:'🌳', deck:'8', deckLabel:'8', area:'Midship · Outdoor neighborhood', kind:'Neighborhood', included:true, type:'Garden, dining & live music', food:'Park Café, Chops, Izumi, Lou’s, Trellis Bar and other venues.', best:'Daytime · Evening · Relax', detail:'A garden-like open-air neighborhood. It is worth seeing both during the day and after dark.', related:'Lou’s · Park Café · Chops', keywords:'central park garden lou park cafe chops trellis', routeArea:'Midship · Central Park'},
   {id:'basecampbar', name:'Basecamp Bar', icon:'🍹', deck:'16', deckLabel:'16', area:'Aft · Thrill Island', kind:'Bar', included:true, type:'Pool/deck bar', food:'Drinks alongside Basecamp and Thrill Island activities; beverages cost extra.', best:'Afternoon · Thrill Island', detail:'Convenient stop while exploring Thrill Island.', related:'Basecamp · Thrill Island', keywords:'basecamp bar drinks thrill island', routeArea:'Aft · Thrill Island'},
   {id:'royalbay', name:'Royal Bay Pool', icon:'🏊', deck:'15', deckLabel:'15', area:'Midship · Chill Island', kind:'Pool', included:true, type:'Main pool area', food:'Pool rather than dining.', best:'Daytime · Sea day', detail:'The large main pool area in Chill Island, surrounded by whirlpools and casual food/drink options.', related:'Swim & Tonic · El Loco Fresh', keywords:'royal bay pool chill island swim tonic', routeArea:'Midship · Chill Island'},
+  {id:'swimtonic', name:'Swim & Tonic', icon:'🍹', deck:'16', deckLabel:'16', area:'Forward · Chill Island', kind:'Bar', included:true, type:'Pool/deck bar', food:'Drinks on Deck 16 near the Chill Island pool area; beverages cost extra.', best:'Afternoon · Pool day', detail:'A Deck 16 poolside bar in the forward Chill Island area.', related:'Royal Bay Pool · Lime & Coconut', keywords:'swim tonic bar drinks chill island deck 16 pool', routeArea:'Forward · Chill Island'},
   {id:'hideaway', name:'The Hideaway', icon:'🌴', deck:'15', deckLabel:'15', area:'Aft · Hideaway', kind:'Viewpoint', included:true, type:'Adults-only pool neighborhood', food:'Ocean views, pool and bar.', best:'Sea day · Relax', detail:'An adults-only area with a suspended infinity pool and ocean views.', related:'Hideaway Bar · Deck 16 entrance', keywords:'hideaway pool adults infinity view aft', routeArea:'Aft · Hideaway'},
   {id:'guestservices', name:'Guest Services', icon:'ℹ️', deck:'5', deckLabel:'5', area:'Midship · Royal Promenade', kind:'Service', included:true, type:'Guest assistance desk', food:'Not dining.', best:'Anytime · Questions · Help', detail:'The main guest-help desk shown on your Deck 5 screenshot. Useful to remember as a fixed landmark.', related:'The Pearl', keywords:'guest services help desk deck 5', routeArea:'Midship · Royal Promenade'}
 ];
