@@ -960,6 +960,19 @@ function routeFor(fromId,toId){
   return route;
 }
 function routeAreaLabel(fromId,to){const from=locationById(fromId);return `${from.name} → ${to.name}`;}
+function routeStepAreaV02817(step,d,from){
+  const deck=String(step?.deck||'');
+  if(deck&&deck===String(from?.mapDeck||''))return from?.area||d?.area||'';
+  if(deck&&deck===String(d?.mapDeck||''))return d?.area||from?.area||'';
+  const byDeck={
+    '5':'Royal Promenade',
+    '6':'Royal Promenade',
+    '8':'Central Park',
+    '15':'AquaDome',
+    '16':'Thrill Island'
+  };
+  return byDeck[deck]||d?.area||from?.area||'';
+}
 function guidedMapFor(d,idx){
   const from=locationById(currentLocationId);
   const step=d.route[idx]||d.route[0];
@@ -991,7 +1004,7 @@ function renderGuidedRoute(){
   const progressText=`STEP ${idx+1} OF ${d.route.length}`;
   const accuracy=routeAccuracyMeta(s.accuracy);
   let routeSummary=routeAccuracySummary(d.route);routeSummary=tripConfidenceV027(d.route);
-  el('routeContent').innerHTML=`<div class="route-accuracy ${esc(routeSummary.level)}"><div><span>${esc(routeSummary.label)}</span><strong>${esc(routeSummary.text)}</strong></div><button class="accuracy-help" id="accuracyHelp" aria-label="Navigation accuracy information">?</button></div><div class="location-picker"><button class="location-field" id="fromLocationBtn"><span>📍 FROM</span><strong>${esc(from.name)}</strong><small>Deck ${esc(from.mapDeck)} · change</small></button><div class="location-arrow">→</div><button class="location-field" id="toLocationBtn"><span>🎯 TO</span><strong>${esc(d.name)}</strong><small>Deck ${esc(d.mapDeck)}</small></button></div><div class="route-profile-control"><label><span>ROUTING PREFERENCE</span><select id="routeProfileSelect">${Object.entries(ROUTE_PROFILES_V0284).map(([k,v])=>`<option value="${k}" ${k===productionRouteProfileV0285()?'selected':''}>${v.label}</option>`).join('')}</select></label><small>${esc((ROUTE_PROFILES_V0284[productionRouteProfileV0285()]||ROUTE_PROFILES_V0284.balanced).desc)}</small></div><div class="guided-top"><button class="back-btn" onclick="navigate('home')">‹ Exit</button><div class="guided-progress"><span>${progressText}</span><div><i style="width:${pct}%"></i></div></div></div><div class="route-hero guided-hero"><div class="eyebrow">${esc(routeAreaLabel(currentLocationId,d))}</div><h2>${type}</h2><div class="route-tag">Deck ${esc(s.deck||d.mapDeck)} · ${esc(d.area)}</div><div class="prod-confidence-v026 ${esc(stepConfidenceV027(s).level)}">${esc(stepConfidenceV027(s).label)}</div></div><div class="guided-map">${guidedMapFor(d,idx)}</div><div class="instruction-card"><div class="step-num big">${idx+1}</div><div><div class="step-type">${type} <span class="step-accuracy ${esc(stepConfidenceV027(s).level)}">${esc(stepConfidenceV027(s).label)}</span></div><div class="instruction-text">${esc(s.text)}</div></div></div>${idx===d.route.length-1?nearby:''}<div class="route-debug-v0272">
+  el('routeContent').innerHTML=`<div class="route-accuracy ${esc(routeSummary.level)}"><div><span>${esc(routeSummary.label)}</span><strong>${esc(routeSummary.text)}</strong></div><button class="accuracy-help" id="accuracyHelp" aria-label="Navigation accuracy information">?</button></div><div class="location-picker"><button class="location-field" id="fromLocationBtn"><span>📍 FROM</span><strong>${esc(from.name)}</strong><small>Deck ${esc(from.mapDeck)} · change</small></button><div class="location-arrow">→</div><button class="location-field" id="toLocationBtn"><span>🎯 TO</span><strong>${esc(d.name)}</strong><small>Deck ${esc(d.mapDeck)}</small></button></div><div class="route-profile-control"><label><span>ROUTING PREFERENCE</span><select id="routeProfileSelect">${Object.entries(ROUTE_PROFILES_V0284).map(([k,v])=>`<option value="${k}" ${k===productionRouteProfileV0285()?'selected':''}>${v.label}</option>`).join('')}</select></label><small>${esc((ROUTE_PROFILES_V0284[productionRouteProfileV0285()]||ROUTE_PROFILES_V0284.balanced).desc)}</small></div><div class="guided-top"><button class="back-btn" onclick="navigate('home')">‹ Exit</button><div class="guided-progress"><span>${progressText}</span><div><i style="width:${pct}%"></i></div></div></div><div class="route-hero guided-hero"><div class="eyebrow">${esc(routeAreaLabel(currentLocationId,d))}</div><h2>${type}</h2><div class="route-tag">Deck ${esc(s.deck||d.mapDeck)} · ${esc(routeStepAreaV02817(s,d,from))}</div><div class="prod-confidence-v026 ${esc(stepConfidenceV027(s).level)}">${esc(stepConfidenceV027(s).label)}</div></div><div class="guided-map">${guidedMapFor(d,idx)}</div><div class="instruction-card"><div class="step-num big">${idx+1}</div><div><div class="step-type">${type} <span class="step-accuracy ${esc(stepConfidenceV027(s).level)}">${esc(stepConfidenceV027(s).label)}</span></div><div class="instruction-text">${esc(s.text)}</div></div></div>${idx===d.route.length-1?nearby:''}<div class="route-debug-v0272">
   <details>
     <summary>Route Debug</summary>
     <div class="route-debug-actions-v0272">
@@ -1906,7 +1919,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.28.13-dev16';
+const BUILD_VERSION = '0.28.13-dev17';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
@@ -1992,7 +2005,7 @@ el('mapOverlay').addEventListener('click',e=>{if(e.target===el('mapOverlay'))clo
 if('serviceWorker' in navigator){
   window.addEventListener('load', async ()=>{
     try {
-      const reg = await navigator.serviceWorker.register('sw-v02826.js');
+      const reg = await navigator.serviceWorker.register('sw-v02827.js');
       // Ask the browser to check for a fresh worker each page launch.
       reg.update().catch(()=>{});
       checkForUpdate();
