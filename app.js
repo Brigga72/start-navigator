@@ -1142,9 +1142,23 @@ function shipNetworkStatsV0281(data){
   const decks=[...new Set(nodes.map(n=>String(n.deck||'')).filter(Boolean))].sort((a,b)=>Number(a)-Number(b));
   return {nodes:nodes.length,edges:edges.length,decks};
 }
+function edgePairKeyV0286(e){
+  const a=String(e&&e.a||''),b=String(e&&e.b||'');
+  return a<b?a+'|'+b:b+'|'+a;
+}
+function bundledNetworkDeltaV0286(local=loadShipnetV020(),bundled=bundledShipNetworkV0281()){
+  const localNodes=Array.isArray(local&&local.nodes)?local.nodes:[],localEdges=Array.isArray(local&&local.edges)?local.edges:[];
+  const bundledNodes=Array.isArray(bundled&&bundled.nodes)?bundled.nodes:[],bundledEdges=Array.isArray(bundled&&bundled.edges)?bundled.edges:[];
+  const localIds=new Set(localNodes.map(n=>n.id));
+  const localPairs=new Set(localEdges.map(edgePairKeyV0286));
+  return {
+    missingNodes:bundledNodes.filter(n=>!localIds.has(n.id)),
+    missingEdges:bundledEdges.filter(e=>!localPairs.has(edgePairKeyV0286(e)))
+  };
+}
 function needsBundledNetworkV0281(){
-  const local=loadShipnetV020(), bundled=bundledShipNetworkV0281();
-  return !local || !Array.isArray(local.nodes) || local.nodes.length<bundled.nodes.length;
+  const delta=bundledNetworkDeltaV0286();
+  return delta.missingNodes.length>0||delta.missingEdges.length>0;
 }
 function backupLocalNetworkV0281(){
   try{
@@ -1152,6 +1166,32 @@ function backupLocalNetworkV0281(){
     localStorage.setItem(SHIPNET_BUNDLED_BACKUP_V0281,JSON.stringify({savedAt:new Date().toISOString(),network:current}));
     return true;
   }catch(e){return false}
+}
+function mergeBundledNetworkV0286(){
+  const bundled=bundledShipNetworkV0281();
+  const local=cloneV020(loadShipnetV020());
+  const backed=backupLocalNetworkV0281();
+  const delta=bundledNetworkDeltaV0286(local,bundled);
+  const merged=cloneV020(local);
+  merged.nodes.push(...cloneV020(delta.missingNodes));
+  const ids=new Set(merged.nodes.map(n=>n.id));
+  delta.missingEdges.forEach(e=>{if(ids.has(e.a)&&ids.has(e.b))merged.edges.push(cloneV020(e))});
+  shipnetStateV020=merged;
+  shipnetSelectedV020=null;
+  shipnetPathLastV020=null;
+  shipnetConnectFirstV020=null;
+  shipnetStairFirstV024=null;
+  shipnetTestPathV020=[];
+  shipnetWeightedTestV028=null;
+  saveShipnetV020();
+  localStorage.setItem('cruise-nav-ship-walknet-source-v0281','merged-verified-v0286');
+  return {
+    merged:shipNetworkStatsV0281(merged),
+    previous:shipNetworkStatsV0281(local),
+    addedNodes:delta.missingNodes.length,
+    addedEdges:delta.missingEdges.length,
+    backed
+  };
 }
 function loadBundledNetworkV0281(){
   const bundled=bundledShipNetworkV0281();
@@ -1493,21 +1533,22 @@ function renderShipNetworkV020(){
   const host=el('networkContent');if(!host)return;loadShipnetV020();
   const localNet=loadShipnetV020(),bundledNet=bundledShipNetworkV0281();
   const localStats=shipNetworkStatsV0281(localNet),bundledStats=shipNetworkStatsV0281(bundledNet);
-  const migrationNeeded=localStats.nodes<bundledStats.nodes;
+  const migrationDelta=bundledNetworkDeltaV0286(localNet,bundledNet);
+  const migrationNeeded=migrationDelta.missingNodes.length>0||migrationDelta.missingEdges.length>0;
   const migrationSource=localStorage.getItem('cruise-nav-ship-walknet-source-v0281')||'';
   const deck=SHIPNET_DECKS_V020[shipnetDeckV020],panel=currentPanelV020(),selected=nodeV020(shipnetSelectedV020),all=localNet.nodes,routeEndpoints=routeEndpointNodesV028();
   const migrationCard=migrationNeeded?`
     <section class="shipnet-panel" id="shipnetMigration0281" style="border:2px solid #c9dff2;background:#f8fbff">
-      <h3>Verified Ship Network Available</h3>
-      <p>Your local editor currently has <strong>${localStats.nodes} nodes / ${localStats.edges} connections</strong>. This build contains the larger verified network with <strong>${bundledStats.nodes} nodes / ${bundledStats.edges} connections</strong> across Decks ${bundledStats.decks.join(', ')}.</p>
-      <p style="margin-top:8px"><strong>Nothing will be lost:</strong> your current local network will be backed up in this browser before the verified network is loaded.</p>
+      <h3>Verified Network Data Missing</h3>
+      <p>Your local editor has <strong>${localStats.nodes} nodes / ${localStats.edges} connections</strong>, but it is missing <strong>${migrationDelta.missingNodes.length} verified nodes</strong> and <strong>${migrationDelta.missingEdges.length} verified connections</strong> from this build.</p>
+      <p style="margin-top:8px"><strong>Your local work will be preserved.</strong> The merge adds only missing bundled node IDs and missing bundled connections. A backup is saved first.</p>
       <div class="shipnet-actions wrap">
-        <button id="shipnetLoadBundled0281" class="primary-action">Load Verified Ship Network</button>
+        <button id="shipnetMergeBundled0286" class="primary-action">Merge Verified Network</button>
       </div>
     </section>`:`
     <section class="shipnet-panel" id="shipnetMigration0281" style="border:1px solid #bfe6cf;background:#f4fbf7">
-      <h3>Verified Ship Network Loaded</h3>
-      <p>This browser currently has <strong>${localStats.nodes} nodes / ${localStats.edges} connections</strong>. The editor is using the bundled verified network${migrationSource?' as its source':''}.</p>
+      <h3>Verified Ship Network Complete</h3>
+      <p>This browser currently has <strong>${localStats.nodes} nodes / ${localStats.edges} connections</strong>. All bundled verified node IDs and connections are present${migrationSource?' alongside your local editor work':''}.</p>
     </section>`;
   host.innerHTML=`
   ${migrationCard}
@@ -1574,13 +1615,12 @@ function mapPointV020(e){const map=el('shipnetMap'),p=currentPanelV020(),r=map.g
 function nearestV020(x,y,max=24){let best=null,d=max;panelNodesV020().forEach(n=>{const q=Math.hypot(n.x-x,n.y-y);if(q<d){d=q;best=n}});return best}
 function exportJsonV020(data,name){const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)}
 function bindShipnetV020(){
-  if(el('shipnetLoadBundled0281')){
-    el('shipnetLoadBundled0281').onclick=()=>{
-      const current=shipNetworkStatsV0281(loadShipnetV020()),bundled=shipNetworkStatsV0281(bundledShipNetworkV0281());
-      if(!confirm(`Replace the current editor network (${current.nodes} nodes / ${current.edges} connections) with the bundled verified ship network (${bundled.nodes} nodes / ${bundled.edges} connections)?\n\nA backup of the current network will be saved in this browser first.`))return;
-      const result=loadBundledNetworkV0281();
-      shipnetDeckV020='5';shipnetPanelV020='forward';
-      alert(`Verified ship network loaded: ${result.bundled.nodes} nodes and ${result.bundled.edges} connections across Decks ${result.bundled.decks.join(', ')}.\n\nYour previous editor network was backed up before replacement.`);
+  if(el('shipnetMergeBundled0286')){
+    el('shipnetMergeBundled0286').onclick=()=>{
+      const current=shipNetworkStatsV0281(loadShipnetV020()),delta=bundledNetworkDeltaV0286();
+      if(!confirm(`Merge ${delta.missingNodes.length} missing verified nodes and ${delta.missingEdges.length} missing verified connections into your current editor network?\n\nYour ${current.nodes} local nodes and ${current.edges} local connections will be preserved, and a backup will be saved first.`))return;
+      const result=mergeBundledNetworkV0286();
+      alert(`Verified network merged. Added ${result.addedNodes} nodes and ${result.addedEdges} connections.\n\nEditor now has ${result.merged.nodes} nodes and ${result.merged.edges} connections. Your pre-merge network was backed up.`);
       renderShipNetworkV020();
     };
   }
@@ -1921,7 +1961,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.28.13-dev24';
+const BUILD_VERSION = '0.28.13-dev25';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
@@ -2007,7 +2047,7 @@ el('mapOverlay').addEventListener('click',e=>{if(e.target===el('mapOverlay'))clo
 if('serviceWorker' in navigator){
   window.addEventListener('load', async ()=>{
     try {
-      const reg = await navigator.serviceWorker.register('sw-v02834.js');
+      const reg = await navigator.serviceWorker.register('sw-v02835.js');
       // Ask the browser to check for a fresh worker each page launch.
       reg.update().catch(()=>{});
       checkForUpdate();
