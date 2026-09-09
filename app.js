@@ -529,8 +529,8 @@ function prodRouteV026(fromId,d){
     const nextDeck=String(n.deck),nextPanel=n.panel;
 
     if((kind==='elevator'||kind==='stairs')&&nextDeck!==String(prev.deck)){
-      flush();seg=[];
       const transitionKind=kind==='stairs'?'stairs':'elevator';
+      flush({kind:transitionKind,label:prev.label||n.label||null});seg=[];
       const transitionText=transitionKind==='stairs'
         ? `Take the stairs from Deck ${prev.deck} to Deck ${n.deck}. Confirm Deck ${n.deck} before continuing.`
         : `Take the Forward elevators from Deck ${prev.deck} to Deck ${n.deck}. Confirm Deck ${n.deck} before exiting.`;
@@ -587,7 +587,7 @@ function prodRouteV026(fromId,d){
     deck=nextDeck;
     panel=nextPanel;
   }
-  flush();
+  flush(hybridBasecamp?null:{kind:'destination',label:d.name});
 
   if(hybridBasecamp){
     const orientStep=routeStep(
@@ -875,12 +875,21 @@ function prodRouteV0285(fromId,d){
   const by=Object.fromEntries(VERIFIED_SHIPNET_V026.nodes.map(n=>[n.id,n]));
   const steps=[];
   let seg=[p.ids[0]],deck=String(by[p.ids[0]].deck),panel=by[p.ids[0]].panel;
-  const flush=()=>{
+  const flush=(toward=null)=>{
     if(seg.length<2)return;
     const first=by[seg[0]],last=by[seg[seg.length-1]];
-    steps.push(routeStep('walk',`Follow the highlighted verified walking path on Deck ${deck}.`,'verified',deck,
+    let walkText=`Follow the highlighted verified walking path on Deck ${deck}.`;
+    if(toward?.kind==='elevator'){
+      const elevatorName=String(toward.label||'the elevator').trim();
+      walkText=`Walk toward ${elevatorName} on Deck ${deck}. Follow the highlighted path to the elevators.`;
+    }else if(toward?.kind==='stairs'){
+      walkText=`Walk toward the stairs on Deck ${deck}. Follow the highlighted path to the stairs.`;
+    }else if(toward?.kind==='destination'&&toward.label){
+      walkText=`Walk toward ${toward.label} on Deck ${deck}. Follow the highlighted path to the destination.`;
+    }
+    steps.push(routeStep('walk',walkText,'verified',deck,
       {v026:{ids:[...seg],deck,panel:panel||first.panel||last.panel},routing:{engine:'weighted',profile:profileKey,cost:p.cost,distance:p.distance}}));
-    debugPushV0272('production_step_created',{kind:'walk',deck,panel,ids:[...seg]});
+    debugPushV0272('production_step_created',{kind:'walk',deck,panel,ids:[...seg],toward:toward||null,text:walkText});
   };
 
   for(let i=1;i<p.ids.length;i++){
@@ -1962,7 +1971,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.28.13-dev26';
+const BUILD_VERSION = '0.28.13-dev27';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
