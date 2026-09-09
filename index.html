@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Cruise Navigator">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=02908">
+  <link rel="stylesheet" href="styles.css?v=02909">
   <title>Cruise Navigator</title>
 </head>
 <body>
@@ -17,7 +17,7 @@
     <header class="topbar">
       <div>
         <div class="eyebrow">ROYAL CARIBBEAN</div>
-        <h1>Cruise Navigator <span>v0.29.8</span></h1>
+        <h1>Cruise Navigator <span>v0.29.9</span></h1>
         <p class="sub">Star of the Seas · Home: Cabin 7456</p>
       </div>
       <button id="infoBtn" class="icon-btn" aria-label="About">i</button>
@@ -32,11 +32,8 @@
       <div class="search-wrap">
         <input id="searchInput" type="search" placeholder="Search the ship..." autocomplete="off">
       </div>
-      <div id="destinationList" class="destination-list hidden"></div>
-
-      <div class="home-primary-actions">
+      <div id="destinationList" class="destination-list hidden"></div>      <div class="home-primary-actions single-home-action">
         <button id="takeHome" class="home-action compact-home-action">⌂ Take Me Home</button>
-        <button class="home-navigate-action" data-focus-search>🧭 Navigate</button>
       </div>
 
       <div id="categoryGrid" class="category-grid home-category-chips"></div>
@@ -126,6 +123,6 @@
       <button class="tab" data-view="learn"><span>🎓</span>Learn</button>
     </nav>
   </main>
-  <script src="app.js?v=02908"></script>
+  <script src="app.js?v=02909"></script>
 </body>
 </html>
