@@ -471,3 +471,10 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 /* v0.29.9 single Home action */
 .home-primary-actions.single-home-action{display:block}
 .home-primary-actions.single-home-action .compact-home-action{width:100%}
+
+
+/* v0.29.13 snapped destination markers */
+.prod-dest-pin-v02913 circle{fill:#0071ce;stroke:#fff;stroke-width:3}
+.prod-dest-pin-v02913 path{fill:#0071ce;stroke:#fff;stroke-width:2}
+.prod-dest-pin-v02913 rect{fill:#102f5f;opacity:.95}
+.prod-dest-pin-v02913 text{fill:#fff;font-size:7px;font-weight:900;letter-spacing:.01em;paint-order:stroke;stroke:#102f5f;stroke-width:1.5px}
