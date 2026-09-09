@@ -1094,10 +1094,28 @@ function routeStepAreaV02817(step,d,from){
   };
   return byDeck[deck]||d?.area||from?.area||'';
 }
+function arrivalCardV02914(d,step){
+  const a=step?.routing?.destinationAnchor||null;
+  const parent=a?.label&&normV026(a.label)!==normV026(d.name)?a.label:null;
+  const subtitle=parent?`Inside ${parent}`:(d.area||'Destination');
+  const note=parent
+    ? `You are at the correct venue area. Look for ${d.name} inside ${parent}.`
+    : `You have reached ${d.name}.`;
+  return `<div class="arrival-card-v02914">
+    <div class="arrival-check-v02914">✓</div>
+    <div class="arrival-icon-v02914">${esc(d.icon||'📍')}</div>
+    <div class="arrival-kicker-v02914">YOU'RE HERE</div>
+    <h3>${esc(d.name)}</h3>
+    <div class="arrival-location-v02914"><span>Deck ${esc(step?.deck||d.mapDeck||d.deck||'')}</span><span>${esc(subtitle)}</span></div>
+    <p>${esc(note)}</p>
+  </div>`;
+}
 function guidedMapFor(d,idx){
   const from=locationById(currentLocationId);
   const step=d.route[idx]||d.route[0];
   const confidence=stepConfidenceV027(step);
+
+  if(step.kind==='arrive') return arrivalCardV02914(d,step);
 
   if(confidence.level==='verified'){
     if(step.kind==='elevator'||step.kind==='stairs'){
@@ -2070,7 +2088,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.29.13';
+const BUILD_VERSION = '0.29.14';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
@@ -2156,7 +2174,7 @@ el('mapOverlay').addEventListener('click',e=>{if(e.target===el('mapOverlay'))clo
 if('serviceWorker' in navigator){
   window.addEventListener('load', async ()=>{
     try {
-      const reg = await navigator.serviceWorker.register('sw-v02913.js');
+      const reg = await navigator.serviceWorker.register('sw-v02914.js');
       // Ask the browser to check for a fresh worker each page launch.
       reg.update().catch(()=>{});
       checkForUpdate();
