@@ -654,9 +654,12 @@ function prodMapPanelV026(step,full=false){
   const markers=pts.map((n,i)=>`<g class="prod-debug-node-v0273"><circle cx="${n.x}" cy="${n.y}" r="7"/><text x="${n.x}" y="${n.y+2.5}" text-anchor="middle">${i+1}</text></g>`).join('');
   const endpointCallout=(deck==='16'&&panel==='forward'&&end.id===DECK16_REGISTRATION_V0274.forward.nodeId)
     ? `<g class="verified-endpoint-v0274"><circle cx="${end.x}" cy="${end.y}" r="13"/><line x1="${end.x}" y1="${end.y-13}" x2="${Math.min(pcfg.w-82,end.x+42)}" y2="${Math.max(24,end.y-42)}"/><rect x="${Math.min(pcfg.w-170,end.x+38)}" y="${Math.max(8,end.y-64)}" width="155" height="38" rx="7"/><text x="${Math.min(pcfg.w-162,end.x+46)}" y="${Math.max(31,end.y-40)}">VERIFIED PATH ENDS HERE</text></g>`:'';
-  const crop=full?{x:0,y:0,w:pcfg.w,h:pcfg.h}:prodCropBoundsV0296(pts,pcfg);
+  const da=meta.destAnchor&&String(meta.destAnchor.deck)===deck&&meta.destAnchor.panel===panel?meta.destAnchor:null;
+  const destPin=da?`<g class="prod-dest-pin-v02913"><circle cx="${da.x}" cy="${da.y}" r="11"/><path d="M ${da.x} ${da.y+11} l -6 11 h 12 z"/><rect x="${Math.max(4,Math.min(pcfg.w-112,da.x-52))}" y="${Math.max(4,da.y-38)}" width="104" height="24" rx="7"/><text x="${Math.max(56,Math.min(pcfg.w-56,da.x))}" y="${Math.max(20,da.y-22)}" text-anchor="middle">${esc(da.label||'Destination')}</text></g>`:''; 
+  const cropPts=da?[...pts,{x:Number(da.x),y:Number(da.y)}]:pts;
+  const crop=full?{x:0,y:0,w:pcfg.w,h:pcfg.h}:prodCropBoundsV0296(cropPts,pcfg);
   const cls=full?'nav-real-map-v018 prod-map-v026 full-prod-map-v0296':'nav-real-map-v018 prod-map-v026 cropped-prod-map-v0296';
-  return `<div class="guided-map-label">DECK ${esc(deck)} · VERIFIED NETWORK</div><div class="${cls}" style="aspect-ratio:${crop.w}/${crop.h}"><svg viewBox="${crop.x} ${crop.y} ${crop.w} ${crop.h}" preserveAspectRatio="none"><image href="${pcfg.src}" x="0" y="0" width="${pcfg.w}" height="${pcfg.h}" preserveAspectRatio="none"/><polyline points="${poly}" class="prod-route-line-v026"/>${markers}<circle cx="${start.x}" cy="${start.y}" r="8" class="prod-start-v026"/><circle cx="${end.x}" cy="${end.y}" r="8" class="prod-end-v026"/>${endpointCallout}</svg></div>`;
+  return `<div class="guided-map-label">DECK ${esc(deck)} · VERIFIED NETWORK</div><div class="${cls}" style="aspect-ratio:${crop.w}/${crop.h}"><svg viewBox="${crop.x} ${crop.y} ${crop.w} ${crop.h}" preserveAspectRatio="none"><image href="${pcfg.src}" x="0" y="0" width="${pcfg.w}" height="${pcfg.h}" preserveAspectRatio="none"/><polyline points="${poly}" class="prod-route-line-v026"/>${markers}<circle cx="${start.x}" cy="${start.y}" r="8" class="prod-start-v026"/><circle cx="${end.x}" cy="${end.y}" r="8" class="prod-end-v026"/>${endpointCallout}${destPin}</svg></div>`;
 }
 
 function expandedMapForV026(d,idx){return guidedMapForStepV027(d&&d.route&&d.route[idx]);}
@@ -850,12 +853,41 @@ const PROD_SHARED_ANCHOR_IDS_V02912=new Set([
   'aquadomemarket','hooked','overlook','ryebean','pirates','lincoln','playmakers','basecampbar','hideaway',
   'pigoutbbq','maithai','lacocinita','fetamed','cremedelacrepe'
 ]);
+
+// v0.29.13 destination anchors: venue coordinates can snap to the nearest verified
+// public corridor without requiring a hand-drawn route to every doorway or food stall.
+const PROD_DESTINATION_ANCHORS_V02913={
+  aquadomemarket:{deck:'15',panel:'forward',x:330,y:520,label:'AquaDome Market'},
+  pigoutbbq:{deck:'15',panel:'forward',x:330,y:520,label:'AquaDome Market'},
+  maithai:{deck:'15',panel:'forward',x:330,y:520,label:'AquaDome Market'},
+  lacocinita:{deck:'15',panel:'forward',x:330,y:520,label:'AquaDome Market'},
+  fetamed:{deck:'15',panel:'forward',x:330,y:520,label:'AquaDome Market'},
+  cremedelacrepe:{deck:'15',panel:'forward',x:330,y:520,label:'AquaDome Market'}
+};
+function prodNearestWalkableNodeV02913(anchor){
+  if(!anchor)return null;
+  const allowed=new Set(['corridor','junction','elevator','stairs']);
+  let best=null,bestScore=Infinity;
+  for(const n of VERIFIED_SHIPNET_V026.nodes){
+    if(String(n.deck)!==String(anchor.deck)||n.panel!==anchor.panel||!allowed.has(n.type))continue;
+    const dx=(Number(n.x)||0)-Number(anchor.x||0),dy=(Number(n.y)||0)-Number(anchor.y||0);
+    const verticalPenalty=(n.type==='elevator'||n.type==='stairs')?120:0;
+    const score=Math.hypot(dx,dy)+verticalPenalty;
+    if(score<bestScore){best=n;bestScore=score;}
+  }
+  return best;
+}
 function productionRouteProfileV0285(){
   const p=localStorage.getItem('cruise-nav-route-profile-v0284')||shipnetRouteProfileV0284||'balanced';
   return ROUTE_PROFILES_V0284[p]?p:'balanced';
 }
 function prodNodeByLocationV0285(loc){
   if(!loc)return null;
+  const coordinateAnchor=PROD_DESTINATION_ANCHORS_V02913[loc.id];
+  if(coordinateAnchor){
+    const snapped=prodNearestWalkableNodeV02913(coordinateAnchor);
+    if(snapped)return snapped;
+  }
   const alias=PROD_ROUTE_ALIASES_V0285[loc.id];
   const wanted=alias||PROD_DEST_ALIASES_V026[loc.id]||loc.name||'';
   const wn=normV026(wanted);
@@ -953,8 +985,9 @@ function prodRouteV0285(fromId,d){
     }else if(toward?.kind==='destination'&&toward.label){
       walkText=`Walk toward ${toward.label} on Deck ${deck}. Follow the highlighted verified path to the destination.${prodDestinationCueV02814(d)}`;
     }
+    const destAnchor=(toward?.kind==='destination')?PROD_DESTINATION_ANCHORS_V02913[d.id]:null;
     steps.push(routeStep('walk',walkText,'verified',deck,
-      {v026:{ids:[...seg],deck,panel:panel||first.panel||last.panel},routing:{engine:'weighted',profile:profileKey,cost:p.cost,distance:p.distance}}));
+      {v026:{ids:[...seg],deck,panel:panel||first.panel||last.panel,destAnchor:destAnchor||null},routing:{engine:'weighted',profile:profileKey,cost:p.cost,distance:p.distance}}));
     debugPushV0272('production_step_created',{kind:'walk',deck,panel,ids:[...seg],toward:toward||null,text:walkText});
   };
 
@@ -1005,10 +1038,12 @@ function prodRouteV0285(fromId,d){
     steps.push(routeStep('arrive',`Continue following Basecamp signage on Deck 16 until you reach Basecamp. This final approach is signage guidance, not a verified corridor trace.`,'signage','16',
       {routing:{engine:'weighted',profile:profileKey,cost:p.cost,distance:p.distance}}));
   }else if(PROD_SHARED_ANCHOR_IDS_V02912.has(d.id)){
+    const a=PROD_DESTINATION_ANCHORS_V02913[d.id];
+    const areaLabel=a?.label||weightedEnd.label||'neighborhood';
     steps.push(routeStep('arrive',
-      `You have reached the verified ${weightedEnd.label||'neighborhood'} arrival area on Deck ${weightedEnd.deck}. Follow posted signs for the final approach to ${d.name}.`,
+      `You have reached the verified walking approach beside ${areaLabel} on Deck ${weightedEnd.deck}. Follow posted signs for the final approach to ${d.name}.`,
       'signage',weightedEnd.deck,
-      {routing:{engine:'weighted',profile:profileKey,cost:p.cost,distance:p.distance,sharedAnchor:weightedEnd.id}}));
+      {routing:{engine:'weighted',profile:profileKey,cost:p.cost,distance:p.distance,sharedAnchor:weightedEnd.id,destinationAnchor:a||null}}));
   }else{
     steps.push(routeStep('arrive',`Arrive at ${d.name} on Deck ${weightedEnd.deck}.${prodDestinationCueV02814(d)}`,'verified',weightedEnd.deck,
       {v026:{ids:[weightedEnd.id],deck:String(weightedEnd.deck),panel:weightedEnd.panel,kind:'arrive'},routing:{engine:'weighted',profile:profileKey,cost:p.cost,distance:p.distance}}));
@@ -2035,7 +2070,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.29.12';
+const BUILD_VERSION = '0.29.13';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
@@ -2121,7 +2156,7 @@ el('mapOverlay').addEventListener('click',e=>{if(e.target===el('mapOverlay'))clo
 if('serviceWorker' in navigator){
   window.addEventListener('load', async ()=>{
     try {
-      const reg = await navigator.serviceWorker.register('sw-v02912.js');
+      const reg = await navigator.serviceWorker.register('sw-v02913.js');
       // Ask the browser to check for a fresh worker each page launch.
       reg.update().catch(()=>{});
       checkForUpdate();
