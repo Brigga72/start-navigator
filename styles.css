@@ -450,3 +450,20 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 .route-full-map-v0295 .full-prod-map-v0296{
   width:100%;
 }
+
+/* v0.29.6 route-focused verified map crop */
+#routeView .guided-map .cropped-prod-map-v0296{
+  width:100%;
+  max-width:none;
+  margin:0 auto;
+}
+#routeView .guided-map .cropped-prod-map-v0296 svg{
+  width:100%;
+  height:100%;
+  max-height:none;
+}
+#routeView .route-full-map-v0295 .full-prod-map-v0296{
+  width:100%;
+  max-width:none;
+  margin:0;
+}
