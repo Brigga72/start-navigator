@@ -467,3 +467,7 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
   max-width:none;
   margin:0;
 }
+
+/* v0.29.9 single Home action */
+.home-primary-actions.single-home-action{display:block}
+.home-primary-actions.single-home-action .compact-home-action{width:100%}
