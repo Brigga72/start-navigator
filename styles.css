@@ -314,3 +314,24 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 @media(max-width:360px){.current-location-card{grid-template-columns:34px 1fr auto;gap:8px}.current-location-icon{width:34px;height:34px}.current-location-change{padding:7px 8px;font-size:8px}}
 
 .search-diagnostic-v02813{margin:8px 0 14px;padding:10px 12px;border:1px dashed #8fb9dd;background:#f5faff;border-radius:12px;color:#29465e;font-size:10px;line-height:1.45}.search-diagnostic-v02813 strong{display:block;color:#0071ce;letter-spacing:.08em;margin-bottom:4px}.search-diagnostic-v02813 b{font-weight:800}
+
+/* v0.29.2 iPhone home simplification */
+.compact-profile{margin-bottom:10px}
+.iphone-profile-card{padding:12px 13px}
+.iphone-profile-card .profile-main small,.iphone-profile-card .profile-benefits{display:none}
+.iphone-profile-card .profile-main h3{font-size:14px;margin:2px 0}
+.iphone-profile-card .profile-main p{font-size:11px;margin:0}
+.current-location-home{margin-bottom:14px}
+.home-search-head{margin-top:4px}
+.home-search-head h2{font-size:20px;margin-bottom:10px}
+.home-primary-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0 8px}
+.compact-home-action,.home-navigate-action{margin:0;min-height:48px;border-radius:14px;font-weight:800}
+.home-navigate-action{border:1px solid #b9d8f3;background:#eef7ff;color:var(--blue)}
+.home-category-chips{display:flex;gap:7px;overflow-x:auto;margin:8px -16px 14px;padding:0 16px 4px;scrollbar-width:none}
+.home-category-chips::-webkit-scrollbar{display:none}
+.home-category-chips .cat{flex:0 0 auto;min-height:38px;padding:9px 12px;border-radius:999px;box-shadow:none;white-space:nowrap}
+.home-category-chips .cat strong{font-size:12px}
+.compact-island-entry{margin-top:12px}
+.home-more-row{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:12px 0 4px}
+.home-more-row button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 4px;font-size:10px;font-weight:800;color:var(--ink)}
+@media(max-width:360px){.home-more-row{grid-template-columns:repeat(2,1fr)}}
