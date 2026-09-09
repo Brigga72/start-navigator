@@ -425,3 +425,28 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
   height:100%;
   max-height:none;
 }
+
+/* v0.29.6 route-segment map crop */
+#routeView .guided-map .prod-map-v026{
+  width:100%;
+  max-width:none;
+  margin:0 auto;
+}
+#routeView .cropped-prod-map-v0296{
+  max-height:440px;
+}
+#routeView .cropped-prod-map-v0296 svg,
+#routeView .full-prod-map-v0296 svg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  max-height:none;
+}
+#routeView .cropped-prod-map-v0296 image,
+#routeView .full-prod-map-v0296 image{
+  pointer-events:none;
+}
+.route-full-map-v0295 .full-prod-map-v0296{
+  width:100%;
+}
