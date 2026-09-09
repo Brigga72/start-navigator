@@ -612,7 +612,24 @@ function prodRouteV026(fromId,d){
   debugPushV0272('route_complete',{steps:steps.map((s,i)=>({index:i+1,kind:s.kind,accuracy:s.accuracy,deck:s.deck,v026:s.v026||null,text:s.text}))});
   return steps;
 }
-function prodMapPanelV026(step){
+function prodCropBoundsV0296(pts,pcfg){
+  const xs=pts.map(n=>Number(n.x)||0),ys=pts.map(n=>Number(n.y)||0);
+  let minX=Math.min(...xs)-110,maxX=Math.max(...xs)+110;
+  let minY=Math.min(...ys)-70,maxY=Math.max(...ys)+70;
+  const minW=pcfg.w*.82,minH=pcfg.h*.38;
+  const grow=(lo,hi,minSize,maxSize)=>{
+    let size=hi-lo;
+    if(size<minSize){const c=(lo+hi)/2;lo=c-minSize/2;hi=c+minSize/2;}
+    if(lo<0){hi-=lo;lo=0;}
+    if(hi>maxSize){lo-=hi-maxSize;hi=maxSize;}
+    lo=Math.max(0,lo);hi=Math.min(maxSize,hi);
+    return [lo,hi];
+  };
+  [minX,maxX]=grow(minX,maxX,minW,pcfg.w);
+  [minY,maxY]=grow(minY,maxY,minH,pcfg.h);
+  return {x:minX,y:minY,w:maxX-minX,h:maxY-minY};
+}
+function prodMapPanelV026(step,full=false){
   const meta=step&&step.v026;
   if(!meta||!meta.ids||!meta.ids.length){debugPushV0272('render_no_meta',{kind:step&&step.kind,deck:step&&step.deck});return null;}
   const by=Object.fromEntries(VERIFIED_SHIPNET_V026.nodes.map(n=>[n.id,n]));
@@ -628,7 +645,9 @@ function prodMapPanelV026(step){
   const markers=pts.map((n,i)=>`<g class="prod-debug-node-v0273"><circle cx="${n.x}" cy="${n.y}" r="7"/><text x="${n.x}" y="${n.y+2.5}" text-anchor="middle">${i+1}</text></g>`).join('');
   const endpointCallout=(deck==='16'&&panel==='forward'&&end.id===DECK16_REGISTRATION_V0274.forward.nodeId)
     ? `<g class="verified-endpoint-v0274"><circle cx="${end.x}" cy="${end.y}" r="13"/><line x1="${end.x}" y1="${end.y-13}" x2="${Math.min(pcfg.w-82,end.x+42)}" y2="${Math.max(24,end.y-42)}"/><rect x="${Math.min(pcfg.w-170,end.x+38)}" y="${Math.max(8,end.y-64)}" width="155" height="38" rx="7"/><text x="${Math.min(pcfg.w-162,end.x+46)}" y="${Math.max(31,end.y-40)}">VERIFIED PATH ENDS HERE</text></g>`:'';
-  return `<div class="guided-map-label">DECK ${esc(deck)} · VERIFIED NETWORK</div><div class="nav-real-map-v018 prod-map-v026" style="aspect-ratio:${pcfg.w}/${pcfg.h}"><img src="${pcfg.src}" alt="Deck ${esc(deck)} map"><svg viewBox="0 0 ${pcfg.w} ${pcfg.h}" preserveAspectRatio="none"><polyline points="${poly}" class="prod-route-line-v026"/>${markers}<circle cx="${start.x}" cy="${start.y}" r="8" class="prod-start-v026"/><circle cx="${end.x}" cy="${end.y}" r="8" class="prod-end-v026"/>${endpointCallout}</svg></div>`;
+  const crop=full?{x:0,y:0,w:pcfg.w,h:pcfg.h}:prodCropBoundsV0296(pts,pcfg);
+  const cls=full?'nav-real-map-v018 prod-map-v026 full-prod-map-v0296':'nav-real-map-v018 prod-map-v026 cropped-prod-map-v0296';
+  return `<div class="guided-map-label">DECK ${esc(deck)} · VERIFIED NETWORK</div><div class="${cls}" style="aspect-ratio:${crop.w}/${crop.h}"><svg viewBox="${crop.x} ${crop.y} ${crop.w} ${crop.h}" preserveAspectRatio="none"><image href="${pcfg.src}" x="0" y="0" width="${pcfg.w}" height="${pcfg.h}" preserveAspectRatio="none"/><polyline points="${poly}" class="prod-route-line-v026"/>${markers}<circle cx="${start.x}" cy="${start.y}" r="8" class="prod-start-v026"/><circle cx="${end.x}" cy="${end.y}" r="8" class="prod-end-v026"/>${endpointCallout}</svg></div>`;
 }
 
 function expandedMapForV026(d,idx){return guidedMapForStepV027(d&&d.route&&d.route[idx]);}
@@ -1019,13 +1038,16 @@ function guidedMapFor(d,idx){
   return guidedMapForStepV027(step);
 }
 function openCurrentVerifiedMapV0295(){
-  const map=document.querySelector('#routeContent .guided-map .prod-map-v026');
-  if(!map)return;
+  const d=destinations.find(x=>x.id===guidedState.destId);if(!d)return;
+  const idx=Math.max(0,Math.min(guidedState.step,d.route.length-1));
+  const step=d.route[idx];if(!step)return;
+  const full=prodMapPanelV026(step,true);if(!full)return;
   el('overlayTitle').textContent='Full Deck Map';
-  el('overlayMap').innerHTML=`<div class="route-full-map-v0295">${map.outerHTML}</div>`;
+  el('overlayMap').innerHTML=`<div class="route-full-map-v0295">${full}</div>`;
   el('mapOverlay').classList.add('show');
   el('mapOverlay').setAttribute('aria-hidden','false');
 }
+
 function renderGuidedRoute(){
   const d=destinations.find(x=>x.id===guidedState.destId);if(!d)return;
   d.route=routeFor(currentLocationId,d.id);
@@ -1972,7 +1994,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.29.5';
+const BUILD_VERSION = '0.29.6';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
@@ -2058,7 +2080,7 @@ el('mapOverlay').addEventListener('click',e=>{if(e.target===el('mapOverlay'))clo
 if('serviceWorker' in navigator){
   window.addEventListener('load', async ()=>{
     try {
-      const reg = await navigator.serviceWorker.register('sw-v02905.js');
+      const reg = await navigator.serviceWorker.register('sw-v02906.js');
       // Ask the browser to check for a fresh worker each page launch.
       reg.update().catch(()=>{});
       checkForUpdate();
