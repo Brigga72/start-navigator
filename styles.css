@@ -335,3 +335,47 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 .home-more-row{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:12px 0 4px}
 .home-more-row button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 4px;font-size:10px;font-weight:800;color:var(--ink)}
 @media(max-width:360px){.home-more-row{grid-template-columns:repeat(2,1fr)}}
+
+/* v0.29.3 compact guided navigation for iPhone */
+#routeView{padding-bottom:94px}
+#routeView .guided-hero{padding:14px 16px 10px;margin:10px 0}
+#routeView .guided-hero h2{font-size:22px;margin:2px 0}
+#routeView .guided-map{padding:8px;margin:7px 0 9px;border-radius:16px}
+#routeView .deck-change-card{padding:16px 8px}
+#routeView .deck-change-icon{font-size:34px;line-height:1}
+#routeView .deck-from,#routeView .deck-to{font-size:22px;line-height:1.05}
+#routeView .deck-arrow{font-size:24px;line-height:1}
+#routeView .deck-change-card small{margin-top:8px;font-size:11px;line-height:1.3}
+#routeView .instruction-card{padding:14px;margin:9px 0;gap:11px;border-radius:16px}
+#routeView .step-num.big{width:36px;height:36px;min-width:36px;font-size:16px}
+#routeView .instruction-text{font-size:16px;line-height:1.22;margin-top:2px}
+#routeView .step-type{font-size:11px}
+#routeView .guided-actions{
+  position:fixed;
+  z-index:24;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:calc(72px + env(safe-area-inset-bottom));
+  width:min(430px,100%);
+  grid-template-columns:repeat(3,1fr);
+  gap:7px;
+  padding:8px 16px;
+  background:rgba(244,247,250,.96);
+  backdrop-filter:blur(14px);
+  border-top:1px solid var(--line)
+}
+#routeView .guided-actions .next-action,
+#routeView .guided-actions .confused-action,
+#routeView .guided-actions .secondary-action{
+  padding:12px 7px;
+  font-size:12px;
+  min-height:44px
+}
+#routeView .guided-actions .next-action:last-child:nth-child(2){grid-column:auto}
+#routeView .guided-actions .next-action:last-child:nth-child(3){grid-column:auto}
+@media(max-width:360px){
+  #routeView .guided-actions{padding-left:10px;padding-right:10px;gap:5px}
+  #routeView .guided-actions .next-action,
+  #routeView .guided-actions .confused-action,
+  #routeView .guided-actions .secondary-action{font-size:11px;padding:11px 5px}
+}
