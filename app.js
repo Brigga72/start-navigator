@@ -25,7 +25,7 @@ const destinations = [
   {id:'spotlight', name:'Spotlight Karaoke', deck:'5', area:'Royal Promenade · Entertainment', category:'shows', icon:'🎤', keywords:'spotlight karaoke trivia name that tune', note:'Cruise Compass reference places Spotlight Karaoke on Deck 5.', confidence:'VENUE + DECK VERIFIED FROM CRUISE COMPASS; EXACT CORRIDOR ROUTE NOT TRACED', mapDeck:'5', mapNode:'promenade', route:[]},
   {id:'schooner', name:'Schooner Bar', deck:'6', area:'Royal Promenade · Bar', category:'dining', icon:'🎹', keywords:'schooner bar trivia piano', note:'Cruise Compass reference places Schooner Bar on Deck 6.', confidence:'VENUE + DECK VERIFIED FROM CRUISE COMPASS; EXACT CORRIDOR ROUTE NOT TRACED', mapDeck:'6', mapNode:'promenade', route:[]},
   {id:'dueling', name:'Dueling Pianos', deck:'6', area:'Royal Promenade · Entertainment', category:'shows', icon:'🎹', keywords:'dueling pianos trivia music', note:'Cruise Compass reference places Dueling Pianos on Deck 6.', confidence:'VENUE + DECK VERIFIED FROM CRUISE COMPASS; EXACT CORRIDOR ROUTE NOT TRACED', mapDeck:'6', mapNode:'promenade', route:[]},
-  {id:'musichall', name:'Music Hall', deck:'3–4', area:'Entertainment · Music Hall', category:'shows', icon:'🎸', keywords:'music hall game show concert nightlife', note:'Cruise Compass reference places Music Hall on Decks 3 and 4.', confidence:'VENUE + DECK VERIFIED FROM CRUISE COMPASS; EXACT CORRIDOR ROUTE NOT TRACED', mapDeck:'5', mapNode:'theater', route:[]},
+  {id:'musichall', name:'Music Hall', deck:'3–4', area:'Forward · Entertainment', category:'shows', icon:'🎸', keywords:'music hall game show concert nightlife', note:'Royal Caribbean deck plans show Music Hall on Decks 3 and 4 near the forward elevator bank and Royal Theater.', confidence:'VENUE + DECK VERIFIED FROM ROYAL CARIBBEAN DECK PLAN; DECK 4 WALKING GEOMETRY PENDING', mapDeck:'4', mapNode:'musichall', route:[]},
   {id:'boleros', name:'Boleros', deck:'6', area:'Royal Promenade · Bar', category:'dining', icon:'💃', keywords:'boleros latin dance music', note:'Cruise Compass reference places Boleros on Deck 6.', confidence:'VENUE + DECK VERIFIED FROM CRUISE COMPASS; EXACT CORRIDOR ROUTE NOT TRACED', mapDeck:'6', mapNode:'promenade', route:[]},
   {id:'thorn', name:'Thorn & Thistle', deck:'5', area:'Royal Promenade · Pub', category:'dining', icon:'🍺', keywords:'thorn thistle pub trivia', note:'Cruise Compass reference places Thorn & Thistle on Deck 5.', confidence:'VENUE + DECK VERIFIED FROM CRUISE COMPASS; EXACT CORRIDOR ROUTE NOT TRACED', mapDeck:'5', mapNode:'promenade', route:[]},
   {id:'aotheater', name:'AO Theater', deck:'6', area:'Adventure Ocean · Theater', category:'shows', icon:'🎭', keywords:'ao theater family puppet movie', note:'Cruise Compass reference places AO Theater on Deck 6.', confidence:'VENUE + DECK VERIFIED FROM CRUISE COMPASS; EXACT CORRIDOR ROUTE NOT TRACED', mapDeck:'6', mapNode:'promenade', route:[]},
@@ -49,7 +49,8 @@ const NAV_ACCURACY={
 const navigationFoundation={
   home:{id:'cabin7456',name:'Cabin 7456',deck:'7',role:'home',accuracy:'verified'},
   decks:{
-    '5':{orientation:'mixed',anchors:['theater','guestservices','mdr','absolute'],transitions:['elevator/stair lobby']},
+    '4':{orientation:'forward-entertainment',anchors:['musichall','theater'],transitions:['forward elevator/stair lobby']},
+    '5':{orientation:'mixed',anchors:['theater','guestservices','mdr'],transitions:['elevator/stair lobby']},
     '6':{orientation:'mixed',anchors:['promenade'],transitions:['elevator/stair lobby','Surfside stairs']},
     '7':{orientation:'home',anchors:['cabin7456','surfside'],transitions:['elevator/stair lobby']},
     '8':{orientation:'mixed',anchors:['centralpark'],transitions:['elevator/stair lobby','stairs to Deck 7']},
@@ -822,6 +823,7 @@ const PROD_ROUTE_ALIASES_V0285={
   absolute:'Absolute Zero',
   sol:'Absolute Zero',
   thorn:'Thorn & Thistle',
+  musichall:'Music Hall',
   mdr:'Main Dining Room'
 };
 function productionRouteProfileV0285(){
