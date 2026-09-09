@@ -816,7 +816,6 @@ const PROD_ROUTE_ALIASES_V0285={
   chops:'Chops Grille',
   pearl:'The Pearl',
   royalpromenade:'Royal Promenade',
-  centralpark:'Central Park',
   aotheater:'AO Theater',
   basecamp:'Base Camp',
   schooner:'Schooner Bar',
