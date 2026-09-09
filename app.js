@@ -897,8 +897,11 @@ function prodRouteV0285(fromId,d){
     const nextDeck=String(n.deck),nextPanel=n.panel;
 
     if((kind==='elevator'||kind==='stairs')&&nextDeck!==String(prev.deck)){
-      flush();seg=[];
       const transitionKind=kind==='stairs'?'stairs':'elevator';
+      flush({
+        kind:transitionKind,
+        label:transitionKind==='elevator'?(prev.label||n.label||'the elevator'):(prev.label||n.label||'the stairs')
+      });seg=[];
       const transitionLabel=transitionKind==='stairs'
         ? `Take the stairs from Deck ${prev.deck} to Deck ${n.deck}.`
         : `Take ${prev.label||n.label||'the elevator'} from Deck ${prev.deck} to Deck ${n.deck}.`;
@@ -928,7 +931,7 @@ function prodRouteV0285(fromId,d){
     if(!seg.length)seg=[p.ids[i-1]];
     seg.push(n.id);deck=nextDeck;panel=nextPanel;
   }
-  flush();
+  flush(hybridBasecamp?null:{kind:'destination',label:d&&d.name});
 
   if(hybridBasecamp){
     steps.push(routeStep('orient',`Verified map coverage ends near Crown's Edge. From here, continue into Thrill Island and follow posted signs toward Adrenaline Peak and Basecamp. The app will not draw an exact line through this unmapped section.`,'orientation','16',
