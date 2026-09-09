@@ -828,6 +828,15 @@ const PROD_ROUTE_ALIASES_V0285={
   category6:'Category 6 Waterpark',
   sportscourt:'Sports Court',
   boleros:'Boleros',
+  aquadomemarket:'Aqua Theater',
+  hooked:'Aqua Theater',
+  overlook:'Aqua Theater',
+  ryebean:'Aqua Theater',
+  pirates:'Aqua Theater',
+  lincoln:'Park Cafe',
+  playmakers:'Pearl Cafe',
+  basecampbar:'Base Camp',
+  hideaway:'Royal Bay Pool',
   pigoutbbq:'Aqua Theater',
   maithai:'Aqua Theater',
   lacocinita:'Aqua Theater',
@@ -836,6 +845,11 @@ const PROD_ROUTE_ALIASES_V0285={
   aotheater:'Adventure Ocean',
   mdr:'Main Dining Room'
 };
+
+const PROD_SHARED_ANCHOR_IDS_V02912=new Set([
+  'aquadomemarket','hooked','overlook','ryebean','pirates','lincoln','playmakers','basecampbar','hideaway',
+  'pigoutbbq','maithai','lacocinita','fetamed','cremedelacrepe'
+]);
 function productionRouteProfileV0285(){
   const p=localStorage.getItem('cruise-nav-route-profile-v0284')||shipnetRouteProfileV0284||'balanced';
   return ROUTE_PROFILES_V0284[p]?p:'balanced';
@@ -990,6 +1004,11 @@ function prodRouteV0285(fromId,d){
       {routing:{engine:'weighted',profile:profileKey,cost:p.cost,distance:p.distance}}));
     steps.push(routeStep('arrive',`Continue following Basecamp signage on Deck 16 until you reach Basecamp. This final approach is signage guidance, not a verified corridor trace.`,'signage','16',
       {routing:{engine:'weighted',profile:profileKey,cost:p.cost,distance:p.distance}}));
+  }else if(PROD_SHARED_ANCHOR_IDS_V02912.has(d.id)){
+    steps.push(routeStep('arrive',
+      `You have reached the verified ${weightedEnd.label||'neighborhood'} arrival area on Deck ${weightedEnd.deck}. Follow posted signs for the final approach to ${d.name}.`,
+      'signage',weightedEnd.deck,
+      {routing:{engine:'weighted',profile:profileKey,cost:p.cost,distance:p.distance,sharedAnchor:weightedEnd.id}}));
   }else{
     steps.push(routeStep('arrive',`Arrive at ${d.name} on Deck ${weightedEnd.deck}.${prodDestinationCueV02814(d)}`,'verified',weightedEnd.deck,
       {v026:{ids:[weightedEnd.id],deck:String(weightedEnd.deck),panel:weightedEnd.panel,kind:'arrive'},routing:{engine:'weighted',profile:profileKey,cost:p.cost,distance:p.distance}}));
@@ -1018,7 +1037,7 @@ function routeFor(fromId,toId){
   }
 
   if(orient){
-    route.push(routeStep('orient',`On Deck ${to.mapDeck}, use the ship's FORWARD / AFT signs and head ${orient} toward the ${to.area.replace(/^[^·]*·\s*/,'')} area.`,'verified',to.mapDeck));
+    route.push(routeStep('orient',`On Deck ${to.mapDeck}, use the ship's FORWARD / AFT signs and head ${orient} toward the ${to.area.replace(/^[^·]*·\s*/,'')} area.`,'orientation',to.mapDeck));
   }else{
     route.push(routeStep('orient',`On Deck ${to.mapDeck}, orient toward the signed ${to.area} area.`,'orientation',to.mapDeck));
   }
@@ -2016,7 +2035,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.29.11';
+const BUILD_VERSION = '0.29.12';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
@@ -2102,7 +2121,7 @@ el('mapOverlay').addEventListener('click',e=>{if(e.target===el('mapOverlay'))clo
 if('serviceWorker' in navigator){
   window.addEventListener('load', async ()=>{
     try {
-      const reg = await navigator.serviceWorker.register('sw-v02911.js');
+      const reg = await navigator.serviceWorker.register('sw-v02912.js');
       // Ask the browser to check for a fresh worker each page launch.
       reg.update().catch(()=>{});
       checkForUpdate();
