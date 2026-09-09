@@ -478,3 +478,14 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 .prod-dest-pin-v02913 path{fill:#0071ce;stroke:#fff;stroke-width:2}
 .prod-dest-pin-v02913 rect{fill:#102f5f;opacity:.95}
 .prod-dest-pin-v02913 text{fill:#fff;font-size:7px;font-weight:900;letter-spacing:.01em;paint-order:stroke;stroke:#102f5f;stroke-width:1.5px}
+
+
+/* v0.29.14 arrival presentation */
+.arrival-card-v02914{min-height:250px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px 22px;border-radius:20px;background:#fff;box-shadow:0 6px 22px rgba(0,0,0,.08)}
+.arrival-check-v02914{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:#e8f6ee;color:#218c4a;font-size:28px;font-weight:950;margin-bottom:10px}
+.arrival-icon-v02914{font-size:34px;line-height:1;margin-bottom:8px}
+.arrival-kicker-v02914{font-size:11px;font-weight:950;letter-spacing:.12em;color:#0071ce;margin-bottom:6px}
+.arrival-card-v02914 h3{margin:0;font-size:26px;line-height:1.1;color:#182430}
+.arrival-location-v02914{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:12px 0}
+.arrival-location-v02914 span{background:#eef5fb;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:850;color:#345}
+.arrival-card-v02914 p{max-width:360px;margin:4px 0 0;color:#607080;font-size:14px;line-height:1.45}
