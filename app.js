@@ -145,7 +145,7 @@ function cruiseCountdown(){
 function renderCruiseProfile(){
   const host=el('cruiseProfileHome'); if(!host)return; const c=cruiseCountdown();
   const ports=CRUISE_PROFILE.itinerary.filter(x=>x.day>1&&x.day<8&&x.title!=='Cruising').map(x=>`${profileDateLabel(x.date)} · ${x.short}`).join('  •  ');
-  host.innerHTML=`<button class="profile-card" data-view="schedule"><div class="profile-count"><span>${esc(c.label)}</span><strong>${esc(c.value)}</strong><small>${esc(c.unit)}</small></div><div class="profile-main"><div class="profile-kicker">YOUR 2026 SAILING</div><h3>${esc(CRUISE_PROFILE.sailingName)}</h3><p>Sep 13–20 · ${esc(CRUISE_PROFILE.ship)}</p><small>${esc(ports)}</small><div class="profile-benefits"><b>✓ Deluxe Beverage Package</b><b>✓ Hideaway Beach</b><b>✓ 3 excursions</b><b>✓ 2 shows</b></div></div><span class="profile-arrow">›</span></button>`;
+  host.innerHTML=`<button class="profile-card iphone-profile-card" data-view="schedule"><div class="profile-count"><span>${esc(c.label)}</span><strong>${esc(c.value)}</strong><small>${esc(c.unit)}</small></div><div class="profile-main"><div class="profile-kicker">STAR OF THE SEAS</div><h3>${esc(CRUISE_PROFILE.sailingName)}</h3><p>Sep 13–20, 2026</p></div><span class="profile-arrow">›</span></button>`;
 }
 
 /* v0.10 My Schedule: persistent personal cruise itinerary */
@@ -296,7 +296,7 @@ function jumpToScheduleDay(){
 }
 
 loadSchedule();
-function renderCategories(){el('categoryGrid').innerHTML=categories.map(c=>`<button class="cat" data-cat="${c.id}"><strong>${c.icon} ${c.title}</strong><span>${c.note}</span></button>`).join('')}
+function renderCategories(){el('categoryGrid').innerHTML=categories.map(c=>`<button class="cat" data-cat="${c.id}"><strong>${c.icon} ${c.id==='mustdo'?'Must-Do':c.id==='dining'?'Food':c.id==='shows'?'Shows':c.id==='pools'?'Pools':c.id==='activities'?'Fun':'Services'}</strong></button>`).join('')}
 function row(d){return `<button class="dest-row" data-dest="${d.id}"><span class="dest-icon">${d.icon}</span><span class="dest-main"><span class="dest-name">${d.name}${d.mustdo?' <b class="must-pill">MUST-DO</b>':''}</span><span class="dest-meta">Deck ${d.deck} · ${d.area}</span></span><span class="dest-arrow">›</span></button>`}
 function renderSearch(list, extra=''){el('destinationList').innerHTML=list.map(row).join('')+extra; el('destinationList').classList.toggle('hidden',list.length===0&&!extra)}
 
@@ -1745,6 +1745,7 @@ try{applyStairLinksV023()}catch(err){console.error('Stair-link migration skipped
 debugLoadV0272();
 renderCategories();renderSearch([]);renderDecks();renderLesson();renderCurrentLocationHome();
 document.addEventListener('click',e=>{
+  const focusSearch=e.target.closest('[data-focus-search]');if(focusSearch){const input=el('searchInput');if(input){input.focus();input.scrollIntoView({behavior:'smooth',block:'center'});}return}
   const cat=e.target.closest('[data-cat]');if(cat){if(cat.dataset.cat==='mustdo')showMustDo();else renderSearch(destinations.filter(d=>d.category===cat.dataset.cat));el('searchInput').value='';return}
   const dest=e.target.closest('[data-dest]');if(dest){showRoute(dest.dataset.dest);return}
   const view=e.target.closest('[data-view]');if(view){navigate(view.dataset.view);return}
@@ -1960,7 +1961,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Whiskey','Rum','Martini','Coffee','No Alcohol','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-row">${filters.map(f=>`<button class="${drinkFilter===f?'active':''}" data-drink-filter="${esc(f)}">${esc(f)}</button>`).join('')}</div><div class="drink-source-note"><b>How recommendations work:</b> these are recurring favorites found in Royal Caribbean cruiser discussions, plus Royal Caribbean’s own Schooner Bar guidance. They are recommendations, not a guarantee that every bartender or venue will have every drink.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.29.1';
+const BUILD_VERSION = '0.29.2';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
@@ -2046,7 +2047,7 @@ el('mapOverlay').addEventListener('click',e=>{if(e.target===el('mapOverlay'))clo
 if('serviceWorker' in navigator){
   window.addEventListener('load', async ()=>{
     try {
-      const reg = await navigator.serviceWorker.register('sw-v02901.js');
+      const reg = await navigator.serviceWorker.register('sw-v02902.js');
       // Ask the browser to check for a fresh worker each page launch.
       reg.update().catch(()=>{});
       checkForUpdate();
