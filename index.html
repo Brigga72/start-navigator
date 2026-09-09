@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Cruise Navigator">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=02901">
+  <link rel="stylesheet" href="styles.css?v=02902">
   <title>Cruise Navigator</title>
 </head>
 <body>
@@ -17,64 +17,39 @@
     <header class="topbar">
       <div>
         <div class="eyebrow">ROYAL CARIBBEAN</div>
-        <h1>Cruise Navigator <span>v0.29.1</span></h1>
+        <h1>Cruise Navigator <span>v0.29.2</span></h1>
         <p class="sub">Star of the Seas · Home: Cabin 7456</p>
       </div>
       <button id="infoBtn" class="icon-btn" aria-label="About">i</button>
     </header>
 
     <section id="homeView" class="view active">
-      <div class="home-card">
-        <div class="home-icon">⌂</div>
-        <div>
-          <div class="small-label">YOUR HOME</div>
-          <div class="home-room">Cabin 7456</div>
-          <div class="home-meta">Deck 7 · Forward / center</div>
-        </div>
-      </div>
-
-      <button id="takeHome" class="home-action">⌂ Take Me Home</button>
+      <div id="cruiseProfileHome" class="cruise-profile-home compact-profile"></div>
 
       <div id="currentLocationHome" class="current-location-home"></div>
 
-      <div id="cruiseProfileHome" class="cruise-profile-home"></div>
-
-      <button id="cocoCayHome" class="island-entry"><span class="island-entry-icon">🏝️</span><span><strong>Perfect Day at CocoCay</strong><small>Island map · Hideaway Beach access · Included vs extra</small></span><span class="island-entry-arrow">›</span></button>
-
-      <div class="section-head"><h2>Where are you going?</h2><span id="offlineBadge" class="badge">OFFLINE READY</span></div>
+      <div class="section-head home-search-head"><h2>Where do you want to go?</h2><span id="offlineBadge" class="badge">OFFLINE READY</span></div>
       <div class="search-wrap">
-        <input id="searchInput" type="search" placeholder="Search dining, shows, pools..." autocomplete="off">
+        <input id="searchInput" type="search" placeholder="Search the ship..." autocomplete="off">
       </div>
-
       <div id="destinationList" class="destination-list hidden"></div>
 
+      <div class="home-primary-actions">
+        <button id="takeHome" class="home-action compact-home-action">⌂ Take Me Home</button>
+        <button class="home-navigate-action" data-focus-search>🧭 Navigate</button>
+      </div>
+
+      <div id="categoryGrid" class="category-grid home-category-chips"></div>
+
       <div id="schedulePreview" class="schedule-preview"></div>
-      <div id="drinkHome" class="drink-home"></div>
-      <div id="happeningHome" class="happening-home"></div>
-      <div id="categoryGrid" class="category-grid"></div>
 
-      <div class="feature-grid">
-        <button class="feature-card drink-feature" data-view="drinks">
-          <strong>🍹 I Need a Drink</strong>
-          <span>Cruiser favorites, Surprise Me & your Drink Passport.</span>
-        </button>
-        <button class="feature-card" data-view="schedule">
-          <strong>📅 My Schedule</strong>
-          <span>Reservations, showtimes & leave-by reminders.</span>
-        </button>
-        <button class="feature-card" data-view="happening">
-          <strong>✨ What’s Happening</strong>
-          <span>Trivia, karaoke, games, music and smaller events.</span>
-        </button>
-        <button class="feature-card" data-view="explore">
-          <strong>🗺 Explore</strong>
-          <span>Learn the ship deck by deck.</span>
-        </button>
-        <button class="feature-card" data-view="learn">
-          <strong>🎓 Learn My Ship</strong>
-          <span>Practice the landmarks before sailing.</span>
-        </button>
+      <button id="cocoCayHome" class="island-entry compact-island-entry"><span class="island-entry-icon">🏝️</span><span><strong>Perfect Day at CocoCay</strong><small>Island map · Hideaway Beach</small></span><span class="island-entry-arrow">›</span></button>
 
+      <div class="home-more-row">
+        <button data-view="drinks">🍹 Drinks</button>
+        <button data-view="happening">✨ Happening</button>
+        <button data-view="explore">🗺 Explore</button>
+        <button data-view="learn">🎓 Learn</button>
       </div>
     </section>
 
@@ -151,6 +126,6 @@
       <button class="tab" data-view="learn"><span>🎓</span>Learn</button>
     </nav>
   </main>
-  <script src="app.js?v=02901"></script>
+  <script src="app.js?v=02902"></script>
 </body>
 </html>
