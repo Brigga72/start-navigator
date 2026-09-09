@@ -613,21 +613,20 @@ function prodRouteV026(fromId,d){
   return steps;
 }
 function prodCropBoundsV0296(pts,pcfg){
-  const xs=pts.map(n=>Number(n.x)||0),ys=pts.map(n=>Number(n.y)||0);
-  let minX=Math.min(...xs)-110,maxX=Math.max(...xs)+110;
-  let minY=Math.min(...ys)-70,maxY=Math.max(...ys)+70;
-  const minW=pcfg.w*.82,minH=pcfg.h*.38;
-  const grow=(lo,hi,minSize,maxSize)=>{
-    let size=hi-lo;
-    if(size<minSize){const c=(lo+hi)/2;lo=c-minSize/2;hi=c+minSize/2;}
-    if(lo<0){hi-=lo;lo=0;}
-    if(hi>maxSize){lo-=hi-maxSize;hi=maxSize;}
-    lo=Math.max(0,lo);hi=Math.min(maxSize,hi);
-    return [lo,hi];
-  };
-  [minX,maxX]=grow(minX,maxX,minW,pcfg.w);
-  [minY,maxY]=grow(minY,maxY,minH,pcfg.h);
-  return {x:minX,y:minY,w:maxX-minX,h:maxY-minY};
+  const ys=pts.map(n=>Number(n.y)||0);
+  let minY=Math.min(...ys)-80,maxY=Math.max(...ys)+80;
+  const minH=pcfg.h*.38;
+  let h=maxY-minY;
+  if(h<minH){
+    const c=(minY+maxY)/2;
+    minY=c-minH/2;
+    maxY=c+minH/2;
+  }
+  if(minY<0){maxY-=minY;minY=0;}
+  if(maxY>pcfg.h){minY-=maxY-pcfg.h;maxY=pcfg.h;}
+  minY=Math.max(0,minY);
+  maxY=Math.min(pcfg.h,maxY);
+  return {x:0,y:minY,w:pcfg.w,h:maxY-minY};
 }
 function prodMapPanelV026(step,full=false){
   const meta=step&&step.v026;
