@@ -395,3 +395,33 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 #routeView .mini-elevator{position:relative;z-index:2;font-size:28px}
 #routeView .mini-deck-arrow{position:absolute;z-index:3;left:50%;transform:translateX(-50%);bottom:18px;font-style:normal;font-size:26px;font-weight:950;color:#1673d1;line-height:1}
 #routeView .mini-ship-hull b{position:absolute;z-index:3;bottom:2px;left:50%;transform:translateX(-50%);font-size:11px;white-space:nowrap;background:#f7fafc;padding:0 4px}
+
+/* v0.29.5 compact verified deck maps on iPhone */
+#routeView .guided-map .prod-map-v026{
+  width:min(56%,210px);
+  margin:0 auto;
+}
+#routeView .verified-map-actions-v0295{
+  display:flex;
+  justify-content:flex-end;
+  margin:-2px 2px 8px;
+}
+#routeView .verified-map-actions-v0295 button{
+  border:0;
+  border-radius:10px;
+  background:#eef6ff;
+  color:var(--blue);
+  padding:8px 10px;
+  font-size:11px;
+  font-weight:850;
+}
+.route-full-map-v0295 .prod-map-v026{
+  width:100%;
+  max-width:none;
+  margin:0;
+}
+.route-full-map-v0295 .prod-map-v026 svg{
+  width:100%;
+  height:100%;
+  max-height:none;
+}
