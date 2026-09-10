@@ -25,106 +25,38 @@
 
     <section id="homeView" class="view active">
       <div id="cruiseProfileHome" class="cruise-profile-home compact-profile"></div>
-
       <div id="currentLocationHome" class="current-location-home"></div>
-
       <div class="section-head home-search-head"><h2>Where do you want to go?</h2><span id="offlineBadge" class="badge">OFFLINE READY</span></div>
-      <div class="search-wrap">
-        <input id="searchInput" type="search" placeholder="Search the ship..." autocomplete="off">
-      </div>
-      <div id="destinationList" class="destination-list hidden"></div>      <div class="home-primary-actions single-home-action">
-        <button id="takeHome" class="home-action compact-home-action">⌂ Take Me Home</button>
-      </div>
-
+      <div class="search-wrap"><input id="searchInput" type="search" placeholder="Search the ship..." autocomplete="off"></div>
+      <div id="destinationList" class="destination-list hidden"></div>
+      <div class="home-primary-actions single-home-action"><button id="takeHome" class="home-action compact-home-action">⌂ Take Me Home</button></div>
       <div id="categoryGrid" class="category-grid home-category-chips"></div>
-
       <div id="schedulePreview" class="schedule-preview"></div>
-
       <button id="cocoCayHome" class="island-entry compact-island-entry"><span class="island-entry-icon">🏝️</span><span><strong>Perfect Day at CocoCay</strong><small>Island map · Hideaway Beach</small></span><span class="island-entry-arrow">›</span></button>
-
-      <div class="home-more-row">
-        <button data-view="drinks">🍹 Drinks</button>
-        <button data-view="happening">✨ Happening</button>
-        <button data-view="explore">🗺 Explore</button>
-        <button data-view="learn">🎓 Learn</button>
-      </div>
+      <div class="home-more-row"><button data-view="drinks">🍹 Drinks</button><button data-view="happening">✨ Happening</button><button data-view="explore">🗺 Explore</button><button data-view="learn">🎓 Learn</button></div>
     </section>
 
-    <section id="drinksView" class="view">
-      <button class="back-btn" data-go="home">‹ Back</button>
-      <div class="page-title"><div class="eyebrow">DELUXE BEVERAGE PACKAGE</div><h2>🍹 I Need a Drink</h2><p>Choose Daniel, Wife, or Both. Each person keeps a separate Drink Passport, while Both mode finds options that work for you together.</p></div>
-      <div id="drinksContent"></div>
-    </section>
-
-    <section id="scheduleView" class="view">
-      <button class="back-btn" data-go="home">‹ Back</button>
-      <div class="page-title"><div class="eyebrow">MY CRUISE</div><h2>My Schedule</h2><p>Your confirmed Royal Caribbean reservations are preloaded. Add anything else you want to remember.</p></div>
-      <div id="scheduleContent"></div>
-    </section>
-
-    <section id="happeningView" class="view">
-      <button class="back-btn" data-go="home">‹ Back</button>
-      <div class="page-title"><div class="eyebrow">CRUISE COMPASS</div><h2>What’s Happening</h2><p>Learn the rhythm of Star of the Seas with recent-sailing reference events. Confirm actual times in the Royal Caribbean app for your sailing.</p></div>
-      <div id="happeningContent"></div>
-    </section>
-
-    <section id="cococayView" class="view">
-      <button class="back-btn" data-go="home">‹ Back</button>
-      <div id="cococayContent"></div>
-    </section>
+    <section id="drinksView" class="view"><button class="back-btn" data-go="home">‹ Back</button><div class="page-title"><div class="eyebrow">DELUXE BEVERAGE PACKAGE</div><h2>🍹 I Need a Drink</h2><p>Choose Daniel, Wife, or Both. Each person keeps a separate Drink Passport, while Both mode finds options that work for you together.</p></div><div id="drinksContent"></div></section>
+    <section id="scheduleView" class="view"><button class="back-btn" data-go="home">‹ Back</button><div class="page-title"><div class="eyebrow">MY CRUISE</div><h2>My Schedule</h2><p>Your confirmed Royal Caribbean reservations are preloaded. Add anything else you want to remember.</p></div><div id="scheduleContent"></div></section>
+    <section id="happeningView" class="view"><button class="back-btn" data-go="home">‹ Back</button><div class="page-title"><div class="eyebrow">CRUISE COMPASS</div><h2>What’s Happening</h2><p>Learn the rhythm of Star of the Seas with recent-sailing reference events. Confirm actual times in the Royal Caribbean app for your sailing.</p></div><div id="happeningContent"></div></section>
+    <section id="cococayView" class="view"><button class="back-btn" data-go="home">‹ Back</button><div id="cococayContent"></div></section>
 
     <section id="routeView" class="view">
       <div id="shipCompass" class="ship-compass" aria-label="Ship orientation"><div class="compass-forward">FORWARD</div><div class="compass-hull"><span class="compass-core forward-core"></span><span class="compass-core aft-core"></span><span id="compassArrow" class="compass-arrow">↑</span></div><div class="compass-aft">AFT</div><div id="compassHint" class="compass-hint">Ship orientation</div></div>
-      <button class="back-btn" data-go="home">‹ Back</button>
-      <div id="routeContent"></div>
+      <button class="back-btn" data-go="home">‹ Back</button><div id="routeContent"></div>
     </section>
 
-    <div id="mapOverlay" class="map-overlay" aria-hidden="true">
-      <div class="map-sheet">
-        <div class="map-sheet-head"><div><div class="eyebrow">DECK MAP</div><h3 id="overlayTitle">Cruise Navigator</h3></div><button id="closeMap" class="icon-btn" aria-label="Close map">×</button></div>
-        <div id="overlayMap" class="overlay-map"></div>
-        <div class="map-legend"><span><i class="legend-dot you"></i>You</span><span><i class="legend-dot dest"></i>Destination</span><span><i class="legend-dot lift"></i>Elevator / stairs</span></div>
-        <div class="map-disclaimer">Schematic navigation map — not to scale. Ship signage and crew instructions take precedence.</div>
-      </div>
-    </div>
+    <div id="mapOverlay" class="map-overlay" aria-hidden="true"><div class="map-sheet"><div class="map-sheet-head"><div><div class="eyebrow">DECK MAP</div><h3 id="overlayTitle">Cruise Navigator</h3></div><button id="closeMap" class="icon-btn" aria-label="Close map">×</button></div><div id="overlayMap" class="overlay-map"></div><div class="map-legend"><span><i class="legend-dot you"></i>You</span><span><i class="legend-dot dest"></i>Destination</span><span><i class="legend-dot lift"></i>Elevator / stairs</span></div><div class="map-disclaimer">Schematic navigation map — not to scale. Ship signage and crew instructions take precedence.</div></div></div>
 
-    <section id="exploreView" class="view">
-      <button class="back-btn" data-go="home">‹ Back</button>
-      <div class="page-title"><div class="eyebrow">ORIENTATION</div><h2>Explore the Ship</h2><p>Use deck neighborhoods to build a mental map before boarding.</p></div>
-      <div id="deckCards" class="deck-cards"></div>
-    </section>
+    <section id="exploreView" class="view"><button class="back-btn" data-go="home">‹ Back</button><div class="page-title"><div class="eyebrow">ORIENTATION</div><h2>Explore the Ship</h2><p>Use deck neighborhoods to build a mental map before boarding.</p></div><div id="deckCards" class="deck-cards"></div></section>
+    <section id="learnView" class="view"><button class="back-btn" data-go="home">‹ Back</button><div class="page-title"><div class="eyebrow">TRAINING MODE</div><h2>Learn My Ship</h2><p>A few quick challenges to make the ship easier to remember.</p></div><div id="lessonCard" class="lesson-card"></div></section>
+    <section id="infoView" class="view"><button class="back-btn" data-go="home">‹ Back</button><div class="page-title"><div class="eyebrow">ABOUT</div><h2>Cruise Navigator</h2><p>v0.29.0 · Star of the Seas · September 13–20, 2026</p></div><div class="info-card"><h3>Built for your cruise</h3><p>Cruise Navigator keeps your ship navigation, schedule, CocoCay plans, favorite destinations, and onboard tools together in one iPhone-friendly app.</p><h3>Navigation</h3><p>Routes use the verified walking network across the mapped ship decks with Balanced, Elevators Preferred, and No Stairs routing choices. Follow the highlighted route and use onboard signs and crew instructions whenever conditions differ.</p><h3>Offline ready</h3><p>Core app screens, navigation data, and deck maps are stored for offline use after the app has been loaded on your device.</p><h3>Ship orientation</h3><p>Forward means toward the bow of the ship. Aft means toward the stern. Cabin 7456 on Deck 7 is your saved Home location.</p></div></section>
 
-    <section id="learnView" class="view">
-      <button class="back-btn" data-go="home">‹ Back</button>
-      <div class="page-title"><div class="eyebrow">TRAINING MODE</div><h2>Learn My Ship</h2><p>A few quick challenges to make the ship easier to remember.</p></div>
-      <div id="lessonCard" class="lesson-card"></div>
-    </section>
-
-    <section id="infoView" class="view">
-      <button class="back-btn" data-go="home">‹ Back</button>
-      <div class="page-title"><div class="eyebrow">ABOUT</div><h2>Cruise Navigator</h2><p>v0.29.0 · Star of the Seas · September 13–20, 2026</p></div>
-      <div class="info-card">
-        <h3>Built for your cruise</h3>
-        <p>Cruise Navigator keeps your ship navigation, schedule, CocoCay plans, favorite destinations, and onboard tools together in one iPhone-friendly app.</p>
-        <h3>Navigation</h3>
-        <p>Routes use the verified walking network across the mapped ship decks with Balanced, Elevators Preferred, and No Stairs routing choices. Follow the highlighted route and use onboard signs and crew instructions whenever conditions differ.</p>
-        <h3>Offline ready</h3>
-        <p>Core app screens, navigation data, and deck maps are stored for offline use after the app has been loaded on your device.</p>
-        <h3>Ship orientation</h3>
-        <p>Forward means toward the bow of the ship. Aft means toward the stern. Cabin 7456 on Deck 7 is your saved Home location.</p>
-      </div>
-    </section>
-
-    <nav class="tabbar" aria-label="Primary navigation">
-      <button class="tab active" data-view="home"><span>⌂</span>Home</button>
-      <button class="tab" data-view="schedule"><span>📅</span>Schedule</button>
-      <button class="tab" data-view="cococay"><span>🏝️</span>CocoCay</button>
-      <button class="tab" data-view="explore"><span>🗺</span>Ship</button>
-      <button class="tab" data-view="learn"><span>🎓</span>Learn</button>
-    </nav>
+    <nav class="tabbar" aria-label="Primary navigation"><button class="tab active" data-view="home"><span>⌂</span>Home</button><button class="tab" data-view="schedule"><span>📅</span>Schedule</button><button class="tab" data-view="cococay"><span>🏝️</span>CocoCay</button><button class="tab" data-view="explore"><span>🗺</span>Ship</button><button class="tab" data-view="learn"><span>🎓</span>Learn</button></nav>
   </main>
   <script src="app.js?v=02917"></script>
   <script src="drink-order-ui-v02918.js"></script>
   <script src="home-category-ui-v02918.js"></script>
+  <script src="vitality-spa-ui-v02919.js"></script>
 </body>
 </html>
