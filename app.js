@@ -1881,7 +1881,6 @@ document.addEventListener('click',e=>{
   const hr=e.target.closest('[data-happening-route]');if(hr){closeMap();showRoute(hr.dataset.happeningRoute);return}
   const dp=e.target.closest('[data-drink-profile]');if(dp){setDrinkProfile(dp.dataset.drinkProfile);return}
   const df=e.target.closest('[data-drink-filter]');if(df){drinkFilter=df.dataset.drinkFilter;localStorage.setItem(DRINK_FILTER_KEY,drinkFilter);renderDrinks();return}
-  if(e.target&&e.target.id==='drinkCategorySelect'){drinkFilter=e.target.value;localStorage.setItem(DRINK_FILTER_KEY,drinkFilter);renderDrinks();return}
   const ds=e.target.closest('[data-drink-state]');if(ds){if(activeDrinkProfile==='both')return;const id=ds.dataset.drinkId,key=ds.dataset.drinkState;const st=drinkStatus(id);st[key]=!st[key];if(key==='dislike'&&st.dislike){st.favorite=false;}drinkProfiles[activeDrinkProfile][id]=st;saveDrinkState();renderDrinks();renderDrinkHome();return}
   const dr=e.target.closest('[data-drink-route]');if(dr){showRoute(dr.dataset.drinkRoute);return}
   if(e.target.closest('[data-drink-surprise]')){surpriseDrink();return}
@@ -2133,7 +2132,7 @@ function renderDrinkHome(){const h=el('drinkHome');if(!h)return;const s=drinkSta
 function renderDrinks(){const h=el('drinksContent');if(!h)return;const s=drinkStats(),filters=['All','Tropical','Frozen','Rum','Tequila','Whiskey','Vodka','Gin','Martini','Sparkling','Coffee','No Alcohol','Surprise','Favorites'];const list=filteredDrinks();h.innerHTML=`${profileSelector()}<div class="drink-hero"><div><span>YOUR PACKAGE</span><strong>✓ Deluxe Beverage Package</strong><small>Drink availability and package coverage can vary. Confirm any price/package exception with the bartender.</small></div><button data-drink-surprise>🎲 SURPRISE ME</button></div><div class="drink-passport"><div><span>${activeDrinkProfile==='both'?'BOTH TRIED':'TRIED'}</span><strong>${s.tried}</strong></div><div><span>${activeDrinkProfile==='both'?'MUTUAL FAVORITES':'FAVORITES'}</span><strong>${s.favorites}</strong></div><div><span>${activeDrinkProfile==='both'?'BLOCKED BY EITHER':'SKIPPED'}</span><strong>${s.dislikes}</strong></div></div><div class="drink-filter-compact"><label><span>DRINK CATEGORY</span><select id="drinkCategorySelect" aria-label="Drink category">${filters.map(f=>`<option value="${esc(f)}" ${drinkFilter===f?'selected':''}>${esc(f)}</option>`).join('')}</select></label><button class="${drinkFilter==='Favorites'?'active':''}" data-drink-filter="Favorites">♥ Favorites</button></div><div class="drink-source-note"><b>How recommendations work:</b> this expanded passport mixes Star of the Seas venue matches, Royal Caribbean menu highlights from across the fleet, cruise classics, and bartender-request ideas. A Royal menu idea is inspiration, not a guarantee that Star will stock or list that exact recipe. Use the How to Order line when the exact drink is unavailable.</div><div class="drink-list">${list.length?list.map(drinkCard).join(''):'<div class="schedule-empty"><h3>No drinks in this filter yet.</h3><p>Try another category or switch profiles.</p></div>'}</div>`}
 function surpriseDrink(){let pool=DRINKS.filter(d=>!drinkStatus(d.id).dislike);if(activeDrinkProfile==='both'){const mutualFav=pool.filter(d=>combinedDrinkStatus(d.id).favorite);const neitherTried=pool.filter(d=>{const s=combinedDrinkStatus(d.id);return !s.daniel.tried&&!s.wife.tried});if(mutualFav.length)pool=mutualFav;else if(neitherTried.length)pool=neitherTried;}else{const untried=pool.filter(d=>!drinkStatus(d.id).tried);if(untried.length)pool=untried;}if(!pool.length)return;const d=pool[Math.floor(Math.random()*pool.length)];const h=el('drinksContent');renderDrinks();const top=document.createElement('div');top.className='drink-surprise';top.innerHTML=`<span>🎲 ${activeDrinkProfile==='both'?'PICK FOR BOTH':esc(DRINK_PROFILES[activeDrinkProfile]).toUpperCase()+' PICK'}</span><strong>${d.emoji} ${esc(d.name)}</strong><small>${esc(d.why)}</small>`;h.prepend(top);window.scrollTo({top:0,behavior:'smooth'})}
 
-const BUILD_VERSION = '0.29.16';
+const BUILD_VERSION = '0.29.17';
 const BUILD_URL = './version.json';
 const MUSTDO_KEY = 'star-nav-mustdo-v095';
 const LOCATION_KEY = 'star-nav-location-v095';
@@ -2219,7 +2218,7 @@ el('mapOverlay').addEventListener('click',e=>{if(e.target===el('mapOverlay'))clo
 if('serviceWorker' in navigator){
   window.addEventListener('load', async ()=>{
     try {
-      const reg = await navigator.serviceWorker.register('sw-v02916.js');
+      const reg = await navigator.serviceWorker.register('sw-v02917.js');
       // Ask the browser to check for a fresh worker each page launch.
       reg.update().catch(()=>{});
       checkForUpdate();
