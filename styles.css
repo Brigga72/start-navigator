@@ -489,3 +489,6 @@ button{touch-action:manipulation}.deck-card-v07,.venue-card-v07,.cat,.feature-ca
 .arrival-location-v02914{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:12px 0}
 .arrival-location-v02914 span{background:#eef5fb;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:850;color:#345}
 .arrival-card-v02914 p{max-width:360px;margin:4px 0 0;color:#607080;font-size:14px;line-height:1.45}
+
+/* v0.29.15 drink ordering guidance */
+.drink-order-tip{margin:12px 0;padding:12px 14px;border-radius:14px;background:#f2f7ff;border:1px solid #d8e6f7;display:flex;flex-direction:column;gap:5px}.drink-order-tip b{font-size:.72rem;letter-spacing:.08em;color:#1667b1}.drink-order-tip span{font-size:.92rem;line-height:1.35;color:#26384a}
